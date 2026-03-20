@@ -1,42 +1,53 @@
-// Data Models & State
 let state = {
     profile: null,
-    todayLog: {
-        date: new Date().toLocaleDateString(),
-        consumedCals: 0,
-        consumedProtein: 0,
-        bonusTDEE: 0,
-        entries: []
-    },
-    customActivities: []
+    history: {},
+    currentViewDate: new Date().toLocaleDateString('fr-FR'),
+    customActivities: [],
+    weighIns: []
 };
 
 const STORAGE_KEY = 'nutridash_state';
+
+function getActiveLog() {
+    if (!state.history) state.history = {};
+    if (!state.currentViewDate) state.currentViewDate = new Date().toLocaleDateString('fr-FR');
+    if (!state.history[state.currentViewDate]) {
+        state.history[state.currentViewDate] = {
+            date: state.currentViewDate,
+            consumedCals: 0,
+            consumedProtein: 0,
+            bonusTDEE: 0,
+            entries: []
+        };
+    }
+    return state.history[state.currentViewDate];
+}
 
 // Load initial state
 function loadState() {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) {
-        state = JSON.parse(saved);
-        if (!state.customActivities) state.customActivities = [];
-        if (state.todayLog && state.todayLog.entries) {
-            state.todayLog.entries.forEach(e => {
-                if (!e.id) e.id = Date.now() + Math.random();
-            });
-        }
-        // Reset log if a new day starts
-        const todayStr = new Date().toLocaleDateString();
-        if (state.todayLog.date !== todayStr) {
-            state.todayLog = {
-                date: todayStr,
-                consumedCals: 0,
-                consumedProtein: 0,
-                bonusTDEE: 0,
-                entries: []
-            };
-            saveState();
+        const tempState = JSON.parse(saved);
+        if (tempState.todayLog && Object.keys(tempState.history || {}).length === 0) {
+            // Migration
+            state.profile = tempState.profile;
+            state.customActivities = tempState.customActivities || [];
+            if (!state.history) state.history = {};
+            if (tempState.todayLog) {
+                tempState.todayLog.entries.forEach(e => {
+                    if (!e.id) e.id = Date.now() + Math.random();
+                });
+                state.history[tempState.todayLog.date] = tempState.todayLog;
+            }
+        } else {
+            state = tempState;
         }
     }
+    
+    if (!state.customActivities) state.customActivities = [];
+    if (!state.weighIns) state.weighIns = [];
+    state.currentViewDate = new Date().toLocaleDateString('fr-FR');
+    getActiveLog(); // Ensure it exists
 }
 
 function saveState() {
@@ -44,6 +55,18 @@ function saveState() {
 }
 
 // BMR & TDEE Calculations
+function calculateAge(birthDateString) {
+    if (!birthDateString) return 0;
+    const today = new Date();
+    const birthDate = new Date(birthDateString);
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const m = today.getMonth() - birthDate.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+        age--;
+    }
+    return age;
+}
+
 function calculateMifflinStJeor(gender, weight, height, age) {
     if (gender === 'male') {
         return (10 * weight) + (6.25 * height) - (5 * age) + 5;
@@ -130,8 +153,20 @@ navBtns.forEach(btn => {
         const target = btn.dataset.target;
         if (target === 'profile-view') {
             viewDashboard.classList.add('hidden');
+            if (document.getElementById('history-view')) document.getElementById('history-view').classList.add('hidden');
             viewProfile.classList.remove('hidden');
             populateProfileForm();
+        } else if (target === 'history-view') {
+            if (!state.profile) {
+                alert("Veuillez d'abord configurer votre profil.");
+                btn.classList.remove('active');
+                document.querySelector('[data-target="profile-view"]').classList.add('active');
+                return;
+            }
+            viewDashboard.classList.add('hidden');
+            viewProfile.classList.add('hidden');
+            document.getElementById('history-view').classList.remove('hidden');
+            if (window.renderHistoryChart) window.renderHistoryChart();
         } else {
             if (!state.profile) {
                 alert("Veuillez d'abord configurer votre profil.");
@@ -140,6 +175,7 @@ navBtns.forEach(btn => {
                 return;
             }
             viewProfile.classList.add('hidden');
+            if (document.getElementById('history-view')) document.getElementById('history-view').classList.add('hidden');
             viewDashboard.classList.remove('hidden');
             updateDashboard();
         }
@@ -149,12 +185,15 @@ navBtns.forEach(btn => {
 // Profile Form
 document.getElementById('profile-form').addEventListener('submit', (e) => {
     e.preventDefault();
+    const bd = document.getElementById('birthDate').value;
     state.profile = {
-        age: parseInt(document.getElementById('age').value),
+        birthDate: bd,
+        age: calculateAge(bd),
         gender: document.getElementById('gender').value,
         weight: parseFloat(document.getElementById('weight').value),
         height: parseInt(document.getElementById('height').value),
-        activity: parseFloat(document.getElementById('activity').value)
+        activity: parseFloat(document.getElementById('activity').value),
+        weighInDay: parseInt(document.getElementById('weighInDay').value)
     };
     updateProfileData();
     populateProfileForm();
@@ -164,11 +203,17 @@ document.getElementById('profile-form').addEventListener('submit', (e) => {
 
 function populateProfileForm() {
     if (state.profile) {
-        document.getElementById('age').value = state.profile.age;
+        if (state.profile.birthDate) {
+            document.getElementById('birthDate').value = state.profile.birthDate;
+        } else if (state.profile.age) {
+            const estBirthYear = new Date().getFullYear() - state.profile.age;
+            document.getElementById('birthDate').value = `${estBirthYear}-01-01`;
+        }
         document.getElementById('gender').value = state.profile.gender;
         document.getElementById('weight').value = state.profile.weight;
         document.getElementById('height').value = state.profile.height;
         document.getElementById('activity').value = state.profile.activity;
+        document.getElementById('weighInDay').value = state.profile.weighInDay !== undefined ? state.profile.weighInDay : 1;
         
         dpBmr.textContent = Math.round(state.profile.bmr) + " kcal";
         dpTdee.textContent = Math.round(state.profile.tdee) + " kcal";
@@ -184,23 +229,24 @@ document.getElementById('meal-form').addEventListener('submit', (e) => {
     const prot = parseFloat(document.getElementById('meal-protein').value);
 
     const editId = e.target.dataset.editingId;
+    const actLog = getActiveLog();
     if (editId) {
-        const entry = state.todayLog.entries.find(e => e.id == editId);
+        const entry = actLog.entries.find(e => e.id == editId);
         if (entry) {
-            state.todayLog.consumedCals -= entry.cals;
-            state.todayLog.consumedProtein -= entry.prot;
+            actLog.consumedCals -= entry.cals;
+            actLog.consumedProtein -= entry.prot;
             entry.name = type;
             entry.cals = cals;
             entry.prot = prot;
-            state.todayLog.consumedCals += cals;
-            state.todayLog.consumedProtein += prot;
+            actLog.consumedCals += cals;
+            actLog.consumedProtein += prot;
         }
         delete e.target.dataset.editingId;
         e.target.querySelector('button[type="submit"]').textContent = 'Ajouter le repas';
     } else {
-        state.todayLog.consumedCals += cals;
-        state.todayLog.consumedProtein += prot;
-        state.todayLog.entries.push({ id: Date.now() + Math.random(), type: 'Repas', name: type, cals, prot });
+        actLog.consumedCals += cals;
+        actLog.consumedProtein += prot;
+        actLog.entries.push({ id: Date.now() + Math.random(), type: 'Repas', name: type, cals, prot });
     }
     
     saveState();
@@ -254,19 +300,20 @@ document.getElementById('activity-form').addEventListener('submit', (e) => {
     }
 
     const editId = e.target.dataset.editingId;
+    const actLog = getActiveLog();
     if (editId) {
-        const entry = state.todayLog.entries.find(e => e.id == editId);
+        const entry = actLog.entries.find(e => e.id == editId);
         if (entry) {
-            state.todayLog.bonusTDEE -= entry.cals;
+            actLog.bonusTDEE -= entry.cals;
             entry.name = desc;
             entry.cals = burn;
-            state.todayLog.bonusTDEE += burn;
+            actLog.bonusTDEE += burn;
         }
         delete e.target.dataset.editingId;
         e.target.querySelector('button[type="submit"]').textContent = 'Ajouter l\'activité';
     } else {
-        state.todayLog.bonusTDEE += burn;
-        state.todayLog.entries.push({ id: Date.now() + Math.random(), type: 'Activité', name: desc, cals: burn });
+        actLog.bonusTDEE += burn;
+        actLog.entries.push({ id: Date.now() + Math.random(), type: 'Activité', name: desc, cals: burn });
     }
     
     saveState();
@@ -283,24 +330,28 @@ document.getElementById('activity-form').addEventListener('submit', (e) => {
 
 window.deleteEntry = function(id) {
     if(!confirm("Supprimer cette entrée ?")) return;
-    const idx = state.todayLog.entries.findIndex(e => e.id === id);
+    const actLog = getActiveLog();
+    const idx = actLog.entries.findIndex(e => e.id === id);
     if(idx === -1) return;
-    const entry = state.todayLog.entries[idx];
+    const entry = actLog.entries[idx];
     if(entry.type === 'Repas') {
-        state.todayLog.consumedCals -= entry.cals;
-        state.todayLog.consumedProtein -= entry.prot;
-    } else {
-        state.todayLog.bonusTDEE -= entry.cals;
+        actLog.consumedCals -= entry.cals;
+        actLog.consumedProtein -= entry.prot;
+    } else if (entry.type === 'Activité') {
+        actLog.bonusTDEE -= entry.cals;
+    } else if (entry.type === 'Objectif') {
+        state.profile.objective = 'maintien';
     }
-    state.todayLog.entries.splice(idx, 1);
+    actLog.entries.splice(idx, 1);
     saveState();
     updateDashboard();
 }
 
 window.editEntry = function(id) {
-    const idx = state.todayLog.entries.findIndex(e => e.id === id);
+    const actLog = getActiveLog();
+    const idx = actLog.entries.findIndex(e => e.id === id);
     if(idx === -1) return;
-    const entry = state.todayLog.entries[idx];
+    const entry = actLog.entries[idx];
     
     if(entry.type === 'Repas') {
         const typeSelect = document.getElementById('meal-type');
@@ -312,7 +363,7 @@ window.editEntry = function(id) {
         document.getElementById('meal-form').dataset.editingId = id;
         document.getElementById('meal-form').querySelector('button[type="submit"]').textContent = 'Enregistrer la modification';
         if(window.openMealModal) window.openMealModal(true);
-    } else {
+    } else if (entry.type === 'Activité') {
         const actSelect = document.getElementById('activity-select');
         actSelect.value = 'custom';
         const customActivityGroup = document.getElementById('custom-activity-group');
@@ -323,6 +374,9 @@ window.editEntry = function(id) {
         document.getElementById('activity-form').dataset.editingId = id;
         document.getElementById('activity-form').querySelector('button[type="submit"]').textContent = 'Enregistrer la modification';
         if(window.openActivityModal) window.openActivityModal(true);
+    } else if (entry.type === 'Objectif') {
+        document.getElementById('objective-select').value = entry.value;
+        if(window.openObjectiveModal) window.openObjectiveModal();
     }
 }
 
@@ -359,6 +413,20 @@ window.closeActivityModal = function() {
     if (modal) modal.classList.add('hidden');
 }
 
+window.openObjectiveModal = function() {
+    const modal = document.getElementById('objective-modal');
+    if (!modal) return;
+    modal.classList.remove('hidden');
+    const objSelect = document.getElementById('objective-select');
+    if (objSelect && state.profile && state.profile.objective) {
+        objSelect.value = state.profile.objective;
+    }
+}
+window.closeObjectiveModal = function() {
+    const modal = document.getElementById('objective-modal');
+    if (modal) modal.classList.add('hidden');
+}
+
 // Fermeture au clic à l'extérieur
 document.querySelectorAll('.modal-overlay').forEach(overlay => {
     overlay.addEventListener('click', (e) => {
@@ -368,21 +436,115 @@ document.querySelectorAll('.modal-overlay').forEach(overlay => {
     });
 });
 
+const objectiveForm = document.getElementById('objective-form');
+if (objectiveForm) {
+    objectiveForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const objSelect = document.getElementById('objective-select');
+        if (objSelect && state.profile) {
+            state.profile.objective = objSelect.value;
+            
+            const actLog = getActiveLog();
+            actLog.entries = actLog.entries.filter(en => en.type !== 'Objectif');
+            
+            let nameText = 'Maintien';
+            let calsText = '0%';
+            if (objSelect.value === 'seche') { nameText = 'Sèche'; calsText = '-10%'; }
+            else if (objSelect.value === 'masse') { nameText = 'Prise de masse'; calsText = '+10%'; }
+            
+            actLog.entries.push({
+                id: Date.now() + Math.random(),
+                type: 'Objectif',
+                name: nameText,
+                calsText: calsText,
+                value: objSelect.value
+            });
+            
+            saveState();
+            updateDashboard();
+        }
+        if (window.closeObjectiveModal) window.closeObjectiveModal();
+    });
+}
+
 function updateDashboard() {
     if (!state.profile) return;
     
-    document.getElementById('current-date').textContent = " - " + state.todayLog.date;
+    const actLog = getActiveLog();
     
-    const targetTdee = state.profile.tdee + state.todayLog.bonusTDEE;
-    const remaining = targetTdee - state.todayLog.consumedCals;
+    const dateStr = actLog.date;
+    const todayStr = new Date().toLocaleDateString('fr-FR');
+    let displayDate = dateStr === todayStr ? "Aujourd'hui" : dateStr;
+    document.getElementById('current-date').textContent = " - " + displayDate;
+    
+    // Weigh-in Card Logic
+    const weighCard = document.getElementById('weigh-in-card');
+    if (weighCard) {
+        const parts = dateStr.split('/');
+        let d;
+        if (parts.length === 3) d = new Date(parts[2], parts[1]-1, parts[0]);
+        else d = new Date(dateStr);
+        
+        if (d.getDay() === state.profile.weighInDay) {
+            weighCard.style.display = 'flex';
+            const existingWeigh = state.weighIns.find(w => w.date === dateStr);
+            if (existingWeigh) {
+                weighCard.innerHTML = `<h3 style="border:none; margin:0; font-size:1.5rem; text-align:center; width:100%; color: var(--accent-success);">✅ Pesée d'aujourd'hui : <strong>${existingWeigh.weight} kg</strong></h3>`;
+            } else {
+                weighCard.innerHTML = `
+                    <div>
+                        <h3 style="border:none; margin:0; font-size:1.5rem;">C'est l'heure de votre pesée ! ⚖️</h3>
+                    </div>
+                    <div style="display:flex; gap:1rem; align-items:center;">
+                        <input type="number" id="weigh-input" step="0.1" min="10" max="300" placeholder="Ex: 75.5" style="width: 150px;">
+                        <button type="button" class="btn btn-primary" style="width:auto; padding: 0.75rem 1rem;" onclick="window.saveWeighIn()">Valider</button>
+                    </div>`;
+            }
+        } else {
+            weighCard.style.display = 'none';
+        }
+    }
+    
+    const obj = state.profile.objective || 'maintien';
+    let multiplier = 1.0;
+    if (obj === 'seche') multiplier = 0.9;
+    if (obj === 'masse') multiplier = 1.1;
+
+    const baseTdee = state.profile.tdee * multiplier;
+    const targetTdee = baseTdee + actLog.bonusTDEE;
+    const remaining = targetTdee - actLog.consumedCals;
     
     calsGoal.textContent = Math.round(targetTdee);
-    calsConsumed.textContent = Math.round(state.todayLog.consumedCals);
+    calsConsumed.textContent = Math.round(actLog.consumedCals);
     
-    proteinTotal.textContent = state.todayLog.consumedProtein.toFixed(1);
+    // Protein Logic
+    const targetProtein = state.profile.weight * 2;
+    const consumedProtein = actLog.consumedProtein;
+    const remainingProtein = targetProtein - consumedProtein;
+    
+    document.getElementById('protein-goal').textContent = Math.round(targetProtein);
+    document.getElementById('protein-consumed').textContent = consumedProtein.toFixed(1);
+    
+    const proteinCircle = document.getElementById('protein-progress');
+    const proteinRemainingEl = document.getElementById('protein-remaining');
+    
+    let percProtein = consumedProtein / targetProtein;
+    if (percProtein > 1) percProtein = 1;
+    let degProtein = percProtein * 360;
+    
+    if (remainingProtein <= 0) {
+        proteinRemainingEl.textContent = "0";
+        proteinRemainingEl.nextElementSibling.innerHTML = 'g';
+        proteinCircle.style.background = `conic-gradient(var(--accent-primary) 360deg, #ffffff 0deg)`;
+    } else {
+        proteinRemainingEl.textContent = Math.abs(remainingProtein).toFixed(1);
+        proteinRemainingEl.nextElementSibling.innerHTML = 'g';
+        // Use a pink/red accent for protein (var(--accent-primary) is #ff6b6b)
+        proteinCircle.style.background = `conic-gradient(var(--accent-primary) ${degProtein}deg, #ffffff ${degProtein}deg)`;
+    }
 
-    // Progress circle (0 to 360 deg)
-    let percentage = state.todayLog.consumedCals / targetTdee;
+    // Progress circle (0 to 360 deg) for calories
+    let percentage = actLog.consumedCals / targetTdee;
     if (percentage > 1) percentage = 1;
     let degrees = percentage * 360;
     
@@ -401,19 +563,21 @@ function updateDashboard() {
     // Render history
     const list = document.getElementById('history-list');
     list.innerHTML = '';
-    if (state.todayLog.entries.length === 0) {
-        list.innerHTML = '<li class="empty-state">Aucun repas ou activité saisi aujourd\'hui.</li>';
+    if (actLog.entries.length === 0) {
+        list.innerHTML = `<li class="empty-state">Aucun repas ou activité saisi pour ${displayDate.toLowerCase()}.</li>`;
     } else {
         // reversed so newest is on top
-        [...state.todayLog.entries].reverse().forEach(entry => {
+        [...actLog.entries].reverse().forEach(entry => {
             const li = document.createElement('li');
             li.className = `history-item ${entry.type === 'Activité' ? 'activity' : ''}`;
             
             let details = '';
             if (entry.type === 'Repas') {
                 details = `<strong>${entry.cals} kcal</strong> | ${entry.prot}g prot`;
-            } else {
+            } else if (entry.type === 'Activité') {
                 details = `<strong>+${entry.cals} kcal</strong> brulées`;
+            } else if (entry.type === 'Objectif') {
+                details = `Ajustement de <strong>${entry.calsText}</strong> du TDEE affiché`;
             }
 
             li.innerHTML = `
@@ -445,5 +609,82 @@ function init() {
         updateDashboard();
     }
 }
+
+window.changeDate = function(offset) {
+    const parts = state.currentViewDate.split('/');
+    let d;
+    if (parts.length === 3) {
+        d = new Date(parts[2], parts[1]-1, parts[0]);
+    } else {
+        d = new Date(state.currentViewDate);
+    }
+    d.setDate(d.getDate() + offset);
+    state.currentViewDate = d.toLocaleDateString('fr-FR');
+    updateDashboard();
+}
+
+window.saveWeighIn = function() {
+    const wInput = document.getElementById('weigh-input');
+    if(!wInput || !wInput.value) return;
+    const w = parseFloat(wInput.value);
+    
+    state.profile.weight = w;
+    state.weighIns.push({ date: state.currentViewDate, weight: w, timestamp: Date.now() });
+    
+    updateProfileData(); // This handles BMR/TDEE recalculation and saving state
+    updateDashboard(); // Refreshes the display and weigh-in card to show success
+};
+
+let chartInstance = null;
+window.renderHistoryChart = function() {
+    const canvas = document.getElementById('weightChart');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    
+    const sorted = [...state.weighIns].sort((a,b) => {
+        const ap = a.date.split('/'); const bp = b.date.split('/');
+        if (ap.length === 3 && bp.length === 3) {
+            return new Date(ap[2], ap[1]-1, ap[0]) - new Date(bp[2], bp[1]-1, bp[0]);
+        }
+        return new Date(a.date) - new Date(b.date);
+    });
+    
+    const labels = sorted.map(w => w.date);
+    const data = sorted.map(w => w.weight);
+    
+    if (chartInstance) chartInstance.destroy();
+    
+    chartInstance = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Poids (kg)',
+                data: data,
+                borderColor: '#ff6b6b',
+                backgroundColor: 'rgba(255, 107, 107, 0.2)',
+                borderWidth: 3,
+                tension: 0.3,
+                fill: true,
+                pointRadius: 6,
+                pointBackgroundColor: '#fff',
+                pointBorderColor: '#ff6b6b',
+                pointBorderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { display: false }
+            },
+            scales: {
+                y: {
+                    suggestedMin: data.length ? Math.min(...data) - 2 : 40,
+                    suggestedMax: data.length ? Math.max(...data) + 2 : 100
+                }
+            }
+        }
+    });
+};
 
 init();
