@@ -52,6 +52,10 @@ function loadState() {
 
 function saveState() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    // Sync to cloud if available
+    if (typeof syncToCloud === 'function') {
+        syncToCloud();
+    }
 }
 
 // BMR & TDEE Calculations
@@ -614,7 +618,7 @@ function updateDashboard() {
     }
 }
 
-// Init
+// Init (called by auth.js after authentication)
 function init() {
     loadState();
     renderActivityOptions();
@@ -825,4 +829,4 @@ window.renderHistoryChart = function() {
     }
 };
 
-init();
+// init() is now called by auth.js after authentication
