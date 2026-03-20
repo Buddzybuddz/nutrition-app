@@ -193,6 +193,7 @@ label {
 
 input, select {
     width: 100%;
+    max-width: 100%;
     background: #f1f3f5;
     border: var(--border-thick);
     color: var(--text-main);
@@ -204,6 +205,16 @@ input, select {
     outline: none;
     box-shadow: inset 3px 3px 0px rgba(0,0,0,0.05);
     transition: var(--transition);
+}
+
+input[type="checkbox"] {
+    width: auto;
+    box-shadow: none;
+}
+
+input[type="date"] {
+    -webkit-appearance: none;
+    appearance: none;
 }
 
 input:focus, select:focus {

@@ -17,7 +17,7 @@
             <nav>
                 <button class="nav-btn active" data-target="dashboard-view">Tableau de bord</button>
                 <button class="nav-btn" data-target="profile-view">Profil</button>
-                <button class="nav-btn" data-target="history-view">Historique Poids</button>
+                <button class="nav-btn" data-target="history-view">Historiques</button>
             </nav>
         </header>
 
@@ -155,10 +155,19 @@
             <!-- History View -->
             <section id="history-view" class="view hidden" style="max-width:900px; margin: 0 auto; width:100%;">
                 <header class="dashboard-header" style="margin-bottom: 2rem;">
-                    <h2>Historique de votre Poids</h2>
+                    <h2>Historiques</h2>
                 </header>
-                <div class="card" style="background:#ffffff;">
+                <div class="card" style="background:#ffffff; margin-bottom: 2rem;">
+                    <h3>Évolution du Poids</h3>
                     <canvas id="weightChart"></canvas>
+                </div>
+                <div class="card" style="background:#ffffff; margin-bottom: 2rem;">
+                    <h3>Calories : Objectif vs Réalisé</h3>
+                    <canvas id="caloriesChart"></canvas>
+                </div>
+                <div class="card" style="background:#ffffff; margin-bottom: 2rem;">
+                    <h3>Protéines : Objectif vs Réalisé</h3>
+                    <canvas id="proteinChart"></canvas>
                 </div>
             </section>
         </main>
@@ -209,8 +218,8 @@
                     <label for="activity-desc">Description de l'activité</label>
                     <input type="text" id="activity-desc" placeholder="ex: Yoga 45min">
                     <div style="margin-top: 10px;">
-                        <label style="display: flex; align-items: center; gap: 8px; font-weight: normal; cursor: pointer;">
-                            <input type="checkbox" id="activity-save"> Enregistrer dans ma liste d'activités
+                        <label style="display: flex; align-items: flex-start; gap: 8px; font-weight: normal; cursor: pointer; word-break: break-word; overflow-wrap: break-word;">
+                            <input type="checkbox" id="activity-save" style="margin-top: 4px; flex-shrink: 0;"> Enregistrer dans ma liste d'activités
                         </label>
                     </div>
                 </div>

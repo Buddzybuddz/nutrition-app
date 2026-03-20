@@ -75,11 +75,26 @@ function calculateMifflinStJeor(gender, weight, height, age) {
     }
 }
 
+function getLatestWeight() {
+    if (state.weighIns && state.weighIns.length > 0) {
+        const sorted = [...state.weighIns].sort((a, b) => {
+            const ap = a.date.split('/'), bp = b.date.split('/');
+            if (ap.length === 3 && bp.length === 3) {
+                return new Date(bp[2], bp[1]-1, bp[0]) - new Date(ap[2], ap[1]-1, ap[0]);
+            }
+            return b.timestamp - a.timestamp;
+        });
+        return sorted[0].weight;
+    }
+    return state.profile ? state.profile.weight : 0;
+}
+
 function updateProfileData() {
     if (!state.profile) return;
+    const weight = getLatestWeight();
     state.profile.bmr = calculateMifflinStJeor(
         state.profile.gender, 
-        state.profile.weight, 
+        weight, 
         state.profile.height, 
         state.profile.age
     );
@@ -489,7 +504,11 @@ function updateDashboard() {
             weighCard.style.display = 'flex';
             const existingWeigh = state.weighIns.find(w => w.date === dateStr);
             if (existingWeigh) {
-                weighCard.innerHTML = `<h3 style="border:none; margin:0; font-size:1.5rem; text-align:center; width:100%; color: var(--accent-success);">✅ Pesée d'aujourd'hui : <strong>${existingWeigh.weight} kg</strong></h3>`;
+                weighCard.innerHTML = `
+                    <div>
+                        <h3 style="border:none; margin:0; font-size:1.5rem; color: var(--accent-success);">✅ Pesée : <strong>${existingWeigh.weight} kg</strong></h3>
+                    </div>
+                    <button type="button" class="btn" style="width:auto; padding:0.5rem 1rem; font-size:0.9rem;" onclick="window.editWeighIn()">✎ Modifier</button>`;
             } else {
                 weighCard.innerHTML = `
                     <div>
@@ -518,7 +537,7 @@ function updateDashboard() {
     calsConsumed.textContent = Math.round(actLog.consumedCals);
     
     // Protein Logic
-    const targetProtein = state.profile.weight * 2;
+    const targetProtein = getLatestWeight() * 2;
     const consumedProtein = actLog.consumedProtein;
     const remainingProtein = targetProtein - consumedProtein;
     
@@ -629,62 +648,181 @@ window.saveWeighIn = function() {
     const w = parseFloat(wInput.value);
     
     state.profile.weight = w;
-    state.weighIns.push({ date: state.currentViewDate, weight: w, timestamp: Date.now() });
     
-    updateProfileData(); // This handles BMR/TDEE recalculation and saving state
-    updateDashboard(); // Refreshes the display and weigh-in card to show success
+    const existingIdx = state.weighIns.findIndex(wi => wi.date === state.currentViewDate);
+    if (existingIdx !== -1) {
+        state.weighIns[existingIdx].weight = w;
+        state.weighIns[existingIdx].timestamp = Date.now();
+    } else {
+        state.weighIns.push({ date: state.currentViewDate, weight: w, timestamp: Date.now() });
+    }
+    
+    updateProfileData();
+    updateDashboard();
 };
 
-let chartInstance = null;
+window.editWeighIn = function() {
+    const weighCard = document.getElementById('weigh-in-card');
+    if (!weighCard) return;
+    const existing = state.weighIns.find(w => w.date === state.currentViewDate);
+    weighCard.innerHTML = `
+        <div>
+            <h3 style="border:none; margin:0; font-size:1.5rem;">Modifier votre pesée ⚖️</h3>
+        </div>
+        <div style="display:flex; gap:1rem; align-items:center;">
+            <input type="number" id="weigh-input" step="0.1" min="10" max="300" value="${existing ? existing.weight : ''}" style="width: 150px;">
+            <button type="button" class="btn btn-primary" style="width:auto; padding: 0.75rem 1rem;" onclick="window.saveWeighIn()">Valider</button>
+        </div>`;
+};
+
+let chartInstances = { weight: null, calories: null, protein: null };
+
+function parseDateFR(dateStr) {
+    const p = dateStr.split('/');
+    if (p.length === 3) return new Date(p[2], p[1]-1, p[0]);
+    return new Date(dateStr);
+}
+
+function sortDatesFR(dates) {
+    return [...dates].sort((a, b) => parseDateFR(a) - parseDateFR(b));
+}
+
 window.renderHistoryChart = function() {
-    const canvas = document.getElementById('weightChart');
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    
-    const sorted = [...state.weighIns].sort((a,b) => {
-        const ap = a.date.split('/'); const bp = b.date.split('/');
-        if (ap.length === 3 && bp.length === 3) {
-            return new Date(ap[2], ap[1]-1, ap[0]) - new Date(bp[2], bp[1]-1, bp[0]);
-        }
-        return new Date(a.date) - new Date(b.date);
-    });
-    
-    const labels = sorted.map(w => w.date);
-    const data = sorted.map(w => w.weight);
-    
-    if (chartInstance) chartInstance.destroy();
-    
-    chartInstance = new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: labels,
-            datasets: [{
-                label: 'Poids (kg)',
-                data: data,
-                borderColor: '#ff6b6b',
-                backgroundColor: 'rgba(255, 107, 107, 0.2)',
-                borderWidth: 3,
-                tension: 0.3,
-                fill: true,
-                pointRadius: 6,
-                pointBackgroundColor: '#fff',
-                pointBorderColor: '#ff6b6b',
-                pointBorderWidth: 2
-            }]
-        },
-        options: {
-            responsive: true,
-            plugins: {
-                legend: { display: false }
+    // --- Weight Chart ---
+    const weightCanvas = document.getElementById('weightChart');
+    if (weightCanvas) {
+        const ctx = weightCanvas.getContext('2d');
+        const sorted = [...state.weighIns].sort((a,b) => parseDateFR(a.date) - parseDateFR(b.date));
+        const labels = sorted.map(w => w.date);
+        const data = sorted.map(w => w.weight);
+        
+        if (chartInstances.weight) chartInstances.weight.destroy();
+        chartInstances.weight = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels,
+                datasets: [{
+                    label: 'Poids (kg)',
+                    data,
+                    borderColor: '#ff6b6b',
+                    backgroundColor: 'rgba(255, 107, 107, 0.2)',
+                    borderWidth: 3, tension: 0.3, fill: true,
+                    pointRadius: 6, pointBackgroundColor: '#fff',
+                    pointBorderColor: '#ff6b6b', pointBorderWidth: 2
+                }]
             },
-            scales: {
-                y: {
+            options: {
+                responsive: true,
+                plugins: { legend: { display: false } },
+                scales: { y: {
                     suggestedMin: data.length ? Math.min(...data) - 2 : 40,
                     suggestedMax: data.length ? Math.max(...data) + 2 : 100
-                }
+                }}
             }
-        }
+        });
+    }
+
+    // --- Calories & Protein Charts from state.history ---
+    const historyDates = sortDatesFR(Object.keys(state.history || {}));
+    
+    const obj = (state.profile && state.profile.objective) || 'maintien';
+    let multiplier = 1.0;
+    if (obj === 'seche') multiplier = 0.9;
+    if (obj === 'masse') multiplier = 1.1;
+    const baseTdee = state.profile ? state.profile.tdee * multiplier : 0;
+    const targetProtein = getLatestWeight() * 2;
+
+    const calLabels = [];
+    const calGoalData = [];
+    const calConsumedData = [];
+    const protGoalData = [];
+    const protConsumedData = [];
+
+    historyDates.forEach(dateKey => {
+        const log = state.history[dateKey];
+        calLabels.push(dateKey);
+        const dayTarget = baseTdee + (log.bonusTDEE || 0);
+        calGoalData.push(Math.round(dayTarget));
+        calConsumedData.push(Math.round(log.consumedCals || 0));
+        protGoalData.push(Math.round(targetProtein));
+        protConsumedData.push(parseFloat((log.consumedProtein || 0).toFixed(1)));
     });
+
+    // --- Calories Chart ---
+    const calCanvas = document.getElementById('caloriesChart');
+    if (calCanvas) {
+        const ctx = calCanvas.getContext('2d');
+        if (chartInstances.calories) chartInstances.calories.destroy();
+        chartInstances.calories = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: calLabels,
+                datasets: [
+                    {
+                        label: 'Objectif (kcal)',
+                        data: calGoalData,
+                        borderColor: '#4ecdc4',
+                        backgroundColor: 'rgba(78, 205, 196, 0.15)',
+                        borderWidth: 3, tension: 0.3, fill: true,
+                        pointRadius: 5, pointBackgroundColor: '#fff',
+                        pointBorderColor: '#4ecdc4', pointBorderWidth: 2
+                    },
+                    {
+                        label: 'Réalisé (kcal)',
+                        data: calConsumedData,
+                        borderColor: '#ff6b6b',
+                        backgroundColor: 'rgba(255, 107, 107, 0.15)',
+                        borderWidth: 3, tension: 0.3, fill: true,
+                        pointRadius: 5, pointBackgroundColor: '#fff',
+                        pointBorderColor: '#ff6b6b', pointBorderWidth: 2
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                plugins: { legend: { position: 'top' } },
+                scales: { y: { beginAtZero: true } }
+            }
+        });
+    }
+
+    // --- Protein Chart ---
+    const protCanvas = document.getElementById('proteinChart');
+    if (protCanvas) {
+        const ctx = protCanvas.getContext('2d');
+        if (chartInstances.protein) chartInstances.protein.destroy();
+        chartInstances.protein = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: calLabels,
+                datasets: [
+                    {
+                        label: 'Objectif (g)',
+                        data: protGoalData,
+                        borderColor: '#9b59b6',
+                        backgroundColor: 'rgba(155, 89, 182, 0.15)',
+                        borderWidth: 3, tension: 0.3, fill: true,
+                        pointRadius: 5, pointBackgroundColor: '#fff',
+                        pointBorderColor: '#9b59b6', pointBorderWidth: 2
+                    },
+                    {
+                        label: 'Réalisé (g)',
+                        data: protConsumedData,
+                        borderColor: '#ffa502',
+                        backgroundColor: 'rgba(255, 165, 2, 0.15)',
+                        borderWidth: 3, tension: 0.3, fill: true,
+                        pointRadius: 5, pointBackgroundColor: '#fff',
+                        pointBorderColor: '#ffa502', pointBorderWidth: 2
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                plugins: { legend: { position: 'top' } },
+                scales: { y: { beginAtZero: true } }
+            }
+        });
+    }
 };
 
 init();
