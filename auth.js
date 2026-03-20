@@ -2,34 +2,52 @@
 const SUPABASE_URL = 'https://qhujcfeownqwvsenmaqh.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFodWpjZmVvd25xd3ZzZW5tYXFoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQwMjEzNjUsImV4cCI6MjA4OTU5NzM2NX0.svgq9ZBjg9JPUPqqDa3-2Npn0_mcIa0SIN1UVmRdRM4';
 
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+let supabaseClient = null;
+try {
+    if (window.supabase) {
+        supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    } else {
+        console.warn("L'objet window.supabase est introuvable. Le CDN est probablement bloqué.");
+    }
+} catch (e) {
+    console.error("Erreur lors de l'initialisation de Supabase:", e);
+}
 
 // Auth Functions
+function checkSupabase() {
+    if (!supabaseClient) throw new Error("Erreur système: Supabase n'a pas pu charger (vérifiez votre connexion ou votre bloqueur de publicités).");
+}
+
 async function signUp(email, password) {
-    const { data, error } = await supabase.auth.signUp({ email, password });
+    checkSupabase();
+    const { data, error } = await supabaseClient.auth.signUp({ email, password });
     if (error) throw error;
     return data;
 }
 
 async function signIn(email, password) {
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    checkSupabase();
+    const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
     if (error) throw error;
     return data;
 }
 
 async function signOut() {
-    const { error } = await supabase.auth.signOut();
+    if (!supabaseClient) return;
+    const { error } = await supabaseClient.auth.signOut();
     if (error) throw error;
 }
 
 async function resetPassword(email) {
-    const { error } = await supabase.auth.resetPasswordForEmail(email);
+    checkSupabase();
+    const { error } = await supabaseClient.auth.resetPasswordForEmail(email);
     if (error) throw error;
 }
 
 // Data Sync Functions
 async function syncToCloud() {
-    const { data: { user } } = await supabase.auth.getUser();
+    if (!supabaseClient) return;
+    const { data: { user } } = await supabaseClient.auth.getUser();
     if (!user) return;
     
     const payload = {
@@ -38,7 +56,7 @@ async function syncToCloud() {
         updated_at: new Date().toISOString()
     };
     
-    const { error } = await supabase
+    const { error } = await supabaseClient
         .from('user_data')
         .upsert(payload, { onConflict: 'id' });
     
@@ -46,10 +64,11 @@ async function syncToCloud() {
 }
 
 async function loadFromCloud() {
-    const { data: { user } } = await supabase.auth.getUser();
+    if (!supabaseClient) return null;
+    const { data: { user } } = await supabaseClient.auth.getUser();
     if (!user) return null;
     
-    const { data, error } = await supabase
+    const { data, error } = await supabaseClient
         .from('user_data')
         .select('state')
         .eq('id', user.id)
@@ -77,8 +96,10 @@ function showApp() {
 function showAuthError(message) {
     const errEl = document.getElementById('auth-error');
     errEl.textContent = message;
+    errEl.style.color = ''; // Reset to default danger color
     errEl.classList.remove('hidden');
-    setTimeout(() => errEl.classList.add('hidden'), 5000);
+    if (window.authTimeout) clearTimeout(window.authTimeout);
+    window.authTimeout = setTimeout(() => errEl.classList.add('hidden'), 8000);
 }
 
 function showAuthSuccess(message) {
@@ -86,101 +107,145 @@ function showAuthSuccess(message) {
     errEl.textContent = message;
     errEl.style.color = 'var(--accent-success)';
     errEl.classList.remove('hidden');
-    setTimeout(() => {
+    if (window.authTimeout) clearTimeout(window.authTimeout);
+    window.authTimeout = setTimeout(() => {
         errEl.classList.add('hidden');
         errEl.style.color = '';
     }, 5000);
 }
 
-// Auth UI Handlers
-document.addEventListener('DOMContentLoaded', () => {
+// Auth Handlers (Global)
+window.showSignupForm = () => {
+    const lf = document.getElementById('login-form');
+    const sf = document.getElementById('signup-form');
+    const rf = document.getElementById('reset-form');
+    if (lf) lf.classList.add('hidden');
+    if (sf) sf.classList.remove('hidden');
+    if (rf) rf.classList.add('hidden');
+};
+
+window.showLoginForm = () => {
+    const lf = document.getElementById('login-form');
+    const sf = document.getElementById('signup-form');
+    const rf = document.getElementById('reset-form');
+    if (lf) lf.classList.remove('hidden');
+    if (sf) sf.classList.add('hidden');
+    if (rf) rf.classList.add('hidden');
+};
+
+window.showResetForm = () => {
+    const lf = document.getElementById('login-form');
+    const sf = document.getElementById('signup-form');
+    const rf = document.getElementById('reset-form');
+    if (lf) lf.classList.add('hidden');
+    if (sf) sf.classList.add('hidden');
+    if (rf) rf.classList.remove('hidden');
+};
+
+window.handleLoginSubmit = async (e) => {
+    const btn = document.querySelector('#login-form button[type="submit"]');
+    const oldText = btn ? btn.textContent : 'Se connecter';
+    const emailEl = document.getElementById('login-email');
+    const passEl = document.getElementById('login-password');
+    
+    if (!emailEl || !passEl) return;
+    
+    const email = emailEl.value;
+    const password = passEl.value;
+    
+    try {
+        if (btn) {
+            btn.disabled = true;
+            btn.textContent = 'Connexion...';
+        }
+        await signIn(email, password);
+    } catch (err) {
+        if (btn) {
+            btn.disabled = false;
+            btn.textContent = oldText;
+        }
+        console.error("Login Error:", err);
+        let msg = 'Erreur lors de la connexion.';
+        if (err && err.message) {
+            if (err.message.includes('Invalid login credentials')) {
+                msg = 'Mail non existant ou mot de passe incorrect.';
+            } else if (err.message.includes('Email not confirmed')) {
+                msg = 'Veuillez confirmer votre email avant de vous connecter.';
+            } else {
+                msg = err.message;
+            }
+        } else if (typeof err === 'string') {
+            msg = err;
+        }
+        alert(msg); // HARD fallback to ensure user sees the error
+        showAuthError(msg);
+    }
+};
+
+window.handleSignupSubmit = async (e) => {
+    const btn = document.querySelector('#signup-form button[type="submit"]');
+    const oldText = btn ? btn.textContent : 'Créer le compte';
+    const emailEl = document.getElementById('signup-email');
+    const passEl = document.getElementById('signup-password');
+    const confEl = document.getElementById('signup-confirm');
+    
+    if (!emailEl || !passEl || !confEl) return;
+    const email = emailEl.value;
+    const password = passEl.value;
+    const confirm = confEl.value;
+    
+    if (password !== confirm) {
+        showAuthError('Les mots de passe ne correspondent pas.');
+        return;
+    }
+    if (password.length < 6) {
+        showAuthError('Le mot de passe doit contenir au moins 6 caractères.');
+        return;
+    }
+    
+    try {
+        if (btn) {
+            btn.disabled = true;
+            btn.textContent = 'Création...';
+        }
+        await signUp(email, password);
+        showAuthSuccess('Compte créé ! Vérifiez vos emails pour confirmer votre inscription.');
+        const signupForm = document.getElementById('signup-form');
+        const loginForm = document.getElementById('login-form');
+        if (signupForm && loginForm) {
+            signupForm.classList.add('hidden');
+            loginForm.classList.remove('hidden');
+        }
+    } catch (err) {
+        if (btn) {
+            btn.disabled = false;
+            btn.textContent = oldText;
+        }
+        console.error("Signup Error:", err);
+        let msg = err && err.message ? err.message : 'Erreur lors de la création du compte.';
+        if (msg.includes('User already registered')) msg = 'Cet email est déjà utilisé.';
+        showAuthError(msg);
+    }
+};
+
+window.handleResetSubmit = async (e) => {
+    const emailEl = document.getElementById('reset-email');
+    if (!emailEl) return;
+    try {
+        await resetPassword(emailEl.value);
+        showAuthSuccess('Un email de réinitialisation a été envoyé.');
+    } catch (err) {
+        console.error("Reset Error:", err);
+        showAuthError(err && err.message ? err.message : 'Erreur');
+    }
+};
+
+function initAuth() {
     const loginForm = document.getElementById('login-form');
     const signupForm = document.getElementById('signup-form');
     const resetForm = document.getElementById('reset-form');
     
-    const showLogin = document.getElementById('show-login');
-    const showSignup = document.getElementById('show-signup');
-    const showReset = document.getElementById('show-reset');
-    const showLoginFromReset = document.getElementById('show-login-from-reset');
-    
-    if (showSignup) showSignup.addEventListener('click', (e) => {
-        e.preventDefault();
-        loginForm.classList.add('hidden');
-        signupForm.classList.remove('hidden');
-        resetForm.classList.add('hidden');
-    });
-    
-    if (showLogin) showLogin.addEventListener('click', (e) => {
-        e.preventDefault();
-        signupForm.classList.add('hidden');
-        loginForm.classList.remove('hidden');
-        resetForm.classList.add('hidden');
-    });
-    
-    if (showReset) showReset.addEventListener('click', (e) => {
-        e.preventDefault();
-        loginForm.classList.add('hidden');
-        signupForm.classList.add('hidden');
-        resetForm.classList.remove('hidden');
-    });
-    
-    if (showLoginFromReset) showLoginFromReset.addEventListener('click', (e) => {
-        e.preventDefault();
-        resetForm.classList.add('hidden');
-        loginForm.classList.remove('hidden');
-    });
-    
-    // Login submit
-    if (loginForm) loginForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const email = document.getElementById('login-email').value;
-        const password = document.getElementById('login-password').value;
-        try {
-            await signIn(email, password);
-        } catch (err) {
-            showAuthError(err.message === 'Invalid login credentials' 
-                ? 'Email ou mot de passe incorrect.' 
-                : err.message);
-        }
-    });
-    
-    // Signup submit
-    if (signupForm) signupForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const email = document.getElementById('signup-email').value;
-        const password = document.getElementById('signup-password').value;
-        const confirm = document.getElementById('signup-confirm').value;
-        
-        if (password !== confirm) {
-            showAuthError('Les mots de passe ne correspondent pas.');
-            return;
-        }
-        if (password.length < 6) {
-            showAuthError('Le mot de passe doit contenir au moins 6 caractères.');
-            return;
-        }
-        
-        try {
-            await signUp(email, password);
-            showAuthSuccess('Compte créé ! Vérifiez vos emails pour confirmer votre inscription.');
-            signupForm.classList.add('hidden');
-            loginForm.classList.remove('hidden');
-        } catch (err) {
-            showAuthError(err.message);
-        }
-    });
-    
-    // Reset submit
-    if (resetForm) resetForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const email = document.getElementById('reset-email').value;
-        try {
-            await resetPassword(email);
-            showAuthSuccess('Un email de réinitialisation a été envoyé.');
-        } catch (err) {
-            showAuthError(err.message);
-        }
-    });
+
     
     // Logout button
     const logoutBtn = document.getElementById('logout-btn');
@@ -188,42 +253,58 @@ document.addEventListener('DOMContentLoaded', () => {
         await signOut();
     });
 
-    // Listen for auth state changes
-    supabase.auth.onAuthStateChange(async (event, session) => {
-        if (session && session.user) {
-            // User is logged in
-            const cloudState = await loadFromCloud();
-            if (cloudState && cloudState.profile) {
-                // Cloud data exists, use it
-                state = cloudState;
-                if (!state.customActivities) state.customActivities = [];
-                if (!state.weighIns) state.weighIns = [];
-                if (!state.history) state.history = {};
-                state.currentViewDate = new Date().toLocaleDateString('fr-FR');
-                getActiveLog();
-                localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-            } else {
-                // No cloud data yet, migrate localStorage to cloud
-                loadState();
-                await syncToCloud();
-            }
+    // Listen for auth state changes (ONLY IF SUPABASE LOADED)
+    if (supabaseClient) {
+        supabaseClient.auth.onAuthStateChange(async (event, session) => {
+            if (session && session.user) {
+                // User is logged in
+                const cloudState = await loadFromCloud();
+                if (cloudState && cloudState.profile) {
+                    // Cloud data exists, use it
+                    state = cloudState;
+                    if (!state.customActivities) state.customActivities = [];
+                    if (!state.weighIns) state.weighIns = [];
+                    if (!state.history) state.history = {};
+                    state.currentViewDate = new Date().toLocaleDateString('fr-FR');
+                    if (typeof getActiveLog === 'function') getActiveLog();
+                    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+                } else {
+                    // No cloud data yet, migrate localStorage to cloud
+                    if (typeof loadState === 'function') loadState();
+                    await syncToCloud();
+                }
 
-            const userEmail = document.getElementById('user-email');
-            if (userEmail) userEmail.textContent = session.user.email;
-            
-            showApp();
-            renderActivityOptions();
-            if (state.profile) {
-                updateDashboard();
+                const userEmail = document.getElementById('user-email');
+                if (userEmail) userEmail.textContent = session.user.email;
+                
+                showApp();
+                if (typeof renderActivityOptions === 'function') renderActivityOptions();
+                if (state.profile) {
+                    if (typeof updateDashboard === 'function') updateDashboard();
+                } else {
+                    const dbView = document.getElementById('dashboard-view');
+                    const profileView = document.getElementById('profile-view');
+                    if(dbView) dbView.classList.add('hidden');
+                    if(profileView) profileView.classList.remove('hidden');
+                    const dbTarget = document.querySelector('[data-target="dashboard-view"]');
+                    const profTarget = document.querySelector('[data-target="profile-view"]');
+                    if(dbTarget) dbTarget.classList.remove('active');
+                    if(profTarget) profTarget.classList.add('active');
+                }
             } else {
-                document.getElementById('dashboard-view').classList.add('hidden');
-                document.getElementById('profile-view').classList.remove('hidden');
-                document.querySelector('[data-target="dashboard-view"]').classList.remove('active');
-                document.querySelector('[data-target="profile-view"]').classList.add('active');
+                // User is logged out
+                showAuthScreen();
             }
-        } else {
-            // User is logged out
-            showAuthScreen();
-        }
-    });
-});
+        });
+    } else {
+        // Fallback UI if supabase fails
+        showAuthScreen();
+    }
+}
+
+// Call initAuth safely
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initAuth);
+} else {
+    initAuth();
+}
