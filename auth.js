@@ -158,7 +158,19 @@ window.handleLoginSubmit = async (e) => {
             btn.disabled = true;
             btn.textContent = 'Connexion...';
         }
-        await signIn(email, password);
+        
+        console.log("Tentative de connexion Supabase...");
+        // Timeout de sécurité au cas où Supabase freeze (bug connu de lock du navigateur)
+        const timeoutPromise = new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('TIMEOUT_DEADLOCK')), 8000)
+        );
+        await Promise.race([signIn(email, password), timeoutPromise]);
+        console.log("Connexion réussie !");
+        
+        if (btn) {
+            btn.disabled = false;
+            btn.textContent = oldText;
+        }
     } catch (err) {
         if (btn) {
             btn.disabled = false;
@@ -167,7 +179,9 @@ window.handleLoginSubmit = async (e) => {
         console.error("Login Error:", err);
         let msg = 'Erreur lors de la connexion.';
         if (err && err.message) {
-            if (err.message.includes('Invalid login credentials')) {
+            if (err.message === 'TIMEOUT_DEADLOCK') {
+                msg = 'Le système est bloqué par le navigateur. Appuyez sur F12 > onglet "Application" > "Stockage" ("Storage") > cliquez sur "Effacer les données du site" ("Clear site data"), puis rechargez la page.';
+            } else if (err.message.includes('Invalid login credentials')) {
                 msg = 'Mail non existant ou mot de passe incorrect.';
             } else if (err.message.includes('Email not confirmed')) {
                 msg = 'Veuillez confirmer votre email avant de vous connecter.';
@@ -208,7 +222,19 @@ window.handleSignupSubmit = async (e) => {
             btn.disabled = true;
             btn.textContent = 'Création...';
         }
-        await signUp(email, password);
+        
+        console.log("Tentative d'inscription Supabase...");
+        const timeoutPromise = new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('TIMEOUT_DEADLOCK')), 8000)
+        );
+        await Promise.race([signUp(email, password), timeoutPromise]);
+        console.log("Inscription réussie !");
+        
+        if (btn) {
+            btn.disabled = false;
+            btn.textContent = oldText;
+        }
+        
         showAuthSuccess('Compte créé ! Vérifiez vos emails pour confirmer votre inscription.');
         const signupForm = document.getElementById('signup-form');
         const loginForm = document.getElementById('login-form');
@@ -223,7 +249,11 @@ window.handleSignupSubmit = async (e) => {
         }
         console.error("Signup Error:", err);
         let msg = err && err.message ? err.message : 'Erreur lors de la création du compte.';
-        if (msg.includes('User already registered')) msg = 'Cet email est déjà utilisé.';
+        if (msg === 'TIMEOUT_DEADLOCK') {
+            msg = 'Le système de session est bloqué. Appuyez sur F12 > onglet "Application" > "Stockage" ("Storage") > cliquez sur "Effacer les données du site" ("Clear site data"), puis rechargez la page.';
+        } else if (msg.includes('User already registered')) {
+            msg = 'Cet email est déjà utilisé.';
+        }
         showAuthError(msg);
     }
 };
