@@ -211,7 +211,7 @@ document.getElementById('profile-form').addEventListener('submit', (e) => {
         gender: document.getElementById('gender').value,
         weight: parseFloat(document.getElementById('weight').value),
         height: parseInt(document.getElementById('height').value),
-        activity: parseFloat(document.getElementById('activity').value),
+        activity: 1.2, // Niveau sédentaire utilisé par défaut
         weighInDay: parseInt(document.getElementById('weighInDay').value)
     };
     updateProfileData();
@@ -231,7 +231,6 @@ function populateProfileForm() {
         document.getElementById('gender').value = state.profile.gender;
         document.getElementById('weight').value = state.profile.weight;
         document.getElementById('height').value = state.profile.height;
-        document.getElementById('activity').value = state.profile.activity;
         document.getElementById('weighInDay').value = state.profile.weighInDay !== undefined ? state.profile.weighInDay : 1;
         
         dpBmr.textContent = Math.round(state.profile.bmr) + " kcal";
@@ -359,7 +358,7 @@ window.deleteEntry = function(id) {
     } else if (entry.type === 'Activité') {
         actLog.bonusTDEE -= entry.cals;
     } else if (entry.type === 'Objectif') {
-        state.profile.objective = 'maintien';
+        state.profile.objective = '';
     }
     actLog.entries.splice(idx, 1);
     saveState();
@@ -466,7 +465,7 @@ if (objectiveForm) {
             const actLog = getActiveLog();
             actLog.entries = actLog.entries.filter(en => en.type !== 'Objectif');
             
-            let nameText = 'Maintien';
+            let nameText = 'Défaut';
             let calsText = '0%';
             if (objSelect.value === 'seche') { nameText = 'Sèche'; calsText = '-10%'; }
             else if (objSelect.value === 'masse') { nameText = 'Prise de masse'; calsText = '+10%'; }
@@ -528,7 +527,7 @@ function updateDashboard() {
         }
     }
     
-    const obj = state.profile.objective || 'maintien';
+    const obj = state.profile.objective || '';
     let multiplier = 1.0;
     if (obj === 'seche') multiplier = 0.9;
     if (obj === 'masse') multiplier = 1.1;
@@ -546,7 +545,7 @@ function updateDashboard() {
     const remainingProtein = targetProtein - consumedProtein;
     
     document.getElementById('protein-goal').textContent = Math.round(targetProtein);
-    document.getElementById('protein-consumed').textContent = consumedProtein.toFixed(1);
+    document.getElementById('protein-consumed').textContent = Math.round(consumedProtein);
     
     const proteinCircle = document.getElementById('protein-progress');
     const proteinRemainingEl = document.getElementById('protein-remaining');
@@ -560,7 +559,7 @@ function updateDashboard() {
         proteinRemainingEl.nextElementSibling.innerHTML = 'g';
         proteinCircle.style.background = `conic-gradient(var(--accent-primary) 360deg, #ffffff 0deg)`;
     } else {
-        proteinRemainingEl.textContent = Math.abs(remainingProtein).toFixed(1);
+        proteinRemainingEl.textContent = Math.round(Math.abs(remainingProtein));
         proteinRemainingEl.nextElementSibling.innerHTML = 'g';
         // Use a pink/red accent for protein (var(--accent-primary) is #ff6b6b)
         proteinCircle.style.background = `conic-gradient(var(--accent-primary) ${degProtein}deg, #ffffff ${degProtein}deg)`;

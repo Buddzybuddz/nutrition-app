@@ -2,6 +2,11 @@
 const SUPABASE_URL = 'https://qhujcfeownqwvsenmaqh.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFodWpjZmVvd25xd3ZzZW5tYXFoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQwMjEzNjUsImV4cCI6MjA4OTU5NzM2NX0.svgq9ZBjg9JPUPqqDa3-2Npn0_mcIa0SIN1UVmRdRM4';
 
+// Hack anti-deadlock : on désactive "navigator.locks" pour forcer Supabase à utiliser un mode de stockage local basique
+try { 
+    if (typeof navigator !== 'undefined') Object.defineProperty(navigator, 'locks', { get: () => undefined }); 
+} catch(e) {}
+
 let supabaseClient = null;
 try {
     if (window.supabase) {
@@ -279,9 +284,30 @@ function initAuth() {
     
     // Logout button
     const logoutBtn = document.getElementById('logout-btn');
-    if (logoutBtn) logoutBtn.addEventListener('click', async () => {
-        await signOut();
-    });
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', async () => {
+            const oldText = logoutBtn.textContent;
+            try {
+                logoutBtn.textContent = 'Déconnexion...';
+                logoutBtn.disabled = true;
+                
+                console.log("Tentative de déconnexion...");
+                const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('TIMEOUT_LOGOUT')), 5000));
+                await Promise.race([signOut(), timeoutPromise]);
+                
+                // Forcer l'affichage de l'écran de connexion au cas où onAuthStateChange est lent
+                showAuthScreen();
+            } catch (err) {
+                console.error("Logout Error:", err);
+                alert("Erreur lors de la déconnexion : " + err.message);
+                // On force la déconnexion locale visuelle quand même
+                showAuthScreen();
+            } finally {
+                logoutBtn.textContent = oldText;
+                logoutBtn.disabled = false;
+            }
+        });
+    }
 
     // Listen for auth state changes (ONLY IF SUPABASE LOADED)
     if (supabaseClient) {

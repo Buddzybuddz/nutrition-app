@@ -314,11 +314,13 @@ input:focus, select:focus {
 }
 
 .remaining-label {
-    font-size: 0.95rem;
+    font-size: 0.8rem;
     font-weight: 800;
     color: var(--text-muted);
     text-transform: uppercase;
     letter-spacing: 1px;
+    text-align: center;
+    line-height: 1.3;
 }
 
 .progress-stats {
@@ -641,18 +643,22 @@ input:focus, select:focus {
 
 @media (max-width: 400px) {
     .progress-circle {
-        width: 150px;
-        height: 150px;
+        width: 160px;
+        height: 160px;
     }
     .circle-inner {
-        width: 110px;
-        height: 110px;
+        width: 120px;
+        height: 120px;
     }
     .remaining-value {
         font-size: 1.8rem;
     }
     .macro-value {
         font-size: 2.5rem;
+    }
+    .remaining-label {
+        font-size: 0.65rem;
+        letter-spacing: 0.5px;
     }
 }
 
