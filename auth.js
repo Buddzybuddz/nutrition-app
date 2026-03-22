@@ -88,13 +88,30 @@ async function loadFromCloud() {
 }
 
 // Auth State Management
-function showAuthScreen() {
-    document.getElementById('auth-screen').classList.remove('hidden');
+window.showAuthPage = function(isSignup = false) {
+    const lp = document.getElementById('landing-page');
+    if(lp) lp.classList.add('hidden');
     document.getElementById('app').classList.add('hidden');
-}
+    document.getElementById('auth-screen').classList.remove('hidden');
+    
+    if (isSignup && window.showSignupForm) {
+        window.showSignupForm();
+    } else if (!isSignup && window.showLoginForm) {
+        window.showLoginForm();
+    }
+};
+
+window.showLandingPage = function() {
+    document.getElementById('auth-screen').classList.add('hidden');
+    document.getElementById('app').classList.add('hidden');
+    const lp = document.getElementById('landing-page');
+    if(lp) lp.classList.remove('hidden');
+};
 
 function showApp() {
     document.getElementById('auth-screen').classList.add('hidden');
+    const lp = document.getElementById('landing-page');
+    if(lp) lp.classList.add('hidden');
     document.getElementById('app').classList.remove('hidden');
 }
 
@@ -295,13 +312,12 @@ function initAuth() {
                 const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('TIMEOUT_LOGOUT')), 5000));
                 await Promise.race([signOut(), timeoutPromise]);
                 
-                // Forcer l'affichage de l'écran de connexion au cas où onAuthStateChange est lent
-                showAuthScreen();
+                // Forcer l'affichage au cas où onAuthStateChange est lent
+                window.showLandingPage();
             } catch (err) {
                 console.error("Logout Error:", err);
                 alert("Erreur lors de la déconnexion : " + err.message);
-                // On force la déconnexion locale visuelle quand même
-                showAuthScreen();
+                window.showLandingPage();
             } finally {
                 logoutBtn.textContent = oldText;
                 logoutBtn.disabled = false;
@@ -349,12 +365,12 @@ function initAuth() {
                 }
             } else {
                 // User is logged out
-                showAuthScreen();
+                window.showLandingPage();
             }
         });
     } else {
         // Fallback UI if supabase fails
-        showAuthScreen();
+        window.showAuthPage();
     }
 }
 
