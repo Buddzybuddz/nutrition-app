@@ -690,14 +690,48 @@ function sortDatesFR(dates) {
     return [...dates].sort((a, b) => parseDateFR(a) - parseDateFR(b));
 }
 
+// Chart filter buttons
+document.querySelectorAll('.chart-filter-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+        document.querySelectorAll('.chart-filter-btn').forEach(b => b.classList.remove('btn-secondary', 'active'));
+        e.target.classList.add('btn-secondary', 'active');
+        if (window.renderHistoryChart) {
+            window.renderHistoryChart();
+        }
+    });
+});
+
 window.renderHistoryChart = function() {
+    // Determine active filter from UI
+    let activeFilter = 'week';
+    const activeBtn = document.querySelector('.chart-filter-btn.active');
+    if (activeBtn) {
+        activeFilter = activeBtn.dataset.filter;
+    }
+
+    const now = new Date();
+    let cutoffDate = new Date(0);
+    
+    if (activeFilter === 'week') {
+        const day = now.getDay() || 7;
+        cutoffDate = new Date(now);
+        cutoffDate.setDate(now.getDate() - (day - 1));
+        cutoffDate.setHours(0,0,0,0);
+    } else if (activeFilter === 'month') {
+        cutoffDate = new Date(now.getFullYear(), now.getMonth(), 1);
+    } else if (activeFilter === 'year') {
+        cutoffDate = new Date(now.getFullYear(), 0, 1);
+    }
+
     // --- Weight Chart ---
     const weightCanvas = document.getElementById('weightChart');
     if (weightCanvas) {
         const ctx = weightCanvas.getContext('2d');
         const sorted = [...state.weighIns].sort((a,b) => parseDateFR(a.date) - parseDateFR(b.date));
-        const labels = sorted.map(w => w.date);
-        const data = sorted.map(w => w.weight);
+        
+        const filteredWeights = sorted.filter(w => parseDateFR(w.date) >= cutoffDate);
+        const labels = filteredWeights.map(w => w.date);
+        const data = filteredWeights.map(w => w.weight);
         
         if (chartInstances.weight) chartInstances.weight.destroy();
         chartInstances.weight = new Chart(ctx, {
@@ -726,7 +760,8 @@ window.renderHistoryChart = function() {
     }
 
     // --- Calories & Protein Charts from state.history ---
-    const historyDates = sortDatesFR(Object.keys(state.history || {}));
+    let historyDates = sortDatesFR(Object.keys(state.history || {}));
+    historyDates = historyDates.filter(dateStr => parseDateFR(dateStr) >= cutoffDate);
     
     const obj = (state.profile && state.profile.objective) || 'maintien';
     let multiplier = 1.0;
@@ -829,3 +864,24 @@ window.renderHistoryChart = function() {
 };
 
 // init() is now called by auth.js after authentication
+
+// Effet de scroll pour le bandeau supérieur sur mobile
+function handleMobileScroll() {
+    if (window.innerWidth <= 768) {
+        const sidebar = document.querySelector('.sidebar');
+        if (sidebar) {
+            const mainContent = document.querySelector('.main-content');
+            const scrollTop = window.scrollY || document.documentElement.scrollTop || (mainContent ? mainContent.scrollTop : 0);
+            if (scrollTop > 40) {
+                sidebar.classList.add('scrolled');
+            } else {
+                sidebar.classList.remove('scrolled');
+            }
+        }
+    }
+}
+window.addEventListener('scroll', handleMobileScroll);
+const mainContent = document.querySelector('.main-content');
+if (mainContent) {
+    mainContent.addEventListener('scroll', handleMobileScroll);
+}

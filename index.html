@@ -77,11 +77,6 @@
         <!-- Sidebar / Header -->
         <header class="sidebar">
             <h1 class="logo" style="margin-bottom: 0.5rem;">Nutri<span>Dash</span></h1>
-            
-            <div class="sidebar-user" style="text-align: center; padding-bottom: 1.5rem; border-bottom: 2px dashed var(--border-color); margin-bottom: 0.5rem;">
-                <small id="user-email" style="color: var(--text-muted); display:block; margin-bottom:0.5rem; word-break:break-all; font-weight:700;"></small>
-                <button id="logout-btn" class="btn" style="width:100%; font-size:0.85rem; padding:0.5rem;">Déconnexion</button>
-            </div>
 
             <nav>
                 <button class="nav-btn active" data-target="dashboard-view">Tableau de bord</button>
@@ -95,6 +90,14 @@
             <!-- Profil View -->
             <section id="profile-view" class="view hidden">
                 <h2>Votre Profil</h2>
+                <div class="card profile-header-card">
+                    <div class="profile-email-container">
+                        <span style="font-weight: 800; color: var(--text-main);">Compte :</span> 
+                        <span id="user-email" style="color: var(--accent-secondary); word-break: break-all;"></span>
+                    </div>
+                    <button id="logout-btn" class="btn logout-btn">Déconnexion</button>
+                </div>
+
                 <form id="profile-form" class="card">
                     <div class="form-group">
                         <label for="birthDate">Date de naissance</label>
@@ -138,6 +141,9 @@
                         <span class="label">Objectif TDEE</span>
                         <span class="value" id="display-tdee">--</span>
                     </div>
+                    <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 1rem; text-align: center; border-top: 2px dashed #ffc9c9; padding-top: 1rem;">
+                        <strong>BMR :</strong> Dépenses au repos. &bull; <strong>TDEE :</strong> Dépenses avec activité minimum (sédentaire).
+                    </p>
                 </div>
             </section>
 
@@ -213,9 +219,16 @@
 
             <!-- History View -->
             <section id="history-view" class="view hidden" style="max-width:900px; margin: 0 auto; width:100%;">
-                <header class="dashboard-header" style="margin-bottom: 2rem;">
+                <header class="dashboard-header" style="margin-bottom: 1.5rem;">
                     <h2>Historiques</h2>
                 </header>
+
+                <div style="display: flex; gap: 0.5rem; justify-content: center; margin-bottom: 2rem; flex-wrap: wrap;">
+                    <button class="btn btn-secondary chart-filter-btn active" data-filter="week" style="width: auto; padding: 0.5rem 1rem; font-size: 0.95rem;">Semaine</button>
+                    <button class="btn chart-filter-btn" data-filter="month" style="width: auto; padding: 0.5rem 1rem; font-size: 0.95rem;">Mois</button>
+                    <button class="btn chart-filter-btn" data-filter="year" style="width: auto; padding: 0.5rem 1rem; font-size: 0.95rem;">Année</button>
+                </div>
+
                 <div class="card" style="background:#ffffff; margin-bottom: 2rem;">
                     <h3>Évolution du Poids</h3>
                     <canvas id="weightChart"></canvas>
@@ -256,6 +269,20 @@
                         <label for="meal-protein">Protéines (g)</label>
                         <input type="number" id="meal-protein" min="0" step="0.1" required>
                     </div>
+                </div>
+                
+                <div class="ai-hint" style="margin-bottom: 1rem; padding: 0.75rem; background: #e7f5ff; border-radius: var(--radius-sm); border: 2px dashed var(--accent-secondary); font-size: 0.85rem;">
+                    <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;">
+                        <span style="font-size: 1.2rem;">🤖</span>
+                        <strong style="color: var(--text-main);">Astuce IA</strong>
+                    </div>
+                    <p style="margin-bottom: 0.5rem; color: var(--text-muted); line-height: 1.4;">Pour être précis sans chercher, demandez à une IA (ex: ChatGPT) d'estimer vos macros :</p>
+                    <details>
+                        <summary style="color: var(--accent-secondary); font-weight: 800; cursor: pointer; outline: none;">Voir un exemple de prompt (à copier)</summary>
+                        <div style="margin-top: 0.5rem; padding: 0.75rem; background: #ffffff; border-radius: 4px; border: 1px solid var(--accent-secondary); font-style: italic; color: var(--text-main);">
+                            « J'ai mangé un steak haché 5% (100g), 150g de pâtes cuites et un peu de sauce tomate. Donne-moi uniquement le total estimé en Calories et en Protéines (g). »
+                        </div>
+                    </details>
                 </div>
                 <button type="submit" class="btn btn-primary" style="margin-top:1rem;">Ajouter le repas</button>
             </form>
