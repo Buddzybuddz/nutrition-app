@@ -921,3 +921,36 @@ input:focus, select:focus {
     .features-section { padding: 3rem 1.5rem; }
     .features-section > h2 { font-size: 2rem; }
 }
+/* Advice Section */
+.advice-content {
+    font-family: var(--font-main);
+}
+
+.advice-content details {
+    transition: var(--transition);
+}
+
+.advice-content details[open] {
+    background: #fff9db;
+    transform: scale(1.02);
+}
+
+.advice-content summary {
+    list-style: none;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.advice-content summary::after {
+    content: '❯';
+    transition: transform 0.2s;
+}
+
+.advice-content details[open] summary::after {
+    transform: rotate(90deg);
+}
+
+.advice-content summary::-webkit-details-marker {
+    display: none;
+}

@@ -17,7 +17,11 @@ function getActiveLog() {
             consumedCals: 0,
             consumedProtein: 0,
             bonusTDEE: 0,
-            entries: []
+            entries: [],
+            // Snapshots des réglages au moment du jour J
+            baseTDEE: (state.profile ? state.profile.tdee : 0),
+            goal: (state.profile ? state.profile.goal : 'maintenance'),
+            goalMultiplier: (state.profile ? (state.profile.goal === 'loss' ? 0.9 : (state.profile.goal === 'gain' ? 1.1 : 1.0)) : 1.0)
         };
     }
     return state.history[state.currentViewDate];
@@ -102,8 +106,39 @@ function updateProfileData() {
         state.profile.height, 
         state.profile.age
     );
-    state.profile.tdee = state.profile.bmr * state.profile.activity;
+    
+    // Le TDEE de base est maintenant BMR * 1.2 (sédentaire)
+    state.profile.tdee = state.profile.bmr * 1.2;
+    
+    // Mise à jour du "snapshot" pour AUJOURD'HUI uniquement
+    // Ainsi, les changements d'objectifs n'impactent pas le passé
+    const todayStr = new Date().toLocaleDateString('fr-FR');
+    if (state.history && state.history[todayStr]) {
+        const log = state.history[todayStr];
+        log.baseTDEE = state.profile.tdee;
+        log.goal = state.profile.goal;
+        log.goalMultiplier = (state.profile.goal === 'loss' ? 0.9 : (state.profile.goal === 'gain' ? 1.1 : 1.0));
+    }
+    
     saveState();
+}
+
+function calculateIdealWeight(height, gender) {
+    if (!height) return 0;
+    // Utilisation d'un IMC de 22 comme cible "idéale" simplifiée
+    const heightM = height / 100;
+    return Math.round((22 * heightM * heightM) * 10) / 10;
+}
+
+function checkGoalReached(newWeight) {
+    if (!state.profile || state.profile.goal !== 'loss' || !state.profile.targetWeight) return false;
+    return newWeight <= state.profile.targetWeight;
+}
+
+function showGoalReachedMessage() {
+    setTimeout(() => {
+        alert("🎯 Objectif atteint ! Félicitations vous avez atteint votre objectif, vous pouvez vous en donner un nouveau dans votre profil.");
+    }, 500);
 }
 
 // UI Elements
@@ -167,35 +202,27 @@ function renderActivityOptions() {
 // Navigation
 navBtns.forEach(btn => {
     btn.addEventListener('click', () => {
+        const target = btn.dataset.target;
+        
+        // Validation profil (sauf pour le profil lui-même)
+        if (target !== 'profile-view' && !state.profile) {
+            alert("Veuillez d'abord configurer votre profil.");
+            return;
+        }
+
         navBtns.forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
-        const target = btn.dataset.target;
+
+        // Toggle views
+        document.querySelectorAll('.view').forEach(v => v.classList.add('hidden'));
+        document.getElementById(target).classList.remove('hidden');
+
+        // Specific view logic
         if (target === 'profile-view') {
-            viewDashboard.classList.add('hidden');
-            if (document.getElementById('history-view')) document.getElementById('history-view').classList.add('hidden');
-            viewProfile.classList.remove('hidden');
             populateProfileForm();
         } else if (target === 'history-view') {
-            if (!state.profile) {
-                alert("Veuillez d'abord configurer votre profil.");
-                btn.classList.remove('active');
-                document.querySelector('[data-target="profile-view"]').classList.add('active');
-                return;
-            }
-            viewDashboard.classList.add('hidden');
-            viewProfile.classList.add('hidden');
-            document.getElementById('history-view').classList.remove('hidden');
             if (window.renderHistoryChart) window.renderHistoryChart();
-        } else {
-            if (!state.profile) {
-                alert("Veuillez d'abord configurer votre profil.");
-                btn.classList.remove('active');
-                document.querySelector('[data-target="profile-view"]').classList.add('active');
-                return;
-            }
-            viewProfile.classList.add('hidden');
-            if (document.getElementById('history-view')) document.getElementById('history-view').classList.add('hidden');
-            viewDashboard.classList.remove('hidden');
+        } else if (target === 'dashboard-view') {
             updateDashboard();
         }
     });
@@ -211,14 +238,80 @@ document.getElementById('profile-form').addEventListener('submit', (e) => {
         gender: document.getElementById('gender').value,
         weight: parseFloat(document.getElementById('weight').value),
         height: parseInt(document.getElementById('height').value),
+        goal: document.getElementById('goal').value,
+        targetWeight: document.getElementById('targetWeight').value ? parseFloat(document.getElementById('targetWeight').value) : null,
         activity: 1.2, // Niveau sédentaire utilisé par défaut
         weighInDay: parseInt(document.getElementById('weighInDay').value)
     };
     updateProfileData();
     populateProfileForm();
-    alert('Profil sauvegardé!');
+    
+    // Vérification de l'objectif
+    if (checkGoalReached(state.profile.weight)) {
+        showGoalReachedMessage();
+    } else {
+        alert('Profil sauvegardé!');
+    }
+    
     document.querySelector('[data-target="dashboard-view"]').click();
 });
+
+const goalSelect = document.getElementById('goal');
+if (goalSelect) {
+    goalSelect.addEventListener('change', (e) => {
+        const targetGroup = document.getElementById('target-weight-group');
+        if (e.target.value === 'loss') {
+            targetGroup.classList.remove('hidden');
+        } else {
+            targetGroup.classList.add('hidden');
+        }
+    });
+}
+
+const heightInput = document.getElementById('height');
+const weightInput = document.getElementById('weight');
+const genderSelect = document.getElementById('gender');
+const idealWeightSuggestion = document.getElementById('ideal-weight-suggestion');
+
+function updateIdealWeightLabel() {
+    const h = parseInt(heightInput.value);
+    const g = genderSelect.value;
+    if (h && idealWeightSuggestion) {
+        const ideal = calculateIdealWeight(h, g);
+        idealWeightSuggestion.textContent = `Suggéré : ${ideal} kg`;
+        idealWeightSuggestion.dataset.value = ideal;
+    }
+}
+
+function updateLivePreview() {
+    const birthday = document.getElementById('birthDate').value;
+    const gender = document.getElementById('gender').value;
+    const weight = parseFloat(document.getElementById('weight').value);
+    const height = parseInt(document.getElementById('height').value);
+    
+    if (birthday && gender && weight && height) {
+        const age = calculateAge(birthday);
+        const bmr = calculateMifflinStJeor(gender, weight, height, age);
+        const tdee = bmr * 1.2;
+        
+        dpBmr.textContent = Math.round(bmr) + " kcal";
+        dpTdee.textContent = Math.round(tdee) + " kcal";
+        profileStats.classList.remove('hidden');
+    }
+}
+
+if (heightInput) heightInput.addEventListener('input', () => { updateIdealWeightLabel(); updateLivePreview(); });
+if (weightInput) weightInput.addEventListener('input', updateLivePreview);
+if (genderSelect) genderSelect.addEventListener('change', () => { updateIdealWeightLabel(); updateLivePreview(); });
+if (document.getElementById('birthDate')) document.getElementById('birthDate').addEventListener('change', updateLivePreview);
+if (idealWeightSuggestion) {
+    idealWeightSuggestion.addEventListener('click', () => {
+        const targetWInput = document.getElementById('targetWeight');
+        if (targetWInput && idealWeightSuggestion.dataset.value) {
+            targetWInput.value = idealWeightSuggestion.dataset.value;
+        }
+    });
+}
 
 function populateProfileForm() {
     if (state.profile) {
@@ -232,6 +325,19 @@ function populateProfileForm() {
         document.getElementById('weight').value = state.profile.weight;
         document.getElementById('height').value = state.profile.height;
         document.getElementById('weighInDay').value = state.profile.weighInDay !== undefined ? state.profile.weighInDay : 1;
+        
+        if (state.profile.goal) {
+            document.getElementById('goal').value = state.profile.goal;
+            if (state.profile.goal === 'loss') {
+                document.getElementById('target-weight-group').classList.remove('hidden');
+                if (state.profile.targetWeight) {
+                    document.getElementById('targetWeight').value = state.profile.targetWeight;
+                }
+            } else {
+                document.getElementById('target-weight-group').classList.add('hidden');
+            }
+        }
+        updateIdealWeightLabel();
         
         dpBmr.textContent = Math.round(state.profile.bmr) + " kcal";
         dpTdee.textContent = Math.round(state.profile.tdee) + " kcal";
@@ -357,8 +463,6 @@ window.deleteEntry = function(id) {
         actLog.consumedProtein -= entry.prot;
     } else if (entry.type === 'Activité') {
         actLog.bonusTDEE -= entry.cals;
-    } else if (entry.type === 'Objectif') {
-        state.profile.objective = '';
     }
     actLog.entries.splice(idx, 1);
     saveState();
@@ -392,9 +496,6 @@ window.editEntry = function(id) {
         document.getElementById('activity-form').dataset.editingId = id;
         document.getElementById('activity-form').querySelector('button[type="submit"]').textContent = 'Enregistrer la modification';
         if(window.openActivityModal) window.openActivityModal(true);
-    } else if (entry.type === 'Objectif') {
-        document.getElementById('objective-select').value = entry.value;
-        if(window.openObjectiveModal) window.openObjectiveModal();
     }
 }
 
@@ -431,19 +532,6 @@ window.closeActivityModal = function() {
     if (modal) modal.classList.add('hidden');
 }
 
-window.openObjectiveModal = function() {
-    const modal = document.getElementById('objective-modal');
-    if (!modal) return;
-    modal.classList.remove('hidden');
-    const objSelect = document.getElementById('objective-select');
-    if (objSelect && state.profile && state.profile.objective) {
-        objSelect.value = state.profile.objective;
-    }
-}
-window.closeObjectiveModal = function() {
-    const modal = document.getElementById('objective-modal');
-    if (modal) modal.classList.add('hidden');
-}
 
 // Fermeture au clic à l'extérieur
 document.querySelectorAll('.modal-overlay').forEach(overlay => {
@@ -454,36 +542,6 @@ document.querySelectorAll('.modal-overlay').forEach(overlay => {
     });
 });
 
-const objectiveForm = document.getElementById('objective-form');
-if (objectiveForm) {
-    objectiveForm.addEventListener('submit', (e) => {
-        e.preventDefault();
-        const objSelect = document.getElementById('objective-select');
-        if (objSelect && state.profile) {
-            state.profile.objective = objSelect.value;
-            
-            const actLog = getActiveLog();
-            actLog.entries = actLog.entries.filter(en => en.type !== 'Objectif');
-            
-            let nameText = 'Défaut';
-            let calsText = '0%';
-            if (objSelect.value === 'seche') { nameText = 'Sèche'; calsText = '-10%'; }
-            else if (objSelect.value === 'masse') { nameText = 'Prise de masse'; calsText = '+10%'; }
-            
-            actLog.entries.push({
-                id: Date.now() + Math.random(),
-                type: 'Objectif',
-                name: nameText,
-                calsText: calsText,
-                value: objSelect.value
-            });
-            
-            saveState();
-            updateDashboard();
-        }
-        if (window.closeObjectiveModal) window.closeObjectiveModal();
-    });
-}
 
 function updateDashboard() {
     if (!state.profile) return;
@@ -511,7 +569,10 @@ function updateDashboard() {
                     <div>
                         <h3 style="border:none; margin:0; font-size:1.5rem; color: var(--accent-success);">✅ Pesée : <strong>${existingWeigh.weight} kg</strong></h3>
                     </div>
-                    <button type="button" class="btn" style="width:auto; padding:0.5rem 1rem; font-size:0.9rem;" onclick="window.editWeighIn()">✎ Modifier</button>`;
+                    <div style="display:flex; gap:0.5rem; align-items:center;">
+                        <button type="button" class="btn" style="width:auto; padding:0.5rem 1rem; font-size:0.9rem;" onclick="window.editWeighIn()">✎ Modifier</button>
+                        <button type="button" class="btn btn-danger" style="width:auto; padding:0.5rem 1rem; font-size:0.9rem; background: #ff5252; color: white; border: none;" onclick="window.deleteWeighIn()">✕ Effacer</button>
+                    </div>`;
             } else {
                 weighCard.innerHTML = `
                     <div>
@@ -527,13 +588,24 @@ function updateDashboard() {
         }
     }
     
-    const obj = state.profile.objective || '';
-    let multiplier = 1.0;
-    if (obj === 'seche') multiplier = 0.9;
-    if (obj === 'masse') multiplier = 1.1;
+    // Récupération des réglages du Snapshot du jour (si dispo) ou du Profil (fallback)
+    const baseTdee = actLog.baseTDEE || (state.profile ? state.profile.tdee : 0);
+    const goalMultiplier = actLog.goalMultiplier || (state.profile ? (state.profile.goal === 'loss' ? 0.9 : (state.profile.goal === 'gain' ? 1.1 : 1.0)) : 1.0);
+    const goalName = actLog.goal || (state.profile ? state.profile.goal : 'maintenance');
 
-    const baseTdee = state.profile.tdee * multiplier;
-    const targetTdee = baseTdee + actLog.bonusTDEE;
+    // Mise à jour du rappel d'objectif sur le dashboard
+    const reminder = document.getElementById('dashboard-goal-reminder');
+    const reminderText = document.getElementById('dashboard-goal-text');
+    if (reminder && reminderText) {
+        reminder.style.display = 'block';
+        let label = "Maintien du poids (0%)";
+        if (goalName === 'loss') label = "Perte de poids (-10%)";
+        if (goalName === 'gain') label = "Prise de masse (+10%)";
+        reminderText.textContent = label;
+    }
+
+    // Formule : (TDEE de base + activités saisies) * multiplicateur d'objectif
+    const targetTdee = (baseTdee + actLog.bonusTDEE) * goalMultiplier;
     const remaining = targetTdee - actLog.consumedCals;
     
     calsGoal.textContent = Math.round(targetTdee);
@@ -620,6 +692,10 @@ function updateDashboard() {
 // Init (called by auth.js after authentication)
 function init() {
     loadState();
+    if (state.profile) {
+        // Recalcul forcé pour s'assurer que le TDEE suit la nouvelle règle BMR * 1.2
+        updateProfileData();
+    }
     renderActivityOptions();
     if (!state.profile) {
         // Force profile view initially
@@ -629,6 +705,7 @@ function init() {
         document.querySelector('[data-target="profile-view"]').classList.add('active');
     } else {
         updateDashboard();
+        populateProfileForm();
     }
 }
 
@@ -662,6 +739,11 @@ window.saveWeighIn = function() {
     
     updateProfileData();
     updateDashboard();
+    
+    // Vérification de l'objectif
+    if (checkGoalReached(w)) {
+        showGoalReachedMessage();
+    }
 };
 
 window.editWeighIn = function() {
@@ -676,6 +758,18 @@ window.editWeighIn = function() {
             <input type="number" id="weigh-input" step="0.1" min="10" max="300" value="${existing ? existing.weight : ''}" style="width: 150px;">
             <button type="button" class="btn btn-primary" style="width:auto; padding: 0.75rem 1rem;" onclick="window.saveWeighIn()">Valider</button>
         </div>`;
+};
+
+window.deleteWeighIn = function() {
+    if (!confirm("Voulez-vous vraiment effacer cette pesée ?")) return;
+    
+    const idx = state.weighIns.findIndex(wi => wi.date === state.currentViewDate);
+    if (idx !== -1) {
+        state.weighIns.splice(idx, 1);
+        saveState();
+        updateDashboard();
+        alert("Pesée effacée.");
+    }
 };
 
 let chartInstances = { weight: null, calories: null, protein: null };
@@ -763,11 +857,11 @@ window.renderHistoryChart = function() {
     let historyDates = sortDatesFR(Object.keys(state.history || {}));
     historyDates = historyDates.filter(dateStr => parseDateFR(dateStr) >= cutoffDate);
     
-    const obj = (state.profile && state.profile.objective) || 'maintien';
-    let multiplier = 1.0;
-    if (obj === 'seche') multiplier = 0.9;
-    if (obj === 'masse') multiplier = 1.1;
-    const baseTdee = state.profile ? state.profile.tdee * multiplier : 0;
+    // Multiplicateur pour l'historique
+    let goalMultiplier = 1.0;
+    if (state.profile && state.profile.goal === 'loss') goalMultiplier = 0.9;
+    if (state.profile && state.profile.goal === 'gain') goalMultiplier = 1.1;
+
     const targetProtein = getLatestWeight() * 2;
 
     const calLabels = [];
@@ -779,7 +873,13 @@ window.renderHistoryChart = function() {
     historyDates.forEach(dateKey => {
         const log = state.history[dateKey];
         calLabels.push(dateKey);
-        const dayTarget = baseTdee + (log.bonusTDEE || 0);
+        
+        // Priorité aux données du snapshot du jour
+        const dayBaseTdee = log.baseTDEE || (state.profile ? state.profile.tdee : 0);
+        const dayGoalMultiplier = log.goalMultiplier || goalMultiplier;
+        
+        // Formule historique : (TDEE + bonus du jour) * objectif
+        const dayTarget = (dayBaseTdee + (log.bonusTDEE || 0)) * dayGoalMultiplier;
         calGoalData.push(Math.round(dayTarget));
         calConsumedData.push(Math.round(log.consumedCals || 0));
         protGoalData.push(Math.round(targetProtein));

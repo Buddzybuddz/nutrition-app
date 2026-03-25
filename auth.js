@@ -2,15 +2,19 @@
 const SUPABASE_URL = 'https://qhujcfeownqwvsenmaqh.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFodWpjZmVvd25xd3ZzZW5tYXFoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQwMjEzNjUsImV4cCI6MjA4OTU5NzM2NX0.svgq9ZBjg9JPUPqqDa3-2Npn0_mcIa0SIN1UVmRdRM4';
 
-// Hack anti-deadlock : on désactive "navigator.locks" pour forcer Supabase à utiliser un mode de stockage local basique
-try { 
-    if (typeof navigator !== 'undefined') Object.defineProperty(navigator, 'locks', { get: () => undefined }); 
-} catch(e) {}
-
 let supabaseClient = null;
+let currentUser = null;
 try {
     if (window.supabase) {
-        supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        // Initialisation avec options explicites pour éviter les deadlocks de lock
+        supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+            auth: {
+                persistSession: true,
+                autoRefreshToken: true,
+                detectSessionInUrl: true,
+                storage: window.localStorage
+            }
+        });
     } else {
         console.warn("L'objet window.supabase est introuvable. Le CDN est probablement bloqué.");
     }
@@ -49,11 +53,9 @@ async function resetPassword(email) {
     if (error) throw error;
 }
 
-// Data Sync Functions
-async function syncToCloud() {
-    if (!supabaseClient) return;
-    const { data: { user } } = await supabaseClient.auth.getUser();
-    if (!user) return;
+// Data Sync Functions (accept user object or use current session to avoid blocking getUser calls)
+async function syncToCloud(user = currentUser) {
+    if (!supabaseClient || !user) return;
     
     const payload = {
         id: user.id,
@@ -61,6 +63,7 @@ async function syncToCloud() {
         updated_at: new Date().toISOString()
     };
     
+    // On ne veut pas que ça bloque l'UI ou l'auth, donc on ne met pas forcément de await critique ici
     const { error } = await supabaseClient
         .from('user_data')
         .upsert(payload, { onConflict: 'id' });
@@ -68,10 +71,8 @@ async function syncToCloud() {
     if (error) console.error('Sync error:', error);
 }
 
-async function loadFromCloud() {
-    if (!supabaseClient) return null;
-    const { data: { user } } = await supabaseClient.auth.getUser();
-    if (!user) return null;
+async function loadFromCloud(user) {
+    if (!supabaseClient || !user) return null;
     
     const { data, error } = await supabaseClient
         .from('user_data')
@@ -184,7 +185,7 @@ window.handleLoginSubmit = async (e) => {
         console.log("Tentative de connexion Supabase...");
         // Timeout de sécurité au cas où Supabase freeze (bug connu de lock du navigateur)
         const timeoutPromise = new Promise((_, reject) => 
-            setTimeout(() => reject(new Error('TIMEOUT_DEADLOCK')), 8000)
+            setTimeout(() => reject(new Error('TIMEOUT_DEADLOCK')), 10000)
         );
         await Promise.race([signIn(email, password), timeoutPromise]);
         console.log("Connexion réussie !");
@@ -202,7 +203,15 @@ window.handleLoginSubmit = async (e) => {
         let msg = 'Erreur lors de la connexion.';
         if (err && err.message) {
             if (err.message === 'TIMEOUT_DEADLOCK') {
-                msg = 'Le système est bloqué par le navigateur. Appuyez sur F12 > onglet "Application" > "Stockage" ("Storage") > cliquez sur "Effacer les données du site" ("Clear site data"), puis rechargez la page.';
+                // Tentative brute de déblocage : on vide les clés d'auth locales pour forcer un état propre
+                try {
+                    Object.keys(localStorage).forEach(key => {
+                        if (key.includes('sb-') && key.includes('-auth-token')) {
+                            localStorage.removeItem(key);
+                        }
+                    });
+                } catch(e) {}
+                msg = 'Le système de session semble bloqué par votre navigateur ou plusieurs onglets ouverts. Nous avons tenté de réinitialiser la connexion. Veuillez rafraîchir la page (F5) et réessayer.';
             } else if (err.message.includes('Invalid login credentials')) {
                 msg = 'Mail non existant ou mot de passe incorrect.';
             } else if (err.message.includes('Email not confirmed')) {
@@ -213,7 +222,7 @@ window.handleLoginSubmit = async (e) => {
         } else if (typeof err === 'string') {
             msg = err;
         }
-        alert(msg); // HARD fallback to ensure user sees the error
+        alert(msg);
         showAuthError(msg);
     }
 };
@@ -247,7 +256,7 @@ window.handleSignupSubmit = async (e) => {
         
         console.log("Tentative d'inscription Supabase...");
         const timeoutPromise = new Promise((_, reject) => 
-            setTimeout(() => reject(new Error('TIMEOUT_DEADLOCK')), 8000)
+            setTimeout(() => reject(new Error('TIMEOUT_DEADLOCK')), 10000)
         );
         await Promise.race([signUp(email, password), timeoutPromise]);
         console.log("Inscription réussie !");
@@ -272,7 +281,14 @@ window.handleSignupSubmit = async (e) => {
         console.error("Signup Error:", err);
         let msg = err && err.message ? err.message : 'Erreur lors de la création du compte.';
         if (msg === 'TIMEOUT_DEADLOCK') {
-            msg = 'Le système de session est bloqué. Appuyez sur F12 > onglet "Application" > "Stockage" ("Storage") > cliquez sur "Effacer les données du site" ("Clear site data"), puis rechargez la page.';
+            try {
+                Object.keys(localStorage).forEach(key => {
+                    if (key.includes('sb-') && key.includes('-auth-token')) {
+                        localStorage.removeItem(key);
+                    }
+                });
+            } catch(e) {}
+            msg = 'Le système de session semble bloqué. Nous avons tenté de réinitialiser la connexion. Veuillez rafraîchir la page (F5) et réessayer.';
         } else if (msg.includes('User already registered')) {
             msg = 'Cet email est déjà utilisé.';
         }
@@ -328,41 +344,45 @@ function initAuth() {
     // Listen for auth state changes (ONLY IF SUPABASE LOADED)
     if (supabaseClient) {
         supabaseClient.auth.onAuthStateChange(async (event, session) => {
+            currentUser = session ? session.user : null;
+            
             if (session && session.user) {
                 // User is logged in
-                const cloudState = await loadFromCloud();
-                if (cloudState && cloudState.profile) {
-                    // Cloud data exists, use it
-                    state = cloudState;
-                    if (!state.customActivities) state.customActivities = [];
-                    if (!state.weighIns) state.weighIns = [];
-                    if (!state.history) state.history = {};
-                    state.currentViewDate = new Date().toLocaleDateString('fr-FR');
-                    if (typeof getActiveLog === 'function') getActiveLog();
-                    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-                } else {
-                    // No cloud data yet, migrate localStorage to cloud
-                    if (typeof loadState === 'function') loadState();
-                    await syncToCloud();
-                }
-
-                const userEmail = document.getElementById('user-email');
-                if (userEmail) userEmail.textContent = session.user.email;
+                const user = session.user;
                 
+                // Mettre à jour l'email dans l'UI immédiatement
+                const userEmail = document.getElementById('user-email');
+                if (userEmail) userEmail.textContent = user.email;
+
+                // Charger les données de manière non-bloquante pour éviter les deadlocks
+                loadFromCloud(user).then(async (cloudState) => {
+                    if (cloudState && cloudState.profile) {
+                        // Cloud data exists, use it
+                        state = cloudState;
+                        if (!state.customActivities) state.customActivities = [];
+                        if (!state.weighIns) state.weighIns = [];
+                        if (!state.history) state.history = {};
+                        state.currentViewDate = new Date().toLocaleDateString('fr-FR');
+                        if (typeof getActiveLog === 'function') getActiveLog();
+                        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+                    } else {
+                        // No cloud data yet, migrate localStorage to cloud
+                        if (typeof loadState === 'function') loadState();
+                        await syncToCloud(user);
+                    }
+                    
+                    // Une fois les données chargées, on initialise l'application
+                    if (typeof init === 'function') {
+                        init();
+                    } else if (state.profile) {
+                        if (typeof updateDashboard === 'function') updateDashboard();
+                    }
+                }).catch(err => {
+                    console.error("Erreur lors du chargement des données cloud:", err);
+                });
+
                 showApp();
                 if (typeof renderActivityOptions === 'function') renderActivityOptions();
-                if (state.profile) {
-                    if (typeof updateDashboard === 'function') updateDashboard();
-                } else {
-                    const dbView = document.getElementById('dashboard-view');
-                    const profileView = document.getElementById('profile-view');
-                    if(dbView) dbView.classList.add('hidden');
-                    if(profileView) profileView.classList.remove('hidden');
-                    const dbTarget = document.querySelector('[data-target="dashboard-view"]');
-                    const profTarget = document.querySelector('[data-target="profile-view"]');
-                    if(dbTarget) dbTarget.classList.remove('active');
-                    if(profTarget) profTarget.classList.add('active');
-                }
             } else {
                 // User is logged out
                 window.showLandingPage();

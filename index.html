@@ -147,6 +147,7 @@
                 <button class="nav-btn active" data-target="dashboard-view">Tableau de bord</button>
                 <button class="nav-btn" data-target="profile-view">Profil</button>
                 <button class="nav-btn" data-target="history-view">Historiques</button>
+                <button class="nav-btn" data-target="advice-view">Conseils</button>
             </nav>
         </header>
 
@@ -175,13 +176,30 @@
                             <option value="female">Femme</option>
                         </select>
                     </div>
-                    <div class="form-group">
-                        <label for="weight">Poids (kg)</label>
-                        <input type="number" id="weight" min="1" step="0.1" required>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="weight">Poids (kg)</label>
+                            <input type="number" id="weight" min="1" step="0.1" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="height">Taille (cm)</label>
+                            <input type="number" id="height" min="1" step="1" required>
+                        </div>
                     </div>
                     <div class="form-group">
-                        <label for="height">Taille (cm)</label>
-                        <input type="number" id="height" min="1" step="1" required>
+                        <label for="goal">Mon Objectif</label>
+                        <select id="goal" required>
+                            <option value="maintenance" selected>Maintien du poids (par défaut)</option>
+                            <option value="loss">Perte de poids (-10% kcal)</option>
+                            <option value="gain">Prise de masse (+10% kcal)</option>
+                        </select>
+                    </div>
+                    <div class="form-group hidden" id="target-weight-group">
+                        <label for="targetWeight">Poids visé (kg)</label>
+                        <div style="display: flex; gap: 0.5rem; align-items: center;">
+                            <input type="number" id="targetWeight" step="0.1" min="10" placeholder="Ex: 70">
+                            <span id="ideal-weight-suggestion" style="font-size: 0.8rem; color: var(--accent-secondary); cursor: pointer; text-decoration: underline; font-weight: 700; white-space: nowrap;">Suggéré : --</span>
+                        </div>
                     </div>
                     <div class="form-group">
                         <label for="weighInDay">Jour de pesée hebdomadaire</label>
@@ -203,12 +221,69 @@
                         <span class="value" id="display-bmr">--</span>
                     </div>
                     <div class="stat">
-                        <span class="label">Objectif TDEE</span>
+                        <span class="label">TDEE</span>
                         <span class="value" id="display-tdee">--</span>
                     </div>
                     <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 1rem; text-align: center; border-top: 2px dashed #ffc9c9; padding-top: 1rem;">
                         <strong>BMR :</strong> Dépenses au repos. &bull; <strong>TDEE :</strong> Dépenses avec activité minimum (sédentaire).
                     </p>
+                </div>
+            </section>
+            
+            <!-- Advice View -->
+            <section id="advice-view" class="view hidden">
+                <h2>Conseils Nutrition & Bien-être</h2>
+                
+                <div class="dashboard-grid">
+                    <!-- Nutrition Card -->
+                    <div class="card">
+                        <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1.5rem; border-bottom: 3px dashed var(--border-color); padding-bottom: 0.5rem;">
+                            <span style="font-size: 1.8rem;">🍎</span>
+                            <h3 style="margin: 0; border: none; padding: 0;">Nutrition</h3>
+                        </div>
+                        
+                        <div class="advice-content">
+                            <h4 style="color: var(--accent-primary); margin-bottom: 0.5rem;">Quels aliments privilégier ?</h4>
+                            <ul style="margin-bottom: 1.5rem; padding-left: 1.2rem; line-height: 1.6;">
+                                <li><strong>Protéines :</strong> Poulet, dinde, œufs, tofu, poisson, légumineuses.</li>
+                                <li><strong>Glucides complexes :</strong> Riz complet, quinoa, patate douce, avoine.</li>
+                                <li><strong>Bonnes graisses :</strong> Avocat, oléagineux (noix, amandes), huile d'olive.</li>
+                                <li><strong>Légumes :</strong> À volonté pour les fibres et micronutriments.</li>
+                            </ul>
+
+                            <h4 style="color: var(--accent-primary); margin-bottom: 0.5rem;">Exemples de repas</h4>
+                            <div style="background: #f8f9fa; border: 2px solid var(--border-color); border-radius: var(--radius-sm); padding: 1rem; font-size: 0.95rem;">
+                                <p><strong>P'tit déj :</strong> Flocons d'avoine, lait végétal, une poignée de baies.</p>
+                                <p><strong>Déjeuner :</strong> Pavé de saumon, riz basmati et brocolis vapeur.</p>
+                                <p><strong>Dîner :</strong> Omelette aux épinards et salade de lentilles.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Explanations Card -->
+                    <div class="card">
+                        <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1.5rem; border-bottom: 3px dashed var(--border-color); padding-bottom: 0.5rem;">
+                            <span style="font-size: 1.8rem;">🧠</span>
+                            <h3 style="margin: 0; border: none; padding: 0;">Explications Techniques</h3>
+                        </div>
+
+                        <div class="advice-content">
+                            <details style="margin-bottom: 1rem; border: 2px solid var(--border-color); border-radius: var(--radius-sm); padding: 0.75rem;">
+                                <summary style="font-weight: 800; cursor: pointer;">Le Métabolisme (BMR & TDEE)</summary>
+                                <p style="margin-top: 0.5rem; font-size: 0.9rem;">Le <strong>BMR</strong> est ce que votre corps brûle au repos total. Le <strong>TDEE</strong> inclut votre activité. Pour stabiliser votre poids, vous devez manger l'équivalent de votre TDEE.</p>
+                            </details>
+
+                            <details style="margin-bottom: 1rem; border: 2px solid var(--border-color); border-radius: var(--radius-sm); padding: 0.75rem;">
+                                <summary style="font-weight: 800; cursor: pointer;">La Perte de Poids (Sèche)</summary>
+                                <p style="margin-top: 0.5rem; font-size: 0.9rem;">Créez un <strong>déficit calorique</strong> (environ -10% de votre TDEE). Priorisez les protéines pour conserver votre muscle tout en brûlant du gras.</p>
+                            </details>
+
+                            <details style="margin-bottom: 1rem; border: 2px solid var(--border-color); border-radius: var(--radius-sm); padding: 0.75rem;">
+                                <summary style="font-weight: 800; cursor: pointer;">La Prise de Masse</summary>
+                                <p style="margin-top: 0.5rem; font-size: 0.9rem;">Consommez un <strong>surplus calorique</strong> (+10% de votre TDEE). Accompagnez cela d'un entraînement en résistance pour transformer ce surplus en muscle.</p>
+                            </details>
+                        </div>
+                    </div>
                 </div>
             </section>
 
@@ -221,6 +296,17 @@
                         <button type="button" class="btn" style="padding: 0; width: 45px; height: 45px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem;" onclick="changeDate(1)">&rarr;</button>
                     </div>
                 </header>
+
+                <!-- Goal Reminder -->
+                <div id="dashboard-goal-reminder" class="card" style="margin-bottom: 2rem; background: var(--accent-secondary); color: white; display: none; padding: 1rem;">
+                    <div style="display: flex; align-items: center; gap: 1rem; font-weight: 700;">
+                        <span style="font-size: 1.5rem;">🎯</span>
+                        <div>
+                            <div style="font-size: 0.8rem; opacity: 0.85; text-transform: uppercase; letter-spacing: 0.5px;">Objectif du jour</div>
+                            <div id="dashboard-goal-text" style="font-size: 1.1rem;">--</div>
+                        </div>
+                    </div>
+                </div>
 
                 <div class="dashboard-grid">
 
@@ -269,7 +355,6 @@
                     <div class="card add-actions-card" style="display: flex; flex-direction: column; gap: 1rem; justify-content: center;">
                         <button type="button" class="btn btn-primary" onclick="openMealModal()">🍳 Ajouter un repas</button>
                         <button type="button" class="btn btn-secondary" onclick="openActivityModal()">🏃‍♂️ Ajouter une activité</button>
-                        <button type="button" class="btn" style="background: var(--accent-purple); color: #fff;" onclick="openObjectiveModal()">🎯 Ajouter un objectif</button>
                     </div>
 
                     <!-- History List -->
@@ -383,23 +468,6 @@
         </div>
     </div>
 
-    <div id="objective-modal" class="modal-overlay hidden">
-        <div class="modal-content card">
-            <button type="button" class="close-btn" onclick="closeObjectiveModal()">&times;</button>
-            <h3>Objectif d'évolution</h3>
-            <form id="objective-form">
-                <div class="form-group">
-                    <label for="objective-select">Choix de l'objectif</label>
-                    <select id="objective-select" required>
-                        <option value="" disabled selected>Aucun objectif défini (+/- 0% TDEE)</option>
-                        <option value="seche">Sèche (-10% TDEE)</option>
-                        <option value="masse">Prise de masse (+10% TDEE)</option>
-                    </select>
-                </div>
-                <button type="submit" class="btn btn-primary" style="background: var(--accent-purple); color: #fff; margin-top:1rem;">Appliquer l'objectif</button>
-            </form>
-        </div>
-    </div>
 
     <script src="app.js"></script>
     <script src="auth.js"></script>
