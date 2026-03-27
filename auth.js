@@ -90,11 +90,7 @@ async function loadFromCloud(user) {
 
 // Auth State Management
 window.showAuthPage = function(isSignup = false) {
-    const lp = document.getElementById('landing-page');
-    if(lp) lp.classList.add('hidden');
-    document.getElementById('app').classList.add('hidden');
-    document.getElementById('auth-screen').classList.remove('hidden');
-    
+    window.navigateTo('login');
     if (isSignup && window.showSignupForm) {
         window.showSignupForm();
     } else if (!isSignup && window.showLoginForm) {
@@ -103,17 +99,17 @@ window.showAuthPage = function(isSignup = false) {
 };
 
 window.showLandingPage = function() {
-    document.getElementById('auth-screen').classList.add('hidden');
-    document.getElementById('app').classList.add('hidden');
-    const lp = document.getElementById('landing-page');
-    if(lp) lp.classList.remove('hidden');
+    window.navigateTo('landingpage');
 };
 
 function showApp() {
-    document.getElementById('auth-screen').classList.add('hidden');
-    const lp = document.getElementById('landing-page');
-    if(lp) lp.classList.add('hidden');
-    document.getElementById('app').classList.remove('hidden');
+    // Si un hash spécifique est déjà présent et valide pour l'app, on le garde
+    const currentHash = window.location.hash.replace('#', '');
+    if (currentHash && window.routes[currentHash] && window.routes[currentHash].section === 'app') {
+        window.navigateTo(currentHash);
+    } else {
+        window.navigateTo('tableaudebord');
+    }
 }
 
 function showAuthError(message) {
@@ -392,6 +388,9 @@ function initAuth() {
         // Fallback UI if supabase fails
         window.showAuthPage();
     }
+// Initial routing trigger
+    const initialSlug = window.location.hash.replace('#', '') || 'landingpage';
+    window.navigateTo(initialSlug);
 }
 
 // Call initAuth safely

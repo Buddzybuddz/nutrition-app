@@ -7,6 +7,7 @@
     <meta name="description" content="Application de suivi nutritionnel précis et moderne.">
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
+    <link rel="icon" type="image/png" href="favicon.png">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
@@ -52,6 +53,52 @@
                     <p style="color: var(--text-muted);">Surveillez votre évolution avec des historiques détaillés. Fiez-vous aux données.</p>
                     <img src="history.png" alt="Historique" class="feature-mockup">
                 </div>
+            </div>
+        </section>
+
+        <section class="process-section">
+            <h2 style="color: var(--text-main); display: flex; align-items: center; justify-content: center; gap: 15px;">
+                <img src="rocket_3d.png" alt="Rocket" style="width: 60px; height: 60px; mix-blend-mode: multiply;">
+                Le Process NutriDash : Votre Méthode vers le Succès
+            </h2>
+            <p style="max-width: 800px; margin: 0 auto 3rem; line-height: 1.6;">Pour obtenir des résultats visibles et durables, la clé n'est pas la restriction, mais la précision. Voici le parcours éprouvé par la communauté NutriDash.</p>
+            
+            <div class="process-grid">
+                <div class="card process-step">
+                    <img src="pin_3d.png" alt="Step 1" class="process-icon-img">
+                    <h3>Étape 1 : Fixer le Cap</h3>
+                    <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 1rem;">La fondation sur votre Page Profil.</p>
+                    <ul>
+                        <li>Identité métabolique (âge, poids, taille)</li>
+                        <li>Choix de l'objectif (Sèche, Masse, Maintien)</li>
+                        <li>Calcul automatique de votre budget kcal/prot</li>
+                    </ul>
+                </div>
+                <div class="card process-step">
+                    <img src="salad_3d.png" alt="Step 2" class="process-icon-img">
+                    <h3>Étape 2 : Le Pilotage Quotidien</h3>
+                    <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 1rem;">La discipline au cœur du tableau de bord.</p>
+                    <ul>
+                        <li>Saisie des repas et de l'activité physique</li>
+                        <li>Pesée des aliments critiques</li>
+                        <li>Utilisation de l'IA pour l'estimation rapide</li>
+                    </ul>
+                </div>
+                <div class="card process-step">
+                    <img src="growth_3d.png" alt="Step 3" class="process-icon-img">
+                    <h3>Étape 3 : Analyse & Ajustement</h3>
+                    <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 1rem;">Le bilan pour ne jamais stagner.</p>
+                    <ul>
+                        <li>Rendez-vous hebdomadaire de pesée</li>
+                        <li>Suivi de votre courbe sur l'historique</li>
+                        <li>Ajustement basé sur les données réelles</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div style="margin-top: 3rem; background: var(--accent-secondary); color: white; padding: 1.5rem; border-radius: var(--radius-sm); max-width: 900px; margin-left: auto; margin-right: auto; display: flex; align-items: center; gap: 1rem; text-align: left;">
+                <span style="font-size: 1.5rem;">💡</span>
+                <p style="margin: 0; font-weight: 600;">L'avantage NutriDash : Ce process élimine l'incertitude. Vous ne "testez" pas un régime, vous pilotez vos résultats.</p>
             </div>
         </section>
 
@@ -233,13 +280,18 @@
             <!-- Advice View -->
             <section id="advice-view" class="view hidden">
                 <h2>Conseils Nutrition & Bien-être</h2>
+
+                <!-- Random Tip Placeholder -->
+                <div id="random-tip-container" class="card did-you-know-card" style="margin-bottom: 2rem;">
+                    <!-- Will be populated by JS -->
+                </div>
                 
-                <div class="dashboard-grid">
+                <div class="advice-grid">
                     <!-- Nutrition Card -->
                     <div class="card">
                         <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1.5rem; border-bottom: 3px dashed var(--border-color); padding-bottom: 0.5rem;">
                             <span style="font-size: 1.8rem;">🍎</span>
-                            <h3 style="margin: 0; border: none; padding: 0;">Nutrition</h3>
+                            <h3 style="margin: 0; border: none; padding: 0;">Nutrition & Base</h3>
                         </div>
                         
                         <div class="advice-content">
@@ -260,8 +312,202 @@
                         </div>
                     </div>
 
-                    <!-- Explanations Card -->
+                    <!-- Hydratation Card -->
                     <div class="card">
+                        <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1.5rem; border-bottom: 3px dashed var(--border-color); padding-bottom: 0.5rem;">
+                            <span style="font-size: 1.8rem;">💧</span>
+                            <h3 style="margin: 0; border: none; padding: 0;">L'Hydratation</h3>
+                        </div>
+                        <div class="advice-content">
+                            <p style="margin-bottom: 1rem;"><strong>Le Pilier Oublié :</strong> La nutrition ne s'arrête pas à l'assiette.</p>
+                            <ul style="margin-bottom: 1rem; padding-left: 1.2rem; line-height: 1.4;">
+                                <li><strong>Pourquoi ?</strong> Maintient l'énergie, aide à la digestion et améliore la concentration.</li>
+                                <li><strong>Objectif :</strong> Visez 1,5L à 2L d'eau par jour, plus en cas d'activité physique.</li>
+                            </ul>
+                            <p style="font-size: 0.9rem; background: #e7f5ff; padding: 0.75rem; border-radius: var(--radius-sm); border: 2px dashed var(--accent-secondary);">
+                                <strong>Astuce :</strong> Si l'eau plate vous ennuie, essayez les infusions à froid ou un zeste de citron.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Sleep & Recovery -->
+                    <div class="card">
+                        <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1.5rem; border-bottom: 3px dashed var(--border-color); padding-bottom: 0.5rem;">
+                            <span style="font-size: 1.8rem;">😴</span>
+                            <h3 style="margin: 0; border: none; padding: 0;">Sommeil & Récupération</h3>
+                        </div>
+                        <div class="advice-content">
+                            <p style="margin-bottom: 0.5rem; color: var(--accent-primary); font-weight: 800;">Sans repos, même la meilleure diète ne fera pas de miracles.</p>
+                            <p style="margin-bottom: 1rem;"><strong>L'impact :</strong> Un manque de sommeil dérègle les hormones de la faim (ghréline/leptine), poussant vers le sucre.</p>
+                            <ul style="margin-bottom: 1rem; padding-left: 1.2rem; line-height: 1.4;">
+                                <li><strong>La règle d'or :</strong> Dormir entre 7 et 9 heures par nuit.</li>
+                                <li><strong>Rituel :</strong> Coupez les écrans 30 min avant le coucher (mélatonine).</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Micro-nutrients (Moved up to pair with Sleep) -->
+                    <div class="card">
+                        <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1.5rem; border-bottom: 3px dashed var(--border-color); padding-bottom: 0.5rem;">
+                            <span style="font-size: 1.8rem;">🧠</span>
+                            <h3 style="margin: 0; border: none; padding: 0;">Focus Micro-nutriments</h3>
+                        </div>
+                        <div class="advice-content">
+                            <p style="margin-bottom: 1rem;">Parce que les calories ne font pas tout (Vitamines & Minéraux).</p>
+                            <ul style="padding-left: 1.2rem; line-height: 1.6;">
+                                <li><strong>Magnésium :</strong> Stress et muscles (chocolat noir, épinards).</li>
+                                <li><strong>Fer :</strong> Énergie (viande rouge, lentilles, spiruline).</li>
+                                <li><strong>Vitamine C :</strong> Immunité (poivrons, agrumes, kiwi).</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Smart Snacks -->
+                    <div class="card" style="grid-column: 1 / -1;">
+                        <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1.5rem; border-bottom: 3px dashed var(--border-color); padding-bottom: 0.5rem;">
+                            <span style="font-size: 1.8rem;">🍎</span>
+                            <h3 style="margin: 0; border: none; padding: 0;">Les Collations Intelligentes</h3>
+                        </div>
+                        <p style="margin-bottom: 1rem;">Pour éviter le coup de barre de 16h ou le craquage avant le dîner.</p>
+                        <div class="table-container">
+                            <table class="advice-table">
+                                <thead>
+                                    <tr>
+                                        <th>Type de collation</th>
+                                        <th>Exemple</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><strong>Énergie rapide</strong></td>
+                                        <td>Une banane ou une poignée de fruits secs.</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Satiété (Coupe-faim)</strong></td>
+                                        <td>Un yaourt grec ou du fromage blanc avec quelques amandes.</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Plaisir sain</strong></td>
+                                        <td>Un carré de chocolat noir (85%) et une pomme.</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+
+                    <!-- Weighing Food Card -->
+                    <div class="card" style="grid-column: 1 / -1;">
+                        <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1.5rem; border-bottom: 3px dashed var(--border-color); padding-bottom: 0.5rem;">
+                            <span style="font-size: 1.8rem;">⚖️</span>
+                            <h3 style="margin: 0; border: none; padding: 0;">Peser ses aliments : Pourquoi est-ce indispensable ?</h3>
+                        </div>
+                        <div class="advice-content">
+                            <p style="margin-bottom: 1.5rem;">L'œil est souvent un très mauvais juge. Que vous souhaitiez affiner votre silhouette ou construire du muscle, la précision est votre meilleure alliée.</p>
+                            
+                            <div class="advice-grid" style="gap: 1.5rem; margin-bottom: 2rem;">
+                                <div style="background: #fff5f5; padding: 1.25rem; border: 2px solid #feb2b2; border-radius: var(--radius-sm);">
+                                    <h4 style="margin-bottom: 0.5rem; color: #c53030;">📉 En Perte de Poids</h4>
+                                    <p style="font-size: 0.95rem;"><strong>Le piège :</strong> Une cuillère d'huile d'olive "à l'œil" peut vite représenter 150 calories au lieu de 90.<br><strong>La solution :</strong> Peser garantit votre déficit calorique.</p>
+                                </div>
+                                <div style="background: #f0fff4; padding: 1.25rem; border: 2px solid #9ae6b4; border-radius: var(--radius-sm);">
+                                    <h4 style="margin-bottom: 0.5rem; color: #2f855a;">📈 En Prise de Masse</h4>
+                                    <p style="font-size: 0.95rem;"><strong>Précision :</strong> Contrôlez votre surplus pour qu'il soit léger et efficace.<br><strong>Protéines :</strong> Le seul moyen d'être certain d'atteindre votre quota quotidien.</p>
+                                </div>
+                            </div>
+
+                            <div style="margin-bottom: 2rem;">
+                                <h4 style="color: var(--accent-primary); margin-bottom: 0.5rem;">🧠 L'aspect éducatif (Le vrai bonus)</h4>
+                                <p style="line-height: 1.6;">Peser n'est pas une punition à vie. C'est un apprentissage. Après quelques semaines, votre cerveau "enregistre" visuellement les portions. À terme, vous devenez capable de manger à l'œil avec une précision redoutable.</p>
+                            </div>
+
+                            <div style="background: #fdfbf6; border: 2px solid var(--border-color); border-radius: var(--radius-sm); padding: 1.25rem; margin-bottom: 2rem;">
+                                <h4 style="margin-bottom: 0.5rem;">Résumé des bénéfices</h4>
+                                <div class="table-container">
+                                    <table class="advice-table" style="margin-top: 0.5rem;">
+                                        <thead>
+                                            <tr>
+                                                <th>Objectif</th>
+                                                <th>Rôle de la balance</th>
+                                                <th>Résultat</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td><strong>Perte de poids</strong></td>
+                                                <td>Garantit le déficit</td>
+                                                <td>Perte de gras constante</td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>Prise de masse</strong></td>
+                                                <td>Contrôle le surplus</td>
+                                                <td>Gain de muscle propre</td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>Maintenance</strong></td>
+                                                <td>Stabilise l'apport</td>
+                                                <td>Poids constant sans stress</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <p style="font-size: 0.95rem; background: var(--accent-secondary); color: white; padding: 1rem; border-radius: var(--radius-sm); font-weight: 700;">
+                                💡 L'astuce NutriDash : Ne pesez que ce qui est dense en calories (féculents, huiles, oléagineux). Pour les légumes verts, laissez libre cours à votre appétit !
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Quick Weighing Tips Card -->
+                    <div class="card" style="grid-column: 1 / -1;">
+                        <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1.5rem; border-bottom: 3px dashed var(--border-color); padding-bottom: 0.5rem;">
+                            <span style="font-size: 1.8rem;">⏱️</span>
+                            <h3 style="margin: 0; border: none; padding: 0;">Peser ses aliments sans y passer 3 heures</h3>
+                        </div>
+                        <div class="advice-content">
+                            <p style="margin-bottom: 1.5rem;">En réalité, avec la bonne méthode, cela ne vous prendra pas plus de <strong>2 minutes par jour</strong>. Voici comment optimiser votre routine.</p>
+                            
+                            <div class="advice-grid" style="gap: 1.5rem;">
+                                <!-- Tare Function -->
+                                <div style="padding: 1rem; border: 2px solid var(--border-color); border-radius: var(--radius-sm); background: #fdfbf6;">
+                                    <h4 style="margin-bottom: 0.75rem;"><span style="font-size: 1.2rem;">⚖️</span> 1. La règle d'or : La Tare</h4>
+                                    <p style="font-size: 0.9rem; line-height: 1.4;">Posez votre assiette, appuyez sur <strong>Tare</strong>, ajoutez un ingrédient, notez, et recommencez. Résultat : Zéro vaisselle supplémentaire.</p>
+                                </div>
+
+                                <!-- Critical Foods -->
+                                <div style="padding: 1rem; border: 2px solid var(--border-color); border-radius: var(--radius-sm); background: #fdfbf6;">
+                                    <h4 style="margin-bottom: 0.75rem;"><span style="font-size: 1.2rem;">🥩</span> 2. Priorisez le "Critique"</h4>
+                                    <p style="font-size: 0.9rem; line-height: 1.4;"><strong>À peser :</strong> Huiles, beurre, oléagineux, féculents crus, viandes.<br><strong>À l'œil :</strong> Légumes verts, épices, café et thé.</p>
+                                </div>
+
+                                <!-- Raw vs Cooked -->
+                                <div style="padding: 1rem; border: 2px solid var(--border-color); border-radius: var(--radius-sm); background: #fdfbf6;">
+                                    <h4 style="margin-bottom: 0.75rem;"><span style="font-size: 1.2rem;">🔥</span> 3. Pesez "Cru"</h4>
+                                    <p style="font-size: 0.9rem; line-height: 1.4;">Le poids change à la cuisson. Peser avant de cuire est plus précis et évite les calculs mentaux fastidieux.</p>
+                                </div>
+
+                                <!-- Batch Cooking -->
+                                <div style="padding: 1rem; border: 2px solid var(--border-color); border-radius: var(--radius-sm); background: #fdfbf6;">
+                                    <h4 style="margin-bottom: 0.75rem;"><span style="font-size: 1.2rem;">🥗</span> 4. Le Batch Cooking</h4>
+                                    <p style="font-size: 0.9rem; line-height: 1.4;">Pesez la quantité totale pour 3-4 repas, puis divisez visuellement une fois cuit. L'erreur d'un repas se compensera sur le suivant.</p>
+                                </div>
+
+                                <!-- Standardize -->
+                                <div style="padding: 1rem; border: 2px solid var(--border-color); border-radius: var(--radius-sm); background: #fdfbf6;">
+                                    <h4 style="margin-bottom: 0.75rem;"><span style="font-size: 1.2rem;">🥛</span> 5. Les contenants</h4>
+                                    <p style="font-size: 0.9rem; line-height: 1.4;">Notez une fois pour toutes le poids d'un bol habituel rempli. Vous pourrez vous passer de balance quand vous êtes pressé.</p>
+                                </div>
+                            </div>
+
+                            <p style="margin-top: 1.5rem; font-style: italic; color: #666; border-left: 4px solid var(--accent-primary); padding-left: 1rem;">
+                                <strong>Le conseil NutriDash :</strong> La précision bat la perfection. La régularité sur le long terme est plus importante que l'exactitude d'un seul repas.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Explanations Card (Full width to avoid holes) -->
+                    <div class="card" style="grid-column: 1 / -1;">
                         <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1.5rem; border-bottom: 3px dashed var(--border-color); padding-bottom: 0.5rem;">
                             <span style="font-size: 1.8rem;">🧠</span>
                             <h3 style="margin: 0; border: none; padding: 0;">Explications Techniques</h3>
@@ -281,6 +527,21 @@
                             <details style="margin-bottom: 1rem; border: 2px solid var(--border-color); border-radius: var(--radius-sm); padding: 0.75rem;">
                                 <summary style="font-weight: 800; cursor: pointer;">La Prise de Masse</summary>
                                 <p style="margin-top: 0.5rem; font-size: 0.9rem;">Consommez un <strong>surplus calorique</strong> (+10% de votre TDEE). Accompagnez cela d'un entraînement en résistance pour transformer ce surplus en muscle.</p>
+                            </details>
+
+                            <details style="margin-bottom: 1rem; border: 2px solid var(--border-color); border-radius: var(--radius-sm); padding: 0.75rem;">
+                                <summary style="font-weight: 800; cursor: pointer;">L'Indice Glycémique (IG)</summary>
+                                <p style="margin-top: 0.5rem; font-size: 0.9rem;">Comprendre pourquoi tous les glucides ne se valent pas. Les IG bas évitent les pics d'insuline et les fringales.</p>
+                            </details>
+
+                            <details style="margin-bottom: 1rem; border: 2px solid var(--border-color); border-radius: var(--radius-sm); padding: 0.75rem;">
+                                <summary style="font-weight: 800; cursor: pointer;">La Fenêtre Métabolique</summary>
+                                <p style="margin-top: 0.5rem; font-size: 0.9rem;">Faut-il manger tout de suite après le sport ? Spoiler : c'est moins urgent qu'on ne le pense, le total journalier prime.</p>
+                            </details>
+
+                            <details style="margin-bottom: 1rem; border: 2px solid var(--border-color); border-radius: var(--radius-sm); padding: 0.75rem;">
+                                <summary style="font-weight: 800; cursor: pointer;">Clean Eating vs Flexible Dieting</summary>
+                                <p style="margin-top: 0.5rem; font-size: 0.9rem;">Comment trouver l'équilibre sans frustration entre manger "sain" et s'autoriser des plaisirs modérés.</p>
                             </details>
                         </div>
                     </div>
@@ -310,8 +571,20 @@
 
                 <div class="dashboard-grid">
 
+                    <!-- Daily Process Progress -->
+                    <div id="daily-progress-container" class="card daily-progress-container">
+                        <div class="daily-progress-header">
+                            <span class="daily-progress-title">📈 Ma Progression Journalière</span>
+                            <span id="daily-progress-percentage" class="daily-progress-percentage">0%</span>
+                        </div>
+                        <div class="daily-progress-track">
+                            <div id="daily-progress-fill" class="daily-progress-fill" style="width: 0%;"></div>
+                        </div>
+                        <p id="daily-progress-status" style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.5rem; font-weight: 600;">Commencez à saisir vos repas pour remplir la barre !</p>
+                    </div>
+
                     <!-- Weigh-In Prompt Card -->
-                    <div id="weigh-in-card" class="card" style="display: none; background: #e3f2fd; grid-column: 1 / -1; align-items:center; justify-content:space-between; flex-direction:row;">
+                    <div id="weigh-in-card" class="card weigh-in-card">
                         <div>
                             <h3 style="border:none; margin:0; font-size:1.5rem;">C'est l'heure de votre pesée ! ⚖️</h3>
                         </div>

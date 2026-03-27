@@ -199,32 +199,84 @@ function renderActivityOptions() {
     actSelect.appendChild(customOption);
 }
 
+// --- Routing ---
+window.routes = {
+    'landingpage': { section: 'landing-page' },
+    'login': { section: 'auth-screen' },
+    'tableaudebord': { section: 'app', view: 'dashboard-view' },
+    'profil': { section: 'app', view: 'profile-view' },
+    'historique': { section: 'app', view: 'history-view' },
+    'conseils': { section: 'app', view: 'advice-view' }
+};
+
+window.navigateTo = function(slug, updateHistory = true) {
+    console.log(`Navigation vers: ${slug} (updateHistory: ${updateHistory})`);
+    const route = window.routes[slug];
+    if (!route) {
+        console.warn(`Route non trouvée pour: ${slug}, redirection vers landingpage`);
+        return window.navigateTo('landingpage');
+    }
+
+    // Validation profil pour les vues de l'app (sauf profil lui-même)
+    if (route.section === 'app' && !state.profile && slug !== 'profil') {
+        console.log("Accès app refusé: profil manquant. Redirection vers profil.");
+        alert("Veuillez d'abord configurer votre profil.");
+        return window.navigateTo('profil');
+    }
+
+    // Mise à jour de l'URL hash
+    if (updateHistory && window.location.hash !== `#${slug}`) {
+        window.location.hash = slug;
+    }
+
+    // Masquage de toutes les sections principales
+    const sectionIds = ['landing-page', 'auth-screen', 'app'];
+    sectionIds.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.classList.add('hidden');
+    });
+
+    // Affichage de la section cible
+    const targetSection = document.getElementById(route.section);
+    if (targetSection) targetSection.classList.remove('hidden');
+
+    // Gestion des vues internes si on est dans l'app
+    if (route.section === 'app' && route.view) {
+        document.querySelectorAll('.view').forEach(v => v.classList.add('hidden'));
+        const targetView = document.getElementById(route.view);
+        if (targetView) targetView.classList.remove('hidden');
+
+        // Mise à jour des boutons de navigation
+        document.querySelectorAll('.nav-btn').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.target === route.view);
+        });
+
+        // Logique spécifique aux vues
+        if (route.view === 'profile-view') {
+            if (typeof populateProfileForm === 'function') populateProfileForm();
+        } else if (route.view === 'history-view') {
+            if (window.renderHistoryChart) window.renderHistoryChart();
+        } else if (route.view === 'dashboard-view') {
+            if (typeof updateDashboard === 'function') updateDashboard();
+        } else if (route.view === 'advice-view') {
+            if (typeof showRandomTip === 'function') showRandomTip();
+        }
+    }
+};
+
+window.addEventListener('hashchange', () => {
+    const slug = window.location.hash.replace('#', '') || 'landingpage';
+    console.log(`Hashchange détecté: ${slug}`);
+    window.navigateTo(slug, false);
+});
+
 // Navigation
 navBtns.forEach(btn => {
     btn.addEventListener('click', () => {
-        const target = btn.dataset.target;
-        
-        // Validation profil (sauf pour le profil lui-même)
-        if (target !== 'profile-view' && !state.profile) {
-            alert("Veuillez d'abord configurer votre profil.");
-            return;
-        }
-
-        navBtns.forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-
-        // Toggle views
-        document.querySelectorAll('.view').forEach(v => v.classList.add('hidden'));
-        document.getElementById(target).classList.remove('hidden');
-
-        // Specific view logic
-        if (target === 'profile-view') {
-            populateProfileForm();
-        } else if (target === 'history-view') {
-            if (window.renderHistoryChart) window.renderHistoryChart();
-        } else if (target === 'dashboard-view') {
-            updateDashboard();
-        }
+        const targetView = btn.dataset.target;
+        // Trouver le slug correspondant à cette vue
+        const slug = Object.keys(window.routes).find(s => window.routes[s].view === targetView);
+        if (slug) window.navigateTo(slug);
     });
 });
 
@@ -507,6 +559,23 @@ window.openMealModal = function(editMode = false) {
         document.getElementById('meal-form').reset();
         delete document.getElementById('meal-form').dataset.editingId;
         document.getElementById('meal-form').querySelector('button[type="submit"]').textContent = 'Ajouter le repas';
+
+        // Sélection intelligente du prochain repas
+        const actLog = getActiveLog();
+        const loggedNames = actLog.entries.filter(e => e.type === 'Repas').map(e => e.name);
+        const typeSelect = document.getElementById('meal-type');
+        
+        if (typeSelect) {
+            if (!loggedNames.includes("Petit-déjeuner")) {
+                typeSelect.value = "breakfast";
+            } else if (!loggedNames.includes("Déjeuner")) {
+                typeSelect.value = "lunch";
+            } else if (!loggedNames.includes("Dîner")) {
+                typeSelect.value = "dinner";
+            } else {
+                typeSelect.value = "snack";
+            }
+        }
     }
 }
 window.closeMealModal = function() {
@@ -543,6 +612,29 @@ document.querySelectorAll('.modal-overlay').forEach(overlay => {
 });
 
 
+// Tips Logic
+const TIPS = [
+    "L'eau glacée peut légèrement augmenter votre métabolisme car le corps dépense de l'énergie pour la réchauffer.",
+    "La sensation de faim est souvent un signal de déshydratation déguisé. Buvez un verre d'eau avant de grignoter.",
+    "Manger dans des assiettes plus petites trompe le cerveau et aide à se sentir rassasié plus vite.",
+    "Le manque de sommeil augmente la ghréline, l'hormone qui stimule l'appétit pour les aliments gras et sucrés.",
+    "Les fibres (légumes, fruits) ralentissent la digestion et stabilisent votre niveau d'énergie.",
+    "Il faut environ 20 minutes à votre cerveau pour recevoir le signal de satiété provenant de votre estomac.",
+    "Le piment peut booster temporairement votre métabolisme grâce à la capsaïcine.",
+    "Les protéines sont les nutriments les plus rassasiants et demandent le plus d'énergie pour être digérés."
+];
+
+function showRandomTip() {
+    const container = document.getElementById('random-tip-container');
+    if (!container) return;
+    const tip = TIPS[Math.floor(Math.random() * TIPS.length)];
+    container.innerHTML = `
+        <span class="tip-title">💡 Le saviez-vous ?</span>
+        <p class="tip-content">${tip}</p>
+    `;
+}
+
+
 function updateDashboard() {
     if (!state.profile) return;
     
@@ -552,35 +644,85 @@ function updateDashboard() {
     const todayStr = new Date().toLocaleDateString('fr-FR');
     let displayDate = dateStr === todayStr ? "Aujourd'hui" : dateStr;
     document.getElementById('current-date').textContent = " - " + displayDate;
+
+    // 1. Common Date Object for today or selected date
+    const parts = dateStr.split('/');
+    let dVal;
+    if (parts.length === 3) dVal = new Date(parts[2], parts[1]-1, parts[0]);
+    else dVal = new Date(dateStr);
+
+    // Daily Process Progress Logic
+    const progressFill = document.getElementById('daily-progress-fill');
+    const progressPerc = document.getElementById('daily-progress-percentage');
+    const progressStatus = document.getElementById('daily-progress-status');
+
+    if (progressFill && progressPerc && progressStatus) {
+        // 1. Determine mandatory items for today
+        const mandatorySequence = [];
+        const isWeighInDay = state.profile && dVal.getDay() === state.profile.weighInDay;
+        
+        if (isWeighInDay) mandatorySequence.push("Pesée");
+        mandatorySequence.push("Petit-déjeuner", "Déjeuner", "Dîner");
+
+        // 2. Check which items are completed
+        const completedItems = [];
+        if (isWeighInDay) {
+            const hasWeighIn = state.weighIns && state.weighIns.some(w => w.date === dateStr);
+            if (hasWeighIn) completedItems.push("Pesée");
+        }
+
+        const entries = actLog.entries || [];
+        const loggedMeals = entries.filter(e => e.type === 'Repas').map(e => e.name);
+        ["Petit-déjeuner", "Déjeuner", "Dîner"].forEach(m => {
+            if (loggedMeals.includes(m)) completedItems.push(m);
+        });
+
+        // 3. Calculate percentage
+        const processPercVal = Math.round((completedItems.length / mandatorySequence.length) * 100);
+        progressFill.style.width = processPercVal + '%';
+        progressPerc.textContent = processPercVal + '%';
+
+        // 4. Generate dynamic status text
+        const nextStep = mandatorySequence.find(s => !completedItems.includes(s));
+        
+        if (processPercVal === 100) {
+            progressStatus.textContent = "Objectif Nutritionnel atteint ! Toutes les étapes sont validées. 🏆";
+        } else {
+            let status = "";
+            if (completedItems.length > 0) {
+                const boldCompleted = completedItems.map(item => `<b>${item}</b>`);
+                status = boldCompleted.join(", ") + " validé(s). ";
+            }
+            if (nextStep) {
+                status += `Prochaine étape : <b>${nextStep}</b>`;
+            }
+            progressStatus.innerHTML = status;
+        }
+    }
     
     // Weigh-in Card Logic
     const weighCard = document.getElementById('weigh-in-card');
     if (weighCard) {
-        const parts = dateStr.split('/');
-        let d;
-        if (parts.length === 3) d = new Date(parts[2], parts[1]-1, parts[0]);
-        else d = new Date(dateStr);
-        
-        if (d.getDay() === state.profile.weighInDay) {
+        if (dVal.getDay() === state.profile.weighInDay) {
             weighCard.style.display = 'flex';
             const existingWeigh = state.weighIns.find(w => w.date === dateStr);
             if (existingWeigh) {
                 weighCard.innerHTML = `
-                    <div>
+                    <div class="weigh-in-text">
                         <h3 style="border:none; margin:0; font-size:1.5rem; color: var(--accent-success);">✅ Pesée : <strong>${existingWeigh.weight} kg</strong></h3>
                     </div>
-                    <div style="display:flex; gap:0.5rem; align-items:center;">
-                        <button type="button" class="btn" style="width:auto; padding:0.5rem 1rem; font-size:0.9rem;" onclick="window.editWeighIn()">✎ Modifier</button>
-                        <button type="button" class="btn btn-danger" style="width:auto; padding:0.5rem 1rem; font-size:0.9rem; background: #ff5252; color: white; border: none;" onclick="window.deleteWeighIn()">✕ Effacer</button>
+                    <div class="weigh-in-actions">
+                        <button type="button" class="btn" onclick="window.editWeighIn()">✎ Modifier</button>
+                        <button type="button" class="btn btn-danger" onclick="window.deleteWeighIn()">✕ Effacer</button>
                     </div>`;
             } else {
                 weighCard.innerHTML = `
-                    <div>
+                    <div class="weigh-in-text">
                         <h3 style="border:none; margin:0; font-size:1.5rem;">C'est l'heure de votre pesée ! ⚖️</h3>
                     </div>
-                    <div style="display:flex; gap:1rem; align-items:center;">
-                        <input type="number" id="weigh-input" step="0.1" min="10" max="300" placeholder="Ex: 75.5" style="width: 150px;">
-                        <button type="button" class="btn btn-primary" style="width:auto; padding: 0.75rem 1rem;" onclick="window.saveWeighIn()">Valider</button>
+                    <div class="weigh-in-actions">
+                        <input type="number" id="weigh-input" step="0.1" min="10" max="300" placeholder="Ex: 75.5">
+                        <button type="button" class="btn btn-primary" onclick="window.saveWeighIn()">Valider</button>
                     </div>`;
             }
         } else {
@@ -751,12 +893,12 @@ window.editWeighIn = function() {
     if (!weighCard) return;
     const existing = state.weighIns.find(w => w.date === state.currentViewDate);
     weighCard.innerHTML = `
-        <div>
+        <div class="weigh-in-text">
             <h3 style="border:none; margin:0; font-size:1.5rem;">Modifier votre pesée ⚖️</h3>
         </div>
-        <div style="display:flex; gap:1rem; align-items:center;">
-            <input type="number" id="weigh-input" step="0.1" min="10" max="300" value="${existing ? existing.weight : ''}" style="width: 150px;">
-            <button type="button" class="btn btn-primary" style="width:auto; padding: 0.75rem 1rem;" onclick="window.saveWeighIn()">Valider</button>
+        <div class="weigh-in-actions">
+            <input type="number" id="weigh-input" step="0.1" min="10" max="300" value="${existing ? existing.weight : ''}">
+            <button type="button" class="btn btn-primary" onclick="window.saveWeighIn()">Valider</button>
         </div>`;
 };
 
