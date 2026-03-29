@@ -947,6 +947,14 @@ input:focus, select:focus {
         grid-template-columns: 1fr;
         gap: 1.5rem;
     }
+    
+    /* Reorder dashboard items on mobile */
+    #dashboard-view .daily-progress-container { order: 1; }
+    #dashboard-view .add-actions-card { order: 2; }
+    #dashboard-view .weigh-in-card { order: 3; }
+    #dashboard-view .progress-card { order: 4; }
+    #dashboard-view .history-card { order: 5; }
+
     .card {
         padding: 1.2rem;
         word-wrap: break-word;
