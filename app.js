@@ -255,7 +255,7 @@ window.navigateTo = function(slug, updateHistory = true) {
         if (route.view === 'profile-view') {
             if (typeof populateProfileForm === 'function') populateProfileForm();
         } else if (route.view === 'history-view') {
-            if (window.renderHistoryChart) window.renderHistoryChart();
+            if (window.renderSuivi) window.renderSuivi();
         } else if (route.view === 'dashboard-view') {
             if (typeof updateDashboard === 'function') updateDashboard();
         } else if (route.view === 'advice-view') {
@@ -914,11 +914,30 @@ window.deleteWeighIn = function() {
     }
 };
 
-let chartInstances = { weight: null, calories: null, protein: null };
+// Suivi filter listener
+const suiviFilter = document.getElementById('suivi-filter');
+if (suiviFilter) {
+    suiviFilter.addEventListener('change', () => {
+        if (window.renderSuivi) window.renderSuivi();
+    });
+}
 
+// Helper functions for date handling 
 function parseDateFR(dateStr) {
-    const p = dateStr.split('/');
-    if (p.length === 3) return new Date(p[2], p[1]-1, p[0]);
+    if (!dateStr) return new Date(0);
+    // Remove invisible characters that toLocaleDateString might insert on some OS settings
+    dateStr = dateStr.replace(/[\u200E\u200F\u202A-\u202E]/g, '');
+    
+    // Support common separations: /, -, .
+    const p = dateStr.split(/[\/\-\.]/);
+    if (p.length === 3) {
+        // Assume DD/MM/YYYY if the first element is a typical day (or the third is a 4 digit year)
+        if (p[2].length === 4) {
+            return new Date(p[2], parseInt(p[1], 10)-1, p[0]);
+        } else if (p[0].length === 4) {
+            return new Date(p[0], parseInt(p[1], 10)-1, p[2]);
+        }
+    }
     return new Date(dateStr);
 }
 
@@ -926,182 +945,171 @@ function sortDatesFR(dates) {
     return [...dates].sort((a, b) => parseDateFR(a) - parseDateFR(b));
 }
 
-// Chart filter buttons
-document.querySelectorAll('.chart-filter-btn').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-        document.querySelectorAll('.chart-filter-btn').forEach(b => b.classList.remove('btn-secondary', 'active'));
-        e.target.classList.add('btn-secondary', 'active');
-        if (window.renderHistoryChart) {
-            window.renderHistoryChart();
-        }
-    });
-});
-
-window.renderHistoryChart = function() {
-    // Determine active filter from UI
-    let activeFilter = 'week';
-    const activeBtn = document.querySelector('.chart-filter-btn.active');
-    if (activeBtn) {
-        activeFilter = activeBtn.dataset.filter;
-    }
-
+window.renderSuivi = function() {
+    const filterEl = document.getElementById('suivi-filter');
+    if (!filterEl) return;
+    const activeFilter = filterEl.value;
+    
     const now = new Date();
-    let cutoffDate = new Date(0);
+    let cutoffDate = new Date(now);
     
     if (activeFilter === 'week') {
         const day = now.getDay() || 7;
         cutoffDate = new Date(now);
         cutoffDate.setDate(now.getDate() - (day - 1));
         cutoffDate.setHours(0,0,0,0);
-    } else if (activeFilter === 'month') {
-        cutoffDate = new Date(now.getFullYear(), now.getMonth(), 1);
-    } else if (activeFilter === 'year') {
-        cutoffDate = new Date(now.getFullYear(), 0, 1);
+    } else {
+        const days = parseInt(activeFilter); // 30, 60, 90, 365
+        cutoffDate = new Date(now);
+        cutoffDate.setDate(now.getDate() - days + 1);
+        cutoffDate.setHours(0,0,0,0);
     }
 
-    // --- Weight Chart ---
-    const weightCanvas = document.getElementById('weightChart');
-    if (weightCanvas) {
-        const ctx = weightCanvas.getContext('2d');
-        const sorted = [...state.weighIns].sort((a,b) => parseDateFR(a.date) - parseDateFR(b.date));
-        
-        const filteredWeights = sorted.filter(w => parseDateFR(w.date) >= cutoffDate);
-        const labels = filteredWeights.map(w => w.date);
-        const data = filteredWeights.map(w => w.weight);
-        
-        if (chartInstances.weight) chartInstances.weight.destroy();
-        chartInstances.weight = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels,
-                datasets: [{
-                    label: 'Poids (kg)',
-                    data,
-                    borderColor: '#ff6b6b',
-                    backgroundColor: 'rgba(255, 107, 107, 0.2)',
-                    borderWidth: 3, tension: 0.3, fill: true,
-                    pointRadius: 6, pointBackgroundColor: '#fff',
-                    pointBorderColor: '#ff6b6b', pointBorderWidth: 2
-                }]
-            },
-            options: {
-                responsive: true,
-                plugins: { legend: { display: false } },
-                scales: { y: {
-                    suggestedMin: data.length ? Math.min(...data) - 2 : 40,
-                    suggestedMax: data.length ? Math.max(...data) + 2 : 100
-                }}
-            }
-        });
-    }
-
-    // --- Calories & Protein Charts from state.history ---
-    let historyDates = sortDatesFR(Object.keys(state.history || {}));
-    historyDates = historyDates.filter(dateStr => parseDateFR(dateStr) >= cutoffDate);
+    // 1. Process Weights
+    const sortedWeights = [...state.weighIns].sort((a,b) => parseDateFR(a.date) - parseDateFR(b.date));
     
-    // Multiplicateur pour l'historique
-    let goalMultiplier = 1.0;
-    if (state.profile && state.profile.goal === 'loss') goalMultiplier = 0.9;
-    if (state.profile && state.profile.goal === 'gain') goalMultiplier = 1.1;
-
-    const targetProtein = getLatestWeight() * 2;
-
-    const calLabels = [];
-    const calGoalData = [];
-    const calConsumedData = [];
-    const protGoalData = [];
-    const protConsumedData = [];
-
-    historyDates.forEach(dateKey => {
-        const log = state.history[dateKey];
-        calLabels.push(dateKey);
+    const wStartValEl = document.getElementById('suivi-weight-start-val');
+    const wStartDateEl = document.getElementById('suivi-weight-start-date');
+    const wEndValEl = document.getElementById('suivi-weight-end-val');
+    const wEndDateEl = document.getElementById('suivi-weight-end-date');
+    const wDiffEl = document.getElementById('suivi-weight-diff');
+    
+    if (sortedWeights.length > 0) {
+        let first, last;
         
-        // Priorité aux données du snapshot du jour
-        const dayBaseTdee = log.baseTDEE || (state.profile ? state.profile.tdee : 0);
-        const dayGoalMultiplier = log.goalMultiplier || goalMultiplier;
+        last = sortedWeights[sortedWeights.length - 1]; // Absolute most recent weigh-in
         
-        // Formule historique : (TDEE + bonus du jour) * objectif
-        const dayTarget = (dayBaseTdee + (log.bonusTDEE || 0)) * dayGoalMultiplier;
-        calGoalData.push(Math.round(dayTarget));
-        calConsumedData.push(Math.round(log.consumedCals || 0));
-        protGoalData.push(Math.round(targetProtein));
-        protConsumedData.push(parseFloat((log.consumedProtein || 0).toFixed(1)));
-    });
-
-    // --- Calories Chart ---
-    const calCanvas = document.getElementById('caloriesChart');
-    if (calCanvas) {
-        const ctx = calCanvas.getContext('2d');
-        if (chartInstances.calories) chartInstances.calories.destroy();
-        chartInstances.calories = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: calLabels,
-                datasets: [
-                    {
-                        label: 'Objectif (kcal)',
-                        data: calGoalData,
-                        borderColor: '#4ecdc4',
-                        backgroundColor: 'rgba(78, 205, 196, 0.15)',
-                        borderWidth: 3, tension: 0.3, fill: true,
-                        pointRadius: 5, pointBackgroundColor: '#fff',
-                        pointBorderColor: '#4ecdc4', pointBorderWidth: 2
-                    },
-                    {
-                        label: 'Réalisé (kcal)',
-                        data: calConsumedData,
-                        borderColor: '#ff6b6b',
-                        backgroundColor: 'rgba(255, 107, 107, 0.15)',
-                        borderWidth: 3, tension: 0.3, fill: true,
-                        pointRadius: 5, pointBackgroundColor: '#fff',
-                        pointBorderColor: '#ff6b6b', pointBorderWidth: 2
-                    }
-                ]
-            },
-            options: {
-                responsive: true,
-                plugins: { legend: { position: 'top' } },
-                scales: { y: { beginAtZero: true } }
+        if (activeFilter === 'week') {
+            // For 'week', select the 2 most recent weigh-ins
+            if (sortedWeights.length >= 2) {
+                first = sortedWeights[sortedWeights.length - 2];
+            } else {
+                first = sortedWeights[0]; 
             }
-        });
+        } else {
+            // For others, select the last weigh-in and the one closest to 'cutoffDate'
+            let closestWeight = sortedWeights[0];
+            let minDiff = Infinity;
+            
+            for (const w of sortedWeights) {
+                const diff = Math.abs(parseDateFR(w.date).getTime() - cutoffDate.getTime());
+                if (diff < minDiff) {
+                    minDiff = diff;
+                    closestWeight = w;
+                }
+            }
+            first = closestWeight;
+        }
+        
+        wStartValEl.textContent = first.weight + ' kg';
+        wStartDateEl.textContent = first.date;
+        wEndValEl.textContent = last.weight + ' kg';
+        wEndDateEl.textContent = last.date;
+        
+        const diff = (last.weight - first.weight).toFixed(1);
+        const sign = diff > 0 ? '+' : '';
+        wDiffEl.textContent = sign + diff + ' kg';
+        wDiffEl.style.color = diff > 0 ? 'var(--accent-warning)' : (diff < 0 ? 'var(--accent-success)' : 'var(--text-main)');
+    } else {
+        wStartValEl.textContent = '--';
+        wStartDateEl.textContent = 'Début';
+        wEndValEl.textContent = '--';
+        wEndDateEl.textContent = 'Fin';
+        wDiffEl.textContent = '--';
+        wDiffEl.style.color = 'var(--text-main)';
     }
 
-    // --- Protein Chart ---
-    const protCanvas = document.getElementById('proteinChart');
-    if (protCanvas) {
-        const ctx = protCanvas.getContext('2d');
-        if (chartInstances.protein) chartInstances.protein.destroy();
-        chartInstances.protein = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: calLabels,
-                datasets: [
-                    {
-                        label: 'Objectif (g)',
-                        data: protGoalData,
-                        borderColor: '#9b59b6',
-                        backgroundColor: 'rgba(155, 89, 182, 0.15)',
-                        borderWidth: 3, tension: 0.3, fill: true,
-                        pointRadius: 5, pointBackgroundColor: '#fff',
-                        pointBorderColor: '#9b59b6', pointBorderWidth: 2
-                    },
-                    {
-                        label: 'Réalisé (g)',
-                        data: protConsumedData,
-                        borderColor: '#ffa502',
-                        backgroundColor: 'rgba(255, 165, 2, 0.15)',
-                        borderWidth: 3, tension: 0.3, fill: true,
-                        pointRadius: 5, pointBackgroundColor: '#fff',
-                        pointBorderColor: '#ffa502', pointBorderWidth: 2
-                    }
-                ]
-            },
-            options: {
-                responsive: true,
-                plugins: { legend: { position: 'top' } },
-                scales: { y: { beginAtZero: true } }
-            }
-        });
+    // 2. Process Calories & Proteins
+    let historyKeys = Object.keys(state.history || {});
+    
+    let sumCalsConsumed = 0;
+    let sumCalsGoal = 0;
+    let sumProtConsumed = 0;
+    let sumProtGoal = 0;
+    let daysCount = 0;
+
+    let defaultGoalMultiplier = 1.0;
+    if (state.profile && state.profile.goal === 'loss') defaultGoalMultiplier = 0.9;
+    if (state.profile && state.profile.goal === 'gain') defaultGoalMultiplier = 1.1;
+    const targetProtein = getLatestWeight() * 2;
+    
+    // Define the end date for the iteration
+    let endDate = new Date(now);
+    if (activeFilter === 'week') {
+        endDate = new Date(cutoffDate);
+        endDate.setDate(cutoffDate.getDate() + 6);
+        endDate.setHours(23, 59, 59, 999);
+    } else {
+        endDate.setHours(23, 59, 59, 999);
+    }
+
+    let currentDate = new Date(cutoffDate);
+    currentDate.setHours(0,0,0,0);
+
+    // Iteration over full calendar days in the period
+    while (currentDate <= endDate) {
+        const queryMs = currentDate.getTime();
+        const matchKey = historyKeys.find(k => parseDateFR(k).getTime() === queryMs);
+        const log = matchKey ? state.history[matchKey] : null;
+
+        const dayBaseTdee = (log && log.baseTDEE) ? log.baseTDEE : (state.profile ? state.profile.tdee : 0);
+        const dayGoalMultiplier = (log && log.goalMultiplier !== undefined) ? log.goalMultiplier : defaultGoalMultiplier;
+        const bonus = (log && log.bonusTDEE) ? log.bonusTDEE : 0;
+        
+        const dayTarget = (dayBaseTdee + bonus) * dayGoalMultiplier;
+        
+        sumCalsGoal += dayTarget;
+        sumCalsConsumed += (log && log.consumedCals) ? log.consumedCals : 0;
+        
+        sumProtGoal += targetProtein;
+        sumProtConsumed += (log && log.consumedProtein) ? log.consumedProtein : 0;
+        
+        daysCount++;
+        currentDate.setDate(currentDate.getDate() + 1);
+    }
+
+    const cConsEl = document.getElementById('suivi-cals-consumed');
+    const cGoalEl = document.getElementById('suivi-cals-goal');
+    const cDiffEl = document.getElementById('suivi-cals-diff');
+    
+    const pConsEl = document.getElementById('suivi-prot-consumed');
+    const pGoalEl = document.getElementById('suivi-prot-goal');
+    const pDiffEl = document.getElementById('suivi-prot-diff');
+
+    if (daysCount > 0) {
+        const totCalsCons = Math.round(sumCalsConsumed);
+        const totCalsGoal = Math.round(sumCalsGoal);
+        const diffCals = totCalsCons - totCalsGoal;
+        
+        cConsEl.textContent = totCalsCons + ' kcal';
+        cGoalEl.textContent = totCalsGoal + ' kcal';
+        
+        const signC = diffCals > 0 ? '+' : '';
+        cDiffEl.textContent = signC + diffCals + ' kcal';
+        // Calories: green if consumed < goal, red if consumed > goal
+        cDiffEl.style.color = diffCals < 0 ? 'var(--accent-success)' : (diffCals > 0 ? 'var(--accent-danger)' : 'var(--text-main)');
+
+        const totProtCons = Math.round(sumProtConsumed);
+        const totProtGoal = Math.round(sumProtGoal);
+        const diffProt = totProtCons - totProtGoal;
+        
+        pConsEl.textContent = totProtCons + ' g';
+        pGoalEl.textContent = totProtGoal + ' g';
+        
+        const signP = diffProt > 0 ? '+' : '';
+        pDiffEl.textContent = signP + diffProt + ' g';
+        // Proteins: green if consumed > goal, red if consumed < goal
+        pDiffEl.style.color = diffProt > 0 ? 'var(--accent-success)' : (diffProt < 0 ? 'var(--accent-danger)' : 'var(--text-main)');
+    } else {
+        cConsEl.textContent = '--';
+        cGoalEl.textContent = '--';
+        cDiffEl.textContent = '--';
+        cDiffEl.style.color = 'var(--text-main)';
+        
+        pConsEl.textContent = '--';
+        pGoalEl.textContent = '--';
+        pDiffEl.textContent = '--';
+        pDiffEl.style.color = 'var(--text-main)';
     }
 };
 

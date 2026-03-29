@@ -373,24 +373,27 @@ function initAuth() {
                     } else if (state.profile) {
                         if (typeof updateDashboard === 'function') updateDashboard();
                     }
+
+                    showApp();
+                    if (typeof renderActivityOptions === 'function') renderActivityOptions();
                 }).catch(err => {
                     console.error("Erreur lors du chargement des données cloud:", err);
+                    showApp();
                 });
-
-                showApp();
-                if (typeof renderActivityOptions === 'function') renderActivityOptions();
             } else {
                 // User is logged out
-                window.showLandingPage();
+                const currentHash = window.location.hash.replace('#', '');
+                if (currentHash === 'login' || currentHash === 'signup') {
+                    window.showAuthPage(currentHash === 'signup');
+                } else {
+                    window.showLandingPage();
+                }
             }
         });
     } else {
         // Fallback UI if supabase fails
         window.showAuthPage();
     }
-// Initial routing trigger
-    const initialSlug = window.location.hash.replace('#', '') || 'landingpage';
-    window.navigateTo(initialSlug);
 }
 
 // Call initAuth safely

@@ -1248,15 +1248,29 @@ input:focus, select:focus {
     margin-bottom: 2rem;
 }
 .feature-mockup {
-    height: 480px;
+    height: 600px;
     width: auto;
     max-width: 100%;
-    object-fit: contain;
-    border-radius: 12px;
+    object-fit: cover;
+    aspect-ratio: 9 / 19.5;
+    /* Néo-brutalist phone frame */
+    border-radius: 36px;
+    border: 4px solid var(--border-color);
+    padding: 10px; /* Bordure blanche du téléphone */
+    background: #ffffff;
+    /* Centering and shadow */
     margin-top: auto;
     align-self: center;
-    box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+    box-shadow: 12px 12px 0px var(--border-color);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
+
+.feature-mockup:hover {
+    transform: translate(-4px, -4px) rotate(-1deg);
+    box-shadow: 16px 16px 0px var(--border-color);
+}
+
+
 .feature-icon-img {
     width: 90px;
     height: 90px;
