@@ -959,7 +959,7 @@ window.renderSuivi = function() {
         cutoffDate.setDate(now.getDate() - (day - 1));
         cutoffDate.setHours(0,0,0,0);
     } else {
-        const days = parseInt(activeFilter); // 30, 60, 90, 365
+        const days = parseInt(activeFilter); // 30, 90, 180, 365
         cutoffDate = new Date(now);
         cutoffDate.setDate(now.getDate() - days + 1);
         cutoffDate.setHours(0,0,0,0);
@@ -1035,13 +1035,8 @@ window.renderSuivi = function() {
     
     // Define the end date for the iteration
     let endDate = new Date(now);
-    if (activeFilter === 'week') {
-        endDate = new Date(cutoffDate);
-        endDate.setDate(cutoffDate.getDate() + 6);
-        endDate.setHours(23, 59, 59, 999);
-    } else {
-        endDate.setHours(23, 59, 59, 999);
-    }
+    endDate.setHours(23, 59, 59, 999);
+
 
     let currentDate = new Date(cutoffDate);
     currentDate.setHours(0,0,0,0);
