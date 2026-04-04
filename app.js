@@ -97,6 +97,26 @@ function getLatestWeight() {
     return state.profile ? state.profile.weight : 0;
 }
 
+function findClosestWeight(targetDate) {
+    if (!state.weighIns || state.weighIns.length === 0) return state.profile ? state.profile.weight : 0;
+    
+    let closestVal = state.profile ? state.profile.weight : 0;
+    let minDiff = Infinity;
+    const targetMs = (targetDate instanceof Date) ? targetDate.getTime() : targetDate;
+    
+    state.weighIns.forEach(win => {
+        const d = parseDateFR(win.date);
+        if (!isNaN(d.getTime())) {
+            const diff = Math.abs(d.getTime() - targetMs);
+            if (diff < minDiff) {
+                minDiff = diff;
+                closestVal = win.weight;
+            }
+        }
+    });
+    return closestVal;
+}
+
 function updateProfileData() {
     if (!state.profile) return;
     const weight = getLatestWeight();
@@ -161,6 +181,19 @@ function renderActivityOptions() {
     if (!actSelect) return;
     
     actSelect.innerHTML = '<option value="" disabled selected>Choisissez une activité...</option>';
+
+    if (state.customActivities && state.customActivities.length > 0) {
+        const customGroup = document.createElement('optgroup');
+        customGroup.label = "Mes activités";
+        state.customActivities.forEach(act => {
+            const option = document.createElement('option');
+            option.value = act.cals;
+            option.setAttribute('data-name', act.name);
+            option.textContent = `${act.name} - ${act.cals} kcal`;
+            customGroup.appendChild(option);
+        });
+        actSelect.appendChild(customGroup);
+    }
     
     const defaultActivities = [
         { name: 'Marche (30 min)', cals: 150 },
@@ -171,26 +204,17 @@ function renderActivityOptions() {
         { name: 'Sports collectifs (1h)', cals: 500 }
     ];
 
+    const standardGroup = document.createElement('optgroup');
+    standardGroup.label = "Activités standards";
+    
     defaultActivities.forEach(act => {
         const option = document.createElement('option');
         option.value = act.cals;
         option.setAttribute('data-name', act.name);
         option.textContent = `${act.name} - ${act.cals} kcal`;
-        actSelect.appendChild(option);
+        standardGroup.appendChild(option);
     });
-
-    if (state.customActivities && state.customActivities.length > 0) {
-        const group = document.createElement('optgroup');
-        group.label = "Mes activités";
-        state.customActivities.forEach(act => {
-            const option = document.createElement('option');
-            option.value = act.cals;
-            option.setAttribute('data-name', act.name);
-            option.textContent = `${act.name} - ${act.cals} kcal`;
-            group.appendChild(option);
-        });
-        actSelect.appendChild(group);
-    }
+    actSelect.appendChild(standardGroup);
     
     const customOption = document.createElement('option');
     customOption.value = 'custom';
@@ -741,8 +765,8 @@ function updateDashboard() {
     if (reminder && reminderText) {
         reminder.style.display = 'block';
         let label = "Maintien du poids (0%)";
-        if (goalName === 'loss') label = "Perte de poids (-10%)";
-        if (goalName === 'gain') label = "Prise de masse (+10%)";
+        if (goalName === 'loss') label = "Perte de poids / Sèche (-10%)";
+        if (goalName === 'gain') label = "Prise de masse propre (+10%)";
         reminderText.textContent = label;
     }
 
@@ -945,6 +969,15 @@ function sortDatesFR(dates) {
     return [...dates].sort((a, b) => parseDateFR(a) - parseDateFR(b));
 }
 
+function formatDateFR(date, short = false) {
+    if (!date) return "";
+    const d = (date instanceof Date) ? date : new Date(date);
+    if (short) {
+        return d.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' });
+    }
+    return d.toLocaleDateString('fr-FR');
+}
+
 window.renderSuivi = function() {
     const filterEl = document.getElementById('suivi-filter');
     if (!filterEl) return;
@@ -959,154 +992,217 @@ window.renderSuivi = function() {
         cutoffDate.setDate(now.getDate() - (day - 1));
         cutoffDate.setHours(0,0,0,0);
     } else {
-        const days = parseInt(activeFilter); // 30, 90, 180, 365
+        const days = parseInt(activeFilter); 
         cutoffDate = new Date(now);
         cutoffDate.setDate(now.getDate() - days + 1);
         cutoffDate.setHours(0,0,0,0);
     }
-
-    // 1. Process Weights
-    const sortedWeights = [...state.weighIns].sort((a,b) => parseDateFR(a.date) - parseDateFR(b.date));
     
+    const endDate = new Date(now);
+    endDate.setHours(23, 59, 59, 999);
+
+    // 1. Weight boundaries (Strict within period - Option B)
+    const weightAtStart = findClosestWeight(cutoffDate);
+    const weightAtEnd = findClosestWeight(endDate);
+    const wDiffVal = weightAtEnd - weightAtStart;
+
+    // UI Update Weight Card (Compact)
     const wStartValEl = document.getElementById('suivi-weight-start-val');
     const wStartDateEl = document.getElementById('suivi-weight-start-date');
     const wEndValEl = document.getElementById('suivi-weight-end-val');
     const wEndDateEl = document.getElementById('suivi-weight-end-date');
     const wDiffEl = document.getElementById('suivi-weight-diff');
-    
-    if (sortedWeights.length > 0) {
-        let first, last;
+
+    if (wStartValEl) {
+        wStartValEl.textContent = weightAtStart + ' kg';
+        wStartDateEl.textContent = 'Début période';
+        wEndValEl.textContent = weightAtEnd + ' kg';
+        wEndDateEl.textContent = 'Fin période';
         
-        last = sortedWeights[sortedWeights.length - 1]; // Absolute most recent weigh-in
-        
-        if (activeFilter === 'week') {
-            // For 'week', select the 2 most recent weigh-ins
-            if (sortedWeights.length >= 2) {
-                first = sortedWeights[sortedWeights.length - 2];
-            } else {
-                first = sortedWeights[0]; 
-            }
-        } else {
-            // For others, select the last weigh-in and the one closest to 'cutoffDate'
-            let closestWeight = sortedWeights[0];
-            let minDiff = Infinity;
-            
-            for (const w of sortedWeights) {
-                const diff = Math.abs(parseDateFR(w.date).getTime() - cutoffDate.getTime());
-                if (diff < minDiff) {
-                    minDiff = diff;
-                    closestWeight = w;
-                }
-            }
-            first = closestWeight;
-        }
-        
-        wStartValEl.textContent = first.weight + ' kg';
-        wStartDateEl.textContent = first.date;
-        wEndValEl.textContent = last.weight + ' kg';
-        wEndDateEl.textContent = last.date;
-        
-        const diff = (last.weight - first.weight).toFixed(1);
-        const sign = diff > 0 ? '+' : '';
-        wDiffEl.textContent = sign + diff + ' kg';
-        wDiffEl.style.color = diff > 0 ? 'var(--accent-warning)' : (diff < 0 ? 'var(--accent-success)' : 'var(--text-main)');
-    } else {
-        wStartValEl.textContent = '--';
-        wStartDateEl.textContent = 'Début';
-        wEndValEl.textContent = '--';
-        wEndDateEl.textContent = 'Fin';
-        wDiffEl.textContent = '--';
-        wDiffEl.style.color = 'var(--text-main)';
+        const sign = wDiffVal > 0 ? '+' : '';
+        wDiffEl.textContent = sign + wDiffVal.toFixed(1) + ' kg';
+        wDiffEl.style.color = wDiffVal > 0 ? 'var(--accent-warning)' : (wDiffVal < 0 ? 'var(--accent-success)' : 'var(--text-main)');
     }
 
-    // 2. Process Calories & Proteins
+    // 2. Process Calories & Proteins with Majority Objective
     let historyKeys = Object.keys(state.history || {});
+    const goalFreq = {};
+    const dailyLogs = [];
+    const targetProtein = getLatestWeight() * 2;
     
-    let sumCalsConsumed = 0;
-    let sumCalsGoal = 0;
-    let sumProtConsumed = 0;
-    let sumProtGoal = 0;
-    let daysCount = 0;
-
     let defaultGoalMultiplier = 1.0;
     if (state.profile && state.profile.goal === 'loss') defaultGoalMultiplier = 0.9;
     if (state.profile && state.profile.goal === 'gain') defaultGoalMultiplier = 1.1;
-    const targetProtein = getLatestWeight() * 2;
-    
-    // Define the end date for the iteration
-    let endDate = new Date(now);
-    endDate.setHours(23, 59, 59, 999);
 
+    // Define effective loop start
+    let firstEntryDate = null;
+    if (state.history) {
+        const entryDates = Object.keys(state.history)
+            .filter(k => {
+                const log = state.history[k];
+                return log && (log.consumedCals > 0 || log.consumedProt > 0 || (log.entries && log.entries.length > 0));
+            })
+            .map(k => parseDateFR(k))
+            .filter(d => !isNaN(d.getTime()))
+            .sort((a, b) => a - b);
+        if (entryDates.length > 0) {
+            firstEntryDate = entryDates[0];
+            firstEntryDate.setHours(0, 0, 0, 0);
+        }
+    }
 
-    let currentDate = new Date(cutoffDate);
-    currentDate.setHours(0,0,0,0);
+    let loopStart = new Date(cutoffDate);
+    if (firstEntryDate && firstEntryDate > loopStart) {
+        loopStart = new Date(firstEntryDate);
+    }
+    loopStart.setHours(0,0,0,0);
 
-    // Iteration over full calendar days in the period
-    while (currentDate <= endDate) {
-        const queryMs = currentDate.getTime();
+    const periods = [];
+    let currentPeriod = null;
+    let loopDate = new Date(loopStart);
+
+    while (loopDate <= endDate) {
+        const queryMs = loopDate.getTime();
         const matchKey = historyKeys.find(k => parseDateFR(k).getTime() === queryMs);
         const log = matchKey ? state.history[matchKey] : null;
 
         const dayBaseTdee = (log && log.baseTDEE) ? log.baseTDEE : (state.profile ? state.profile.tdee : 0);
         const dayGoalMultiplier = (log && log.goalMultiplier !== undefined) ? log.goalMultiplier : defaultGoalMultiplier;
         const bonus = (log && log.bonusTDEE) ? log.bonusTDEE : 0;
-        
-        const dayTarget = (dayBaseTdee + bonus) * dayGoalMultiplier;
-        
-        sumCalsGoal += dayTarget;
-        sumCalsConsumed += (log && log.consumedCals) ? log.consumedCals : 0;
-        
-        sumProtGoal += targetProtein;
-        sumProtConsumed += (log && log.consumedProtein) ? log.consumedProtein : 0;
-        
-        daysCount++;
-        currentDate.setDate(currentDate.getDate() + 1);
-    }
+        const dayGoal = (log && log.goal) ? log.goal : (state.profile ? state.profile.goal : 'maintenance');
+        const staticTarget = Math.round(dayBaseTdee * dayGoalMultiplier);
 
+        goalFreq[dayGoal] = (goalFreq[dayGoal] || 0) + 1;
+        dailyLogs.push({
+            consumedCals: (log && log.consumedCals) || 0,
+            consumedProt: (log && log.consumedProtein) || 0,
+            baseTDEE: dayBaseTdee,
+            bonus: bonus,
+            goal: dayGoal,
+            multiplier: dayGoalMultiplier
+        });
+
+        const shortDate = formatDateFR(loopDate, true);
+        if (!currentPeriod || currentPeriod.goal !== dayGoal || currentPeriod.cals !== staticTarget) {
+            if (currentPeriod) periods.push(currentPeriod);
+            currentPeriod = { start: shortDate, end: shortDate, goal: dayGoal, cals: staticTarget, prot: targetProtein };
+        } else {
+            currentPeriod.end = shortDate;
+        }
+        loopDate.setDate(loopDate.getDate() + 1);
+    }
+    if (currentPeriod) periods.push(currentPeriod);
+
+    // Identify majority goal
+    let majorityGoal = 'maintenance';
+    let maxCount = -1;
+    for (const g in goalFreq) { if (goalFreq[g] > maxCount) { maxCount = goalFreq[g]; majorityGoal = g; } }
+    const majorityMultiplier = majorityGoal === 'loss' ? 0.9 : (majorityGoal === 'gain' ? 1.1 : 1.0);
+    const majorityGoalName = majorityGoal === 'loss' ? 'Sèche' : (majorityGoal === 'gain' ? 'Prise de masse' : 'Maintien');
+
+    // Calculate totals using majority multiplier
+    let sumCalsConsumed = 0; let sumCalsGoal = 0;
+    let sumProtConsumed = 0; let sumProtGoal = 0;
+
+    dailyLogs.forEach(day => {
+        sumCalsConsumed += day.consumedCals;
+        sumProtConsumed += day.consumedProt;
+        // La cible est calculée selon l'objectif REEL de chaque jour pour correspondre à la saisie, 
+        // tout en corrigeant la formule (base * mult) + bonus
+        sumCalsGoal += Math.round((day.baseTDEE * day.multiplier) + day.bonus);
+        sumProtGoal += targetProtein;
+    });
+
+    // 3. UI Update: Consumption Totals
     const cConsEl = document.getElementById('suivi-cals-consumed');
     const cGoalEl = document.getElementById('suivi-cals-goal');
     const cDiffEl = document.getElementById('suivi-cals-diff');
-    
     const pConsEl = document.getElementById('suivi-prot-consumed');
     const pGoalEl = document.getElementById('suivi-prot-goal');
     const pDiffEl = document.getElementById('suivi-prot-diff');
 
-    if (daysCount > 0) {
-        const totCalsCons = Math.round(sumCalsConsumed);
-        const totCalsGoal = Math.round(sumCalsGoal);
-        const diffCals = totCalsCons - totCalsGoal;
-        
-        cConsEl.textContent = totCalsCons + ' kcal';
-        cGoalEl.textContent = totCalsGoal + ' kcal';
-        
-        const signC = diffCals > 0 ? '+' : '';
-        cDiffEl.textContent = signC + diffCals + ' kcal';
-        // Calories: green if consumed < goal, red if consumed > goal
-        cDiffEl.style.color = diffCals < 0 ? 'var(--accent-success)' : (diffCals > 0 ? 'var(--accent-danger)' : 'var(--text-main)');
+    if (cConsEl) {
+        cConsEl.textContent = Math.round(sumCalsConsumed) + ' kcal';
+        cGoalEl.textContent = Math.round(sumCalsGoal) + ' kcal';
+        const cDiff = Math.round(sumCalsConsumed - sumCalsGoal);
+        cDiffEl.textContent = (cDiff > 0 ? '+' : '') + cDiff + ' kcal';
+        cDiffEl.style.color = Math.abs(cDiff) < (sumCalsGoal * 0.05) ? 'var(--accent-success)' : 'var(--accent-danger)';
 
-        const totProtCons = Math.round(sumProtConsumed);
-        const totProtGoal = Math.round(sumProtGoal);
-        const diffProt = totProtCons - totProtGoal;
+        pConsEl.textContent = Math.round(sumProtConsumed) + ' g';
+        pGoalEl.textContent = Math.round(sumProtGoal) + ' g';
+        const pDiff = Math.round(sumProtConsumed - sumProtGoal);
+        pDiffEl.textContent = (pDiff > 0 ? '+' : '') + pDiff + ' g';
+        pDiffEl.style.color = pDiff >= -10 ? 'var(--accent-success)' : 'var(--accent-danger)';
+    }
+
+    // 4. UI Update: Objectifs Details
+    const objCard = document.getElementById('card-suivi-objectifs');
+    if (objCard) {
+        if (periods.length > 1) {
+            objCard.classList.remove('hidden');
+            document.getElementById('suivi-objectifs-inner').innerHTML = periods.map((p, idx) => `
+                <div class="obj-period-item">
+                    <div class="obj-period-date">${idx === 0 ? 'Dès le' : 'Changement le'} ${p.start}</div>
+                    <div class="obj-period-details">
+                        ${p.goal === 'loss' ? 'Sèche' : p.goal === 'gain' ? 'Prise de masse' : 'Maintien'} 
+                        — ${p.cals} kcal | ${Math.round(p.prot)}g prot
+                    </div>
+                </div>
+            `).join('');
+        } else { objCard.classList.add('hidden'); }
+    }
+
+    // 5. UI Update: Bilan Card
+    const bilanCard = document.getElementById('suivi-bilan-card');
+    const bilanInner = document.getElementById('suivi-bilan-inner');
+    if (bilanCard && bilanInner) {
+        bilanCard.classList.remove('hidden');
+        const calsDiff = sumCalsConsumed - sumCalsGoal;
+        const protDiff = sumProtConsumed - sumProtGoal;
+        const calsOk = Math.abs(calsDiff) < (sumCalsGoal * 0.05);
+        const protOk = protDiff >= -10;
         
-        pConsEl.textContent = totProtCons + ' g';
-        pGoalEl.textContent = totProtGoal + ' g';
+        let weightOk = (majorityGoal === 'loss' && wDiffVal < 0) || (majorityGoal === 'gain' && wDiffVal > 0) || (majorityGoal === 'maintenance' && Math.abs(wDiffVal) < 0.3);
+
+        let score = (calsOk ? 1 : 0) + (protOk ? 1 : 0) + (weightOk ? 1 : 0);
+        const motivationMsg = score === 3 ? "Excellent travail, tu es parfaitement sur la bonne voie !" : 
+                               score === 2 ? "Tu es sur la bonne voie, affine les détails." :
+                               "Continue tes efforts, la régularité est la clé !";
         
-        const signP = diffProt > 0 ? '+' : '';
-        pDiffEl.textContent = signP + diffProt + ' g';
-        // Proteins: green if consumed > goal, red if consumed < goal
-        pDiffEl.style.color = diffProt > 0 ? 'var(--accent-success)' : (diffProt < 0 ? 'var(--accent-danger)' : 'var(--text-main)');
-    } else {
-        cConsEl.textContent = '--';
-        cGoalEl.textContent = '--';
-        cDiffEl.textContent = '--';
-        cDiffEl.style.color = 'var(--text-main)';
-        
-        pConsEl.textContent = '--';
-        pGoalEl.textContent = '--';
-        pDiffEl.textContent = '--';
-        pDiffEl.style.color = 'var(--text-main)';
+        const daysAnalyzed = dailyLogs.length;
+        const periodText = daysAnalyzed <= 1 ? "aujourd'hui" : `des ${daysAnalyzed} derniers jours`;
+
+        bilanInner.innerHTML = `
+            ${periods.length > 1 ? `<div class="bilan-warning-bar"><span>⚠️</span> Objectif modifié en cours de période — bilan basé sur l'objectif majoritaire (${majorityGoalName})</div>` : ''}
+            <div class="bilan-content">
+                <div class="bilan-item ${calsOk ? 'success' : 'warning'}">
+                    <div class="bilan-item-icon">${calsOk ? '✅' : '⚠️'}</div>
+                    <div class="bilan-item-text">
+                        <strong>Calories :</strong> ${calsOk ? "Tu es parfaitement dans l'objectif" : "Objectif calorique non atteint"} — 
+                        ${calsDiff <= 0 ? Math.abs(Math.round(calsDiff)) + ' kcal en moins' : Math.round(calsDiff) + ' kcal en trop'}.
+                    </div>
+                </div>
+                <div class="bilan-item ${protOk ? 'success' : 'warning'}">
+                    <div class="bilan-item-icon">${protOk ? '✅' : '⚠️'}</div>
+                    <div class="bilan-item-text">
+                        <strong>Protéines :</strong> ${protOk ? "Apport protéique idéal" : "Manque de protéines"} — 
+                        ${protDiff >= 0 ? Math.abs(Math.round(protDiff)) + 'g en plus' : Math.abs(Math.round(protDiff)) + 'g en moins'}.
+                    </div>
+                </div>
+                <div class="bilan-item ${weightOk ? 'success' : 'warning'}">
+                    <div class="bilan-item-icon">${weightOk ? '✅' : '⚠️'}</div>
+                    <div class="bilan-item-text">
+                        <strong>Poids :</strong> ${weightOk ? "Tendance idéale" : "Tendance à surveiller"} — 
+                        ${Math.abs(wDiffVal.toFixed(1))} kg ${wDiffVal >= 0 ? 'pris' : 'perdu(s)'}.
+                    </div>
+                </div>
+            </div>
+            <div class="bilan-footer"><span>🤝</span> Bilan ${periodText} : ${score} / 3 — ${motivationMsg}</div>
+        `;
     }
 };
+
+
 
 // init() is now called by auth.js after authentication
 
