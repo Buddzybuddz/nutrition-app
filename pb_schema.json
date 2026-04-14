@@ -1,0 +1,270 @@
+[
+  {
+    "id": "pbc_3142635823",
+    "listRule": null,
+    "viewRule": null,
+    "createRule": null,
+    "updateRule": null,
+    "deleteRule": null,
+    "name": "_superusers",
+    "type": "auth",
+    "fields": [
+      { "id": "text3208210256", "name": "id", "type": "text", "system": true, "primaryKey": true, "required": true, "presentable": false, "hidden": false, "min": 15, "max": 15, "pattern": "^[a-z0-9]+$", "autogeneratePattern": "[a-z0-9]{15}" },
+      { "id": "password901924565", "name": "password", "type": "password", "system": true, "required": true, "presentable": false, "hidden": true, "min": 8, "max": 0, "pattern": "", "cost": 0 },
+      { "id": "text2504183744", "name": "tokenKey", "type": "text", "system": true, "required": true, "presentable": false, "hidden": true, "min": 30, "max": 60, "pattern": "", "autogeneratePattern": "[a-zA-Z0-9]{50}" },
+      { "id": "email3885137012", "name": "email", "type": "email", "system": true, "required": true, "presentable": false, "hidden": false, "onlyDomains": null, "exceptDomains": null },
+      { "id": "bool1547992806", "name": "emailVisibility", "type": "bool", "system": true, "required": false, "presentable": false, "hidden": false },
+      { "id": "bool256245529", "name": "verified", "type": "bool", "system": true, "required": false, "presentable": false, "hidden": false },
+      { "id": "autodate2990389176", "name": "created", "type": "autodate", "system": true, "required": false, "presentable": false, "hidden": false, "onCreate": true, "onUpdate": false },
+      { "id": "autodate3332085495", "name": "updated", "type": "autodate", "system": true, "required": false, "presentable": false, "hidden": false, "onCreate": true, "onUpdate": true }
+    ],
+    "indexes": [
+      "CREATE UNIQUE INDEX `idx_tokenKey_pbc_3142635823` ON `_superusers` (`tokenKey`)",
+      "CREATE UNIQUE INDEX `idx_email_pbc_3142635823` ON `_superusers` (`email`) WHERE `email` != ''"
+    ],
+    "system": true,
+    "authRule": "",
+    "manageRule": null,
+    "passwordAuth": { "enabled": true, "identityFields": ["email"] },
+    "authToken": { "duration": 86400 }
+  },
+  {
+    "id": "_pb_users_auth_",
+    "listRule": "id = @request.auth.id",
+    "viewRule": "id = @request.auth.id",
+    "createRule": "",
+    "updateRule": "id = @request.auth.id",
+    "deleteRule": "id = @request.auth.id",
+    "name": "users",
+    "type": "auth",
+    "fields": [
+      { "id": "text3208210256", "name": "id", "type": "text", "system": true, "primaryKey": true, "required": true, "presentable": false, "hidden": false, "min": 15, "max": 15, "pattern": "^[a-z0-9]+$", "autogeneratePattern": "[a-z0-9]{15}" },
+      { "id": "password901924565", "name": "password", "type": "password", "system": true, "required": true, "presentable": false, "hidden": true, "min": 8, "max": 0, "pattern": "", "cost": 0 },
+      { "id": "text2504183744", "name": "tokenKey", "type": "text", "system": true, "required": true, "presentable": false, "hidden": true, "min": 30, "max": 60, "pattern": "", "autogeneratePattern": "[a-zA-Z0-9]{50}" },
+      { "id": "email3885137012", "name": "email", "type": "email", "system": true, "required": true, "presentable": false, "hidden": false, "onlyDomains": null, "exceptDomains": null },
+      { "id": "bool1547992806", "name": "emailVisibility", "type": "bool", "system": true, "required": false, "presentable": false, "hidden": false },
+      { "id": "bool256245529", "name": "verified", "type": "bool", "system": true, "required": false, "presentable": false, "hidden": false },
+      { "id": "text1579384326", "name": "name", "type": "text", "system": false, "required": false, "presentable": false, "hidden": false, "min": 0, "max": 255, "pattern": "", "autogeneratePattern": "" },
+      { "id": "file376926767", "name": "avatar", "type": "file", "system": false, "required": false, "presentable": false, "hidden": false, "maxSelect": 1, "maxSize": 0, "mimeTypes": ["image/jpeg","image/png","image/svg+xml","image/gif","image/webp"], "protected": false, "thumbs": null },
+      { "id": "bool458715613", "name": "is_active", "type": "bool", "system": false, "required": false, "presentable": false, "hidden": false },
+      { "id": "autodate2990389176", "name": "created", "type": "autodate", "system": false, "required": false, "presentable": false, "hidden": false, "onCreate": true, "onUpdate": false },
+      { "id": "autodate3332085495", "name": "updated", "type": "autodate", "system": false, "required": false, "presentable": false, "hidden": false, "onCreate": true, "onUpdate": true }
+    ],
+    "indexes": [
+      "CREATE UNIQUE INDEX `idx_tokenKey__pb_users_auth_` ON `users` (`tokenKey`)",
+      "CREATE UNIQUE INDEX `idx_email__pb_users_auth_` ON `users` (`email`) WHERE `email` != ''"
+    ],
+    "system": false,
+    "authRule": "",
+    "manageRule": null,
+    "passwordAuth": { "enabled": true, "identityFields": ["email"] },
+    "authToken": { "duration": 604800 }
+  },
+  {
+    "id": "pbc_4275539003",
+    "name": "_authOrigins",
+    "type": "base",
+    "system": true,
+    "fields": [
+      { "id": "text3208210256", "name": "id", "type": "text", "system": true, "primaryKey": true, "required": true },
+      { "id": "text455797646", "name": "collectionRef", "type": "text", "system": true, "required": true },
+      { "id": "text127846527", "name": "recordRef", "type": "text", "system": true, "required": true },
+      { "id": "text4228609354", "name": "fingerprint", "type": "text", "system": true, "required": true },
+      { "id": "autodate2990389176", "name": "created", "type": "autodate", "system": true, "onCreate": true, "onUpdate": false },
+      { "id": "autodate3332085495", "name": "updated", "type": "autodate", "system": true, "onCreate": true, "onUpdate": true }
+    ],
+    "listRule": "@request.auth.id != '' && recordRef = @request.auth.id && collectionRef = @request.auth.collectionId",
+    "viewRule": "@request.auth.id != '' && recordRef = @request.auth.id && collectionRef = @request.auth.collectionId",
+    "deleteRule": "@request.auth.id != '' && recordRef = @request.auth.id && collectionRef = @request.auth.collectionId"
+  },
+  {
+    "id": "pbc_2281828961",
+    "name": "_externalAuths",
+    "type": "base",
+    "system": true,
+    "fields": [
+      { "id": "text3208210256", "name": "id", "type": "text", "system": true, "primaryKey": true },
+      { "id": "text455797646", "name": "collectionRef", "type": "text", "system": true, "required": true },
+      { "id": "text127846527", "name": "recordRef", "type": "text", "system": true, "required": true },
+      { "id": "text2462348188", "name": "provider", "type": "text", "system": true, "required": true },
+      { "id": "text1044722854", "name": "providerId", "type": "text", "system": true, "required": true },
+      { "id": "autodate2990389176", "name": "created", "type": "autodate", "system": true, "onCreate": true, "onUpdate": false },
+      { "id": "autodate3332085495", "name": "updated", "type": "autodate", "system": true, "onCreate": true, "onUpdate": true }
+    ],
+    "listRule": "@request.auth.id != '' && recordRef = @request.auth.id && collectionRef = @request.auth.collectionId",
+    "viewRule": "@request.auth.id != '' && recordRef = @request.auth.id && collectionRef = @request.auth.collectionId",
+    "deleteRule": "@request.auth.id != '' && recordRef = @request.auth.id && collectionRef = @request.auth.collectionId"
+  },
+  {
+    "id": "pbc_2279338944",
+    "name": "_mfas",
+    "type": "base",
+    "system": true,
+    "fields": [
+      { "id": "text3208210256", "name": "id", "type": "text", "system": true, "primaryKey": true },
+      { "id": "text455797646", "name": "collectionRef", "type": "text", "system": true, "required": true },
+      { "id": "text127846527", "name": "recordRef", "type": "text", "system": true, "required": true },
+      { "id": "text1582905952", "name": "method", "type": "text", "system": true, "required": true },
+      { "id": "autodate2990389176", "name": "created", "type": "autodate", "system": true, "onCreate": true, "onUpdate": false },
+      { "id": "autodate3332085495", "name": "updated", "type": "autodate", "system": true, "onCreate": true, "onUpdate": true }
+    ],
+    "listRule": "@request.auth.id != '' && recordRef = @request.auth.id && collectionRef = @request.auth.collectionId",
+    "viewRule": "@request.auth.id != '' && recordRef = @request.auth.id && collectionRef = @request.auth.collectionId"
+  },
+  {
+    "id": "pbc_1638494021",
+    "name": "_otps",
+    "type": "base",
+    "system": true,
+    "fields": [
+      { "id": "text3208210256", "name": "id", "type": "text", "system": true, "primaryKey": true },
+      { "id": "text455797646", "name": "collectionRef", "type": "text", "system": true, "required": true },
+      { "id": "text127846527", "name": "recordRef", "type": "text", "system": true, "required": true },
+      { "id": "password901924565", "name": "password", "type": "password", "system": true, "required": true },
+      { "id": "text3866985172", "name": "sentTo", "type": "text", "system": true, "required": false },
+      { "id": "autodate2990389176", "name": "created", "type": "autodate", "system": true, "onCreate": true, "onUpdate": false },
+      { "id": "autodate3332085495", "name": "updated", "type": "autodate", "system": true, "onCreate": true, "onUpdate": true }
+    ],
+    "listRule": "@request.auth.id != '' && recordRef = @request.auth.id && collectionRef = @request.auth.collectionId",
+    "viewRule": "@request.auth.id != '' && recordRef = @request.auth.id && collectionRef = @request.auth.collectionId"
+  },
+  {
+    "id": "pbc_3414089001",
+    "name": "profiles",
+    "type": "base",
+    "system": false,
+    "fields": [
+      { "id": "text3208210256", "name": "id", "type": "text", "system": true, "primaryKey": true },
+      { "id": "relation2375276105", "name": "user", "type": "relation", "required": true, "options": { "collectionId": "_pb_users_auth_", "maxSelect": 1 } },
+      { "id": "number130897217", "name": "weight", "type": "number", "required": true },
+      { "id": "number4115522831", "name": "height", "type": "number", "required": true, "options": { "onlyInt": true } },
+      { "id": "select3343321666", "name": "gender", "type": "select", "options": { "values": ["Homme", "Femme"], "maxSelect": 1 } },
+      { "id": "age_new_field", "name": "age", "type": "number" },
+      { "id": "act_level_new", "name": "activity_level", "type": "select", "options": { "values": ["sedentary", "light", "moderate", "active", "very_active"], "maxSelect": 1 } },
+      { "id": "goal_type_new", "name": "goal_type", "type": "select", "options": { "values": ["lose", "maintain", "gain"], "maxSelect": 1 } },
+      { "id": "target_cal_new", "name": "target_calories", "type": "number" },
+      { "id": "target_prot_new", "name": "target_protein", "type": "number" },
+      { "id": "tdee_new", "name": "tdee", "type": "number" },
+      { "id": "autodate2990389176", "name": "created", "type": "autodate", "system": false, "onCreate": true, "onUpdate": false },
+      { "id": "autodate3332085495", "name": "updated", "type": "autodate", "system": false, "onCreate": true, "onUpdate": true }
+    ],
+    "listRule": "user = @request.auth.id",
+    "viewRule": "user = @request.auth.id",
+    "createRule": "user = @request.auth.id",
+    "updateRule": "user = @request.auth.id"
+  },
+  {
+    "id": "pbc_3008977202",
+    "name": "user_data",
+    "type": "base",
+    "system": false,
+    "fields": [
+      { "id": "text3208210256", "name": "id", "type": "text", "system": true, "primaryKey": true },
+      { "id": "relation2375276105", "name": "user", "type": "relation", "required": true, "options": { "collectionId": "_pb_users_auth_", "maxSelect": 1 } },
+      { "id": "json2918445923", "name": "data", "type": "json" },
+      { "id": "autodate2990389176", "name": "created", "type": "autodate", "system": false, "onCreate": true, "onUpdate": false },
+      { "id": "autodate3332085495", "name": "updated", "type": "autodate", "system": false, "onCreate": true, "onUpdate": true }
+    ],
+    "listRule": "@request.auth.id = user.id",
+    "viewRule": "@request.auth.id = user.id",
+    "createRule": "@request.auth.id != \"\"",
+    "updateRule": "@request.auth.id = user.id",
+    "deleteRule": "@request.auth.id = user.id"
+  },
+  {
+    "id": "daily_stats_coll",
+    "name": "daily_stats",
+    "type": "base",
+    "fields": [
+      { "id": "text3208210256", "name": "id", "type": "text", "system": true, "primaryKey": true },
+      { "name": "user", "type": "relation", "required": true, "options": { "collectionId": "_pb_users_auth_", "maxSelect": 1 } },
+      { "name": "date", "type": "date", "required": true },
+      { "name": "tdee_at_date", "type": "number" },
+      { "name": "goal_at_date", "type": "number" },
+      { "name": "consumed_cals", "type": "number" },
+      { "name": "consumed_protein", "type": "number" },
+      { "name": "bonus_tdee", "type": "number" },
+      { "name": "created", "type": "autodate", "onCreate": true },
+      { "name": "updated", "type": "autodate", "onCreate": true, "onUpdate": true }
+    ],
+    "listRule": "user = @request.auth.id",
+    "viewRule": "user = @request.auth.id",
+    "createRule": "user = @request.auth.id",
+    "updateRule": "user = @request.auth.id"
+  },
+  {
+    "id": "meals_coll",
+    "name": "meals",
+    "type": "base",
+    "fields": [
+      { "id": "text3208210256", "name": "id", "type": "text", "system": true, "primaryKey": true },
+      { "name": "user", "type": "relation", "required": true, "options": { "collectionId": "_pb_users_auth_", "maxSelect": 1 } },
+      { "name": "date", "type": "date", "required": true },
+      { "name": "name", "type": "text", "required": true },
+      { "name": "calories", "type": "number", "required": true },
+      { "name": "protein", "type": "number", "required": true },
+      { "name": "created", "type": "autodate", "onCreate": true },
+      { "name": "updated", "type": "autodate", "onCreate": true, "onUpdate": true }
+    ],
+    "listRule": "user = @request.auth.id",
+    "viewRule": "user = @request.auth.id",
+    "createRule": "user = @request.auth.id",
+    "updateRule": "user = @request.auth.id",
+    "deleteRule": "user = @request.auth.id"
+  },
+  {
+    "id": "activities_log_coll",
+    "name": "activities_log",
+    "type": "base",
+    "fields": [
+      { "id": "text3208210256", "name": "id", "type": "text", "system": true, "primaryKey": true },
+      { "name": "user", "type": "relation", "required": true, "options": { "collectionId": "_pb_users_auth_", "maxSelect": 1 } },
+      { "name": "date", "type": "date", "required": true },
+      { "name": "name", "type": "text", "required": true },
+      { "name": "calories_burned", "type": "number", "required": true },
+      { "name": "created", "type": "autodate", "onCreate": true },
+      { "name": "updated", "type": "autodate", "onCreate": true, "onUpdate": true }
+    ],
+    "listRule": "user = @request.auth.id",
+    "viewRule": "user = @request.auth.id",
+    "createRule": "user = @request.auth.id",
+    "updateRule": "user = @request.auth.id",
+    "deleteRule": "user = @request.auth.id"
+  },
+  {
+    "id": "weigh_ins_coll",
+    "name": "weigh_ins",
+    "type": "base",
+    "fields": [
+      { "id": "text3208210256", "name": "id", "type": "text", "system": true, "primaryKey": true },
+      { "name": "user", "type": "relation", "required": true, "options": { "collectionId": "_pb_users_auth_", "maxSelect": 1 } },
+      { "name": "date", "type": "date", "required": true },
+      { "name": "weight", "type": "number", "required": true },
+      { "name": "created", "type": "autodate", "onCreate": true },
+      { "name": "updated", "type": "autodate", "onCreate": true, "onUpdate": true }
+    ],
+    "listRule": "user = @request.auth.id",
+    "viewRule": "user = @request.auth.id",
+    "createRule": "user = @request.auth.id",
+    "updateRule": "user = @request.auth.id",
+    "deleteRule": "user = @request.auth.id"
+  },
+  {
+    "id": "goal_history_coll",
+    "name": "goal_history",
+    "type": "base",
+    "fields": [
+      { "id": "text3208210256", "name": "id", "type": "text", "system": true, "primaryKey": true },
+      { "name": "user", "type": "relation", "required": true, "options": { "collectionId": "_pb_users_auth_", "maxSelect": 1 } },
+      { "name": "date", "type": "date", "required": true },
+      { "name": "old_goal", "type": "number" },
+      { "name": "new_goal", "type": "number" },
+      { "name": "reason", "type": "text" },
+      { "name": "created", "type": "autodate", "onCreate": true },
+      { "name": "updated", "type": "autodate", "onCreate": true, "onUpdate": true }
+    ],
+    "listRule": "user = @request.auth.id",
+    "viewRule": "user = @request.auth.id",
+    "createRule": "user = @request.auth.id"
+  }
+]

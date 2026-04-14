@@ -9,7 +9,7 @@
     <link rel="stylesheet" href="style.css">
     <link rel="icon" type="image/png" href="favicon.png">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/pocketbase/dist/pocketbase.umd.min.js"></script>
 </head>
 <body>
     <!-- Landing Page -->
@@ -170,7 +170,7 @@
                 </div>
                 <div class="form-group">
                     <label for="login-password">Mot de passe</label>
-                    <input type="password" id="login-password" required placeholder="Mot de passe">
+                    <input type="password" id="login-password" required minlength="8" placeholder="Min. 8 caractères">
                 </div>
                 <button type="submit" class="btn btn-primary" style="width:100%; margin-bottom:1rem;">Se connecter</button>
                 <p style="text-align:center; font-size:0.9rem;">
@@ -190,11 +190,11 @@
                 </div>
                 <div class="form-group">
                     <label for="signup-password">Mot de passe</label>
-                    <input type="password" id="signup-password" required minlength="6" placeholder="Min. 6 caractères">
+                    <input type="password" id="signup-password" required minlength="8" placeholder="Min. 8 caractères">
                 </div>
                 <div class="form-group">
                     <label for="signup-confirm">Confirmer le mot de passe</label>
-                    <input type="password" id="signup-confirm" required minlength="6" placeholder="Confirmer">
+                    <input type="password" id="signup-confirm" required minlength="8" placeholder="Confirmer">
                 </div>
                 <button type="submit" class="btn btn-primary" style="width:100%; margin-bottom:1rem;">Créer le compte</button>
                 <p style="text-align:center; font-size:0.9rem;">
@@ -239,7 +239,9 @@
                         <span style="font-weight: 800; color: var(--text-main);">Compte :</span> 
                         <span id="user-email" style="color: var(--accent-secondary); word-break: break-all;"></span>
                     </div>
-                    <button id="logout-btn" class="btn logout-btn">Déconnexion</button>
+                    <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                        <button id="logout-btn" class="btn logout-btn">Déconnexion</button>
+                    </div>
                 </div>
 
                 <form id="profile-form" class="card">
@@ -250,8 +252,8 @@
                     <div class="form-group">
                         <label for="gender">Sexe</label>
                         <select id="gender" required>
-                            <option value="male">Homme</option>
-                            <option value="female">Femme</option>
+                            <option value="Homme">Homme</option>
+                            <option value="Femme">Femme</option>
                         </select>
                     </div>
                     <div class="form-row">
@@ -679,7 +681,9 @@
                 </header>
 
                 <div class="card" style="margin-bottom: 2rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap;">
-                    <div style="font-weight: 700; color: var(--text-main);">Période d'analyse :</div>
+                    <div style="font-weight: 700; color: var(--text-main);">
+                        Période d'analyse : <span id="suivi-period-dates" style="font-weight: 400; color: var(--text-muted); font-size: 0.9rem; margin-left: 5px;"></span>
+                    </div>
                     <select id="suivi-filter" style="flex: 1; min-width: 200px; max-width: 300px; padding: 0.5rem; border-radius: var(--radius-sm); border: 2px solid var(--border-color); font-size: 1rem; font-family: 'Nunito', sans-serif;">
                         <option value="week" selected>Semaine en cours (Lun-Dim)</option>
                         <option value="30">30 derniers jours</option>
@@ -838,8 +842,23 @@
         </div>
     </div>
 
+    <!-- Modale de félicitations -->
+    <div id="goal-reached-modal" class="modal-overlay hidden">
+        <div class="modal-content card" style="text-align: center; max-width: 450px;">
+            <div style="font-size: 4rem; margin-bottom: 1rem;">🎉</div>
+            <h2 style="color: var(--accent-primary); margin-bottom: 1rem;">Objectif Atteint !</h2>
+            <p id="goal-reached-text" style="font-size: 1.1rem; line-height: 1.5; margin-bottom: 2rem;">
+                Félicitations ! Tu as atteint ton objectif de poids. Quel est ton prochain défi ?
+            </p>
+            <div style="display: flex; flex-direction: column; gap: 1rem;">
+                <button type="button" class="btn btn-primary" onclick="redirectToProfile()">Fixer un nouvel objectif</button>
+                <button type="button" class="btn" style="background: transparent; color: var(--text-muted); border: 2px solid var(--border-color);" onclick="closeGoalReachedModal()">Continuer ainsi (Maintien)</button>
+            </div>
+        </div>
+    </div>
 
+    <script src="pb-config.js"></script>
     <script src="app.js"></script>
-    <script src="auth.js"></script>
+    <script src="auth-pb.js"></script>
 </body>
 </html>

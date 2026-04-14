@@ -1,16 +1,42 @@
 let state = {
     profile: null,
     history: {},
-    currentViewDate: new Date().toLocaleDateString('fr-FR'),
+    currentViewDate: "", // Sera initialisé dans init() ou loadState()
     customActivities: [],
-    weighIns: []
+    weighIns: [],
+    goalHistory: []
 };
 
-const STORAGE_KEY = 'nutridash_state';
+let STORAGE_KEY = 'nutridash_state_none';
+
+/**
+ * Définit l'identifiant utilisateur pour isoler le stockage localStorage.
+ */
+window.setUserId = function(userId) {
+    if (userId) {
+        STORAGE_KEY = `nutridash_state_${userId}`;
+        console.log(`Clé de stockage mise à jour : ${STORAGE_KEY}`);
+    } else {
+        STORAGE_KEY = 'nutridash_state_none';
+    }
+};
+
+/**
+ * Réinitialise l'état en mémoire pour éviter les fuites entre sessions.
+ */
+window.clearLocalData = function() {
+    state.profile = null;
+    state.history = {};
+    state.currentViewDate = formatISOLocal(new Date());
+    state.customActivities = [];
+    state.weighIns = [];
+    state.goalHistory = [];
+    console.log("État mémoire réinitialisé.");
+};
 
 function getActiveLog() {
     if (!state.history) state.history = {};
-    if (!state.currentViewDate) state.currentViewDate = new Date().toLocaleDateString('fr-FR');
+    if (!state.currentViewDate) state.currentViewDate = formatISOLocal(new Date());
     if (!state.history[state.currentViewDate]) {
         state.history[state.currentViewDate] = {
             date: state.currentViewDate,
@@ -29,35 +55,34 @@ function getActiveLog() {
 
 // Load initial state
 function loadState() {
+    if (STORAGE_KEY === 'nutridash_state_none') return;
+    
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) {
-        const tempState = JSON.parse(saved);
-        if (tempState.todayLog && Object.keys(tempState.history || {}).length === 0) {
-            // Migration
-            state.profile = tempState.profile;
-            state.customActivities = tempState.customActivities || [];
-            if (!state.history) state.history = {};
-            if (tempState.todayLog) {
-                tempState.todayLog.entries.forEach(e => {
-                    if (!e.id) e.id = Date.now() + Math.random();
-                });
-                state.history[tempState.todayLog.date] = tempState.todayLog;
-            }
-        } else {
-            state = tempState;
+        try {
+            const tempState = JSON.parse(saved);
+            // On fusionne prudemment pour ne pas écraser les objets de base si tempState est corrompu
+            if (tempState.profile) state.profile = tempState.profile;
+            if (tempState.history) state.history = tempState.history;
+            if (tempState.customActivities) state.customActivities = tempState.customActivities;
+            if (tempState.weighIns) state.weighIns = tempState.weighIns;
+            
+            console.log("État chargé depuis le stockage local spécialisé.");
+        } catch (e) {
+            console.error("Erreur lors du chargement du localStorage", e);
         }
     }
     
     if (!state.customActivities) state.customActivities = [];
     if (!state.weighIns) state.weighIns = [];
-    state.currentViewDate = new Date().toLocaleDateString('fr-FR');
-    getActiveLog(); // Ensure it exists
+    state.currentViewDate = formatISOLocal(new Date());
+    getActiveLog(); 
 }
 
 function saveState() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
     // Sync to cloud if available
-    if (typeof syncToCloud === 'function') {
+    if (typeof syncToCloud === 'function' && currentUser) {
         syncToCloud();
     }
 }
@@ -76,7 +101,7 @@ function calculateAge(birthDateString) {
 }
 
 function calculateMifflinStJeor(gender, weight, height, age) {
-    if (gender === 'male') {
+    if (gender === 'male' || gender === 'Homme') {
         return (10 * weight) + (6.25 * height) - (5 * age) + 5;
     } else {
         return (10 * weight) + (6.25 * height) - (5 * age) - 161;
@@ -85,13 +110,8 @@ function calculateMifflinStJeor(gender, weight, height, age) {
 
 function getLatestWeight() {
     if (state.weighIns && state.weighIns.length > 0) {
-        const sorted = [...state.weighIns].sort((a, b) => {
-            const ap = a.date.split('/'), bp = b.date.split('/');
-            if (ap.length === 3 && bp.length === 3) {
-                return new Date(bp[2], bp[1]-1, bp[0]) - new Date(ap[2], ap[1]-1, ap[0]);
-            }
-            return b.timestamp - a.timestamp;
-        });
+        // Tri décroissant sur les chaînes ISO pour avoir le plus récent en premier
+        const sorted = [...state.weighIns].sort((a, b) => b.date.localeCompare(a.date));
         return sorted[0].weight;
     }
     return state.profile ? state.profile.weight : 0;
@@ -102,7 +122,7 @@ function findClosestWeight(targetDate) {
     
     let closestVal = state.profile ? state.profile.weight : 0;
     let minDiff = Infinity;
-    const targetMs = (targetDate instanceof Date) ? targetDate.getTime() : targetDate;
+    const targetMs = (targetDate instanceof Date) ? targetDate.getTime() : new Date(targetDate).getTime();
     
     state.weighIns.forEach(win => {
         const d = parseDateFR(win.date);
@@ -117,8 +137,14 @@ function findClosestWeight(targetDate) {
     return closestVal;
 }
 
-function updateProfileData() {
+function updateProfileData(silent = false) {
     if (!state.profile) return;
+    
+    // Sécurité : recalculer l'âge si manquant
+    if (state.profile.birthDate && (!state.profile.age || isNaN(state.profile.age))) {
+        state.profile.age = calculateAge(state.profile.birthDate);
+    }
+    
     const weight = getLatestWeight();
     state.profile.bmr = calculateMifflinStJeor(
         state.profile.gender, 
@@ -130,17 +156,17 @@ function updateProfileData() {
     // Le TDEE de base est maintenant BMR * 1.2 (sédentaire)
     state.profile.tdee = state.profile.bmr * 1.2;
     
-    // Mise à jour du "snapshot" pour AUJOURD'HUI uniquement
-    // Ainsi, les changements d'objectifs n'impactent pas le passé
-    const todayStr = new Date().toLocaleDateString('fr-FR');
-    if (state.history && state.history[todayStr]) {
-        const log = state.history[todayStr];
+    // Mise à jour du "snapshot" pour la date active visualisée
+    // Cela garantit que modifier le profil impacte le jour en cours d'édition
+    const activeDateStr = state.currentViewDate || formatISOLocal(new Date());
+    if (state.history && state.history[activeDateStr]) {
+        const log = state.history[activeDateStr];
         log.baseTDEE = state.profile.tdee;
         log.goal = state.profile.goal;
         log.goalMultiplier = (state.profile.goal === 'loss' ? 0.9 : (state.profile.goal === 'gain' ? 1.1 : 1.0));
     }
     
-    saveState();
+    if (!silent) saveState();
 }
 
 function calculateIdealWeight(height, gender) {
@@ -156,10 +182,20 @@ function checkGoalReached(newWeight) {
 }
 
 function showGoalReachedMessage() {
-    setTimeout(() => {
-        alert("🎯 Objectif atteint ! Félicitations vous avez atteint votre objectif, vous pouvez vous en donner un nouveau dans votre profil.");
-    }, 500);
+    const modal = document.getElementById('goal-reached-modal');
+    if (modal) modal.classList.remove('hidden');
 }
+
+window.closeGoalReachedModal = function() {
+    const modal = document.getElementById('goal-reached-modal');
+    if (modal) modal.classList.add('hidden');
+};
+
+window.redirectToProfile = function() {
+    window.closeGoalReachedModal();
+    const profileBtn = document.querySelector('[onclick="switchView(\'profile-view\')"]');
+    if (profileBtn) profileBtn.click();
+};
 
 // UI Elements
 const viewProfile = document.getElementById('profile-view');
@@ -244,8 +280,16 @@ window.navigateTo = function(slug, updateHistory = true) {
     // Validation profil pour les vues de l'app (sauf profil lui-même)
     if (route.section === 'app' && !state.profile && slug !== 'profil') {
         console.log("Accès app refusé: profil manquant. Redirection vers profil.");
-        alert("Veuillez d'abord configurer votre profil.");
+        // Désactivation visuelle des autres boutons si le profil est manquant
+        document.querySelectorAll('.nav-btn').forEach(btn => {
+            if (btn.dataset.target !== 'profile-view') btn.style.opacity = '0.5';
+        });
         return window.navigateTo('profil');
+    }
+
+    // Réinitialisation de l'opacité si le profil existe
+    if (state.profile) {
+        document.querySelectorAll('.nav-btn').forEach(btn => btn.style.opacity = '1');
     }
 
     // Mise à jour de l'URL hash
@@ -322,6 +366,17 @@ document.getElementById('profile-form').addEventListener('submit', (e) => {
     updateProfileData();
     populateProfileForm();
     
+    // Historisation de l'objectif et du poids
+    if (currentUser) {
+        if (typeof pb_logGoalChange === 'function') {
+            pb_logGoalChange(state.profile.goal);
+        }
+        if (typeof pb_saveWeighIn === 'function') {
+            const todayStr = new Date().toISOString().split('T')[0];
+            pb_saveWeighIn({ date: todayStr, weight: state.profile.weight });
+        }
+    }
+    
     // Vérification de l'objectif
     if (checkGoalReached(state.profile.weight)) {
         showGoalReachedMessage();
@@ -392,7 +447,8 @@ if (idealWeightSuggestion) {
 function populateProfileForm() {
     if (state.profile) {
         if (state.profile.birthDate) {
-            document.getElementById('birthDate').value = state.profile.birthDate;
+            // PocketBase renvoie YYYY-MM-DD HH:mm:ss, l'input date veut YYYY-MM-DD
+            document.getElementById('birthDate').value = state.profile.birthDate.substring(0, 10);
         } else if (state.profile.age) {
             const estBirthYear = new Date().getFullYear() - state.profile.age;
             document.getElementById('birthDate').value = `${estBirthYear}-01-01`;
@@ -433,20 +489,41 @@ document.getElementById('meal-form').addEventListener('submit', (e) => {
     if (editId) {
         const entry = actLog.entries.find(e => e.id == editId);
         if (entry) {
+            const mealType = document.getElementById('meal-type').value; // Valeur interne (ex: "Breakfast")
             actLog.consumedCals -= entry.cals;
             actLog.consumedProtein -= entry.prot;
-            entry.name = type;
+            entry.name = type; // Nom d'affichage
+            entry.mealType = mealType;
             entry.cals = cals;
             entry.prot = prot;
             actLog.consumedCals += cals;
             actLog.consumedProtein += prot;
+            
+            // Sync modification si l'ID est un ID PocketBase (string)
+            if (currentUser && typeof editId === 'string' && editId.length > 5) {
+                if (typeof pb_saveMeal === 'function') {
+                    pb_saveMeal(entry);
+                }
+            }
         }
         delete e.target.dataset.editingId;
         e.target.querySelector('button[type="submit"]').textContent = 'Ajouter le repas';
     } else {
+        const mealType = document.getElementById('meal-type').value;
+        const newEntry = { id: Date.now() + Math.random(), type: 'Repas', name: type, mealType, cals, prot };
         actLog.consumedCals += cals;
         actLog.consumedProtein += prot;
-        actLog.entries.push({ id: Date.now() + Math.random(), type: 'Repas', name: type, cals, prot });
+        actLog.entries.push(newEntry);
+        
+        // Sync individuel immédiat si connecté
+        if (typeof pb_saveMeal === 'function' && currentUser) {
+            pb_saveMeal(newEntry).then(pbRecord => {
+                if (pbRecord && pbRecord.id) {
+                    newEntry.id = pbRecord.id;
+                    saveState(); // Sauvegarde avec le nouvel ID
+                }
+            });
+        }
     }
     
     saveState();
@@ -508,12 +585,30 @@ document.getElementById('activity-form').addEventListener('submit', (e) => {
             entry.name = desc;
             entry.cals = burn;
             actLog.bonusTDEE += burn;
+
+            // Sync modification si l'ID est un ID PocketBase (string)
+            if (currentUser && typeof editId === 'string' && editId.length > 5) {
+                if (typeof pb_saveActivity === 'function') {
+                    pb_saveActivity(entry);
+                }
+            }
         }
         delete e.target.dataset.editingId;
         e.target.querySelector('button[type="submit"]').textContent = 'Ajouter l\'activité';
     } else {
+        const newEntry = { id: Date.now() + Math.random(), type: 'Activité', name: desc, cals: burn };
         actLog.bonusTDEE += burn;
-        actLog.entries.push({ id: Date.now() + Math.random(), type: 'Activité', name: desc, cals: burn });
+        actLog.entries.push(newEntry);
+
+        // Sync individuel immédiat si connecté
+        if (typeof pb_saveActivity === 'function' && typeof currentUser !== 'undefined' && currentUser) {
+            pb_saveActivity(newEntry).then(pbRecord => {
+                if (pbRecord && pbRecord.id) {
+                    newEntry.id = pbRecord.id;
+                    saveState(); // Sauvegarde avec le nouvel ID
+                }
+            });
+        }
     }
     
     saveState();
@@ -534,6 +629,12 @@ window.deleteEntry = function(id) {
     const idx = actLog.entries.findIndex(e => e.id === id);
     if(idx === -1) return;
     const entry = actLog.entries[idx];
+    
+    // Sync Suppression
+    if (currentUser && typeof pb_deleteEntry === 'function') {
+        pb_deleteEntry(id, entry.type);
+    }
+
     if(entry.type === 'Repas') {
         actLog.consumedCals -= entry.cals;
         actLog.consumedProtein -= entry.prot;
@@ -553,8 +654,13 @@ window.editEntry = function(id) {
     
     if(entry.type === 'Repas') {
         const typeSelect = document.getElementById('meal-type');
-        for(let i=0; i<typeSelect.options.length; i++) {
-            if(typeSelect.options[i].text === entry.name) typeSelect.selectedIndex = i;
+        if (entry.mealType) {
+            typeSelect.value = entry.mealType;
+        } else {
+            // Compatibilité ascendante : recherche par nom
+            for(let i=0; i<typeSelect.options.length; i++) {
+                if(typeSelect.options[i].text === entry.name) typeSelect.selectedIndex = i;
+            }
         }
         document.getElementById('meal-cals').value = entry.cals;
         document.getElementById('meal-protein').value = entry.prot;
@@ -662,18 +768,17 @@ function showRandomTip() {
 function updateDashboard() {
     if (!state.profile) return;
     
+    // S'assurer que les activités (standards + custom) sont à jour
+    renderActivityOptions();
+
     const actLog = getActiveLog();
-    
     const dateStr = actLog.date;
-    const todayStr = new Date().toLocaleDateString('fr-FR');
-    let displayDate = dateStr === todayStr ? "Aujourd'hui" : dateStr;
+    const todayStr = formatISOLocal(new Date());
+    let displayDate = dateStr === todayStr ? "Aujourd'hui" : formatDateFR(dateStr);
     document.getElementById('current-date').textContent = " - " + displayDate;
 
     // 1. Common Date Object for today or selected date
-    const parts = dateStr.split('/');
-    let dVal;
-    if (parts.length === 3) dVal = new Date(parts[2], parts[1]-1, parts[0]);
-    else dVal = new Date(dateStr);
+    const dVal = parseDateFR(dateStr);
 
     // Daily Process Progress Logic
     const progressFill = document.getElementById('daily-progress-fill');
@@ -754,10 +859,48 @@ function updateDashboard() {
         }
     }
     
-    // Récupération des réglages du Snapshot du jour (si dispo) ou du Profil (fallback)
-    const baseTdee = actLog.baseTDEE || (state.profile ? state.profile.tdee : 0);
-    const goalMultiplier = actLog.goalMultiplier || (state.profile ? (state.profile.goal === 'loss' ? 0.9 : (state.profile.goal === 'gain' ? 1.1 : 1.0)) : 1.0);
-    const goalName = actLog.goal || (state.profile ? state.profile.goal : 'maintenance');
+    // Journée active si elle contient des repas ou du bonus TDEE (activités)
+    const isDayActive = (actLog.entries && actLog.entries.length > 0) || (actLog.bonusTDEE && actLog.bonusTDEE !== 0);
+    const isToday = (dateStr === formatISOLocal(new Date()));
+
+
+    // Récupération des réglages : 
+    // - Si c'est AUJOURD'HUI : On utilise TOUJOURS les réglages du profil pour rester à jour (pesées, etc.)
+    // - Si Jour Inactif : On utilise le profil (initialisation)
+    // - Si Jour Actif passé : On garde le Snapshot original pour l'historique
+    let baseTdee, goalMultiplier, goalName;
+
+    if (isDayActive && actLog.baseTDEE && !isToday) {
+        // Jour PASSE avec historique réel : on garde ce qui a été enregistré pour ce jour J
+        baseTdee = actLog.baseTDEE;
+        goalMultiplier = actLog.goalMultiplier || 1.0;
+        goalName = actLog.goal || 'maintenance';
+    } else {
+        // AUJOURD'HUI ou Jour sans historique : on utilise les réglages du profil à jour
+        const currentTdee = state.profile ? state.profile.tdee : 0;
+        const currentGoal = state.profile ? state.profile.goal : 'maintenance';
+        const currentMultiplier = state.profile ? (state.profile.goal === 'loss' ? 0.9 : (state.profile.goal === 'gain' ? 1.1 : 1.0)) : 1.0;
+        
+        // Si les valeurs en mémoire sont différentes du profil (ex: nouvelle pesée aujourd'hui), on synchronise
+        // IMPORTANT : On ne force la sauvegarde automatique QUE pour "Aujourd'hui".
+        // Pour les jours futurs, on laisse l'affichage dynamique sans polluer la BDD.
+        if (isToday && (actLog.baseTDEE !== currentTdee || actLog.goal !== currentGoal)) {
+            actLog.baseTDEE = currentTdee;
+            actLog.goal = currentGoal;
+            actLog.goalMultiplier = currentMultiplier;
+            
+            // On sauvegarde localement ce qui déclenchera syncToCloud si connecté
+            if (typeof saveState === 'function') saveState();
+        }
+
+
+        baseTdee = currentTdee;
+        goalName = currentGoal;
+        goalMultiplier = currentMultiplier;
+    }
+
+
+
 
     // Mise à jour du rappel d'objectif sur le dashboard
     const reminder = document.getElementById('dashboard-goal-reminder');
@@ -770,37 +913,39 @@ function updateDashboard() {
         reminderText.textContent = label;
     }
 
-    // Formule : (TDEE de base + activités saisies) * multiplicateur d'objectif
-    const targetTdee = (baseTdee + actLog.bonusTDEE) * goalMultiplier;
+    // Formule : (TDEE de base * multiplicateur d'objectif) + activités saisies
+    const targetTdee = (baseTdee * goalMultiplier) + actLog.bonusTDEE;
     const remaining = targetTdee - actLog.consumedCals;
     
-    calsGoal.textContent = Math.round(targetTdee);
-    calsConsumed.textContent = Math.round(actLog.consumedCals);
+    if (calsGoal) calsGoal.textContent = Math.round(targetTdee);
+    if (calsConsumed) calsConsumed.textContent = Math.round(actLog.consumedCals);
     
-    // Protein Logic
-    const targetProtein = getLatestWeight() * 2;
+    // Protein Logic : 2g par kg de poids de corps actuel
+    const currentWeight = getLatestWeight();
+    const targetProtein = currentWeight * 2;
     const consumedProtein = actLog.consumedProtein;
     const remainingProtein = targetProtein - consumedProtein;
     
-    document.getElementById('protein-goal').textContent = Math.round(targetProtein);
-    document.getElementById('protein-consumed').textContent = Math.round(consumedProtein);
+    const pGoalEl = document.getElementById('protein-goal');
+    const pConsEl = document.getElementById('protein-consumed');
+    if (pGoalEl) pGoalEl.textContent = Math.round(targetProtein);
+    if (pConsEl) pConsEl.textContent = Math.round(consumedProtein);
     
     const proteinCircle = document.getElementById('protein-progress');
     const proteinRemainingEl = document.getElementById('protein-remaining');
     
-    let percProtein = consumedProtein / targetProtein;
-    if (percProtein > 1) percProtein = 1;
-    let degProtein = percProtein * 360;
-    
-    if (remainingProtein <= 0) {
-        proteinRemainingEl.textContent = "0";
-        proteinRemainingEl.nextElementSibling.innerHTML = 'g';
-        proteinCircle.style.background = `conic-gradient(var(--accent-primary) 360deg, #ffffff 0deg)`;
-    } else {
-        proteinRemainingEl.textContent = Math.round(Math.abs(remainingProtein));
-        proteinRemainingEl.nextElementSibling.innerHTML = 'g';
-        // Use a pink/red accent for protein (var(--accent-primary) is #ff6b6b)
-        proteinCircle.style.background = `conic-gradient(var(--accent-primary) ${degProtein}deg, #ffffff ${degProtein}deg)`;
+    if (proteinCircle && proteinRemainingEl) {
+        let percProtein = consumedProtein / targetProtein;
+        if (percProtein > 1) percProtein = 1;
+        let degProtein = percProtein * 360;
+        
+        if (remainingProtein <= 0) {
+            proteinRemainingEl.textContent = "0";
+            proteinCircle.style.background = `conic-gradient(var(--accent-primary) 360deg, #ffffff 0deg)`;
+        } else {
+            proteinRemainingEl.textContent = Math.round(Math.abs(remainingProtein));
+            proteinCircle.style.background = `conic-gradient(var(--accent-primary) ${degProtein}deg, #ffffff ${degProtein}deg)`;
+        }
     }
 
     // Progress circle (0 to 360 deg) for calories
@@ -846,8 +991,8 @@ function updateDashboard() {
                     <div class="history-details">${details}</div>
                 </div>
                 <div class="history-actions">
-                    <button type="button" class="btn-edit" onclick="editEntry(${entry.id})" title="Modifier">✎</button>
-                    <button type="button" class="btn-delete" onclick="deleteEntry(${entry.id})" title="Supprimer">✕</button>
+                    <button type="button" class="btn-edit" onclick="editEntry('${entry.id}')" title="Modifier">✎</button>
+                    <button type="button" class="btn-delete" onclick="deleteEntry('${entry.id}')" title="Supprimer">✕</button>
                 </div>
             `;
             list.appendChild(li);
@@ -856,11 +1001,11 @@ function updateDashboard() {
 }
 
 // Init (called by auth.js after authentication)
-function init() {
+window.init = function() {
     loadState();
     if (state.profile) {
-        // Recalcul forcé pour s'assurer que le TDEE suit la nouvelle règle BMR * 1.2
-        updateProfileData();
+        // Recalcul forcé silencieux (sans sauvegarder vers le cloud immédiatement)
+        updateProfileData(true);
     }
     renderActivityOptions();
     if (!state.profile) {
@@ -875,16 +1020,28 @@ function init() {
     }
 }
 
-window.changeDate = function(offset) {
-    const parts = state.currentViewDate.split('/');
-    let d;
-    if (parts.length === 3) {
-        d = new Date(parts[2], parts[1]-1, parts[0]);
-    } else {
-        d = new Date(state.currentViewDate);
-    }
+function formatISOLocal(date) {
+    const d = new Date(date);
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+}
+
+window.changeDate = async function(offset) {
+    const d = parseDateFR(state.currentViewDate);
     d.setDate(d.getDate() + offset);
-    state.currentViewDate = d.toLocaleDateString('fr-FR');
+    const newDateStr = formatISOLocal(d);
+    state.currentViewDate = newDateStr;
+
+    // Charger les données du jour si non présentes
+    if (typeof currentUser !== 'undefined' && currentUser && typeof loadDayData === 'function') {
+        const dashboardView = document.getElementById('dashboard-view');
+        if (dashboardView) dashboardView.style.opacity = '0.5'; // Feedback visuel de chargement
+        await loadDayData(newDateStr);
+        if (dashboardView) dashboardView.style.opacity = '1';
+    }
+
     updateDashboard();
 }
 
@@ -895,18 +1052,22 @@ window.saveWeighIn = function() {
     
     state.profile.weight = w;
     
+    const winObj = { date: state.currentViewDate, weight: w, timestamp: Date.now() };
     const existingIdx = state.weighIns.findIndex(wi => wi.date === state.currentViewDate);
     if (existingIdx !== -1) {
         state.weighIns[existingIdx].weight = w;
         state.weighIns[existingIdx].timestamp = Date.now();
     } else {
-        state.weighIns.push({ date: state.currentViewDate, weight: w, timestamp: Date.now() });
+        state.weighIns.push(winObj);
     }
     
+    if (typeof pb_saveWeighIn === 'function' && currentUser) {
+        pb_saveWeighIn(winObj);
+    }
+
     updateProfileData();
     updateDashboard();
     
-    // Vérification de l'objectif
     if (checkGoalReached(w)) {
         showGoalReachedMessage();
     }
@@ -949,16 +1110,18 @@ if (suiviFilter) {
 // Helper functions for date handling 
 function parseDateFR(dateStr) {
     if (!dateStr) return new Date(0);
-    // Remove invisible characters that toLocaleDateString might insert on some OS settings
     dateStr = dateStr.replace(/[\u200E\u200F\u202A-\u202E]/g, '');
     
-    // Support common separations: /, -, .
+    // Test format ISO YYYY-MM-DD
+    if (/^\d{4}-\d{2}-\d{2}/.test(dateStr)) {
+        return new Date(dateStr + "T00:00:00");
+    }
+
     const p = dateStr.split(/[\/\-\.]/);
     if (p.length === 3) {
-        // Assume DD/MM/YYYY if the first element is a typical day (or the third is a 4 digit year)
-        if (p[2].length === 4) {
+        if (p[2].length === 4) { // FR: DD/MM/YYYY
             return new Date(p[2], parseInt(p[1], 10)-1, p[0]);
-        } else if (p[0].length === 4) {
+        } else if (p[0].length === 4) { // ISO: YYYY/MM/DD
             return new Date(p[0], parseInt(p[1], 10)-1, p[2]);
         }
     }
@@ -1000,6 +1163,12 @@ window.renderSuivi = function() {
     
     const endDate = new Date(now);
     endDate.setHours(23, 59, 59, 999);
+
+    // Affichage des dates précises dans l'interface
+    const periodDatesEl = document.getElementById('suivi-period-dates');
+    if (periodDatesEl) {
+        periodDatesEl.textContent = `(du ${formatDateFR(cutoffDate)} au ${formatDateFR(endDate)})`;
+    }
 
     // 1. Weight boundaries (Strict within period - Option B)
     const weightAtStart = findClosestWeight(cutoffDate);
@@ -1061,16 +1230,33 @@ window.renderSuivi = function() {
     let currentPeriod = null;
     let loopDate = new Date(loopStart);
 
-    while (loopDate <= endDate) {
-        const queryMs = loopDate.getTime();
-        const matchKey = historyKeys.find(k => parseDateFR(k).getTime() === queryMs);
-        const log = matchKey ? state.history[matchKey] : null;
+    const todayStr = formatISOLocal(new Date());
 
-        const dayBaseTdee = (log && log.baseTDEE) ? log.baseTDEE : (state.profile ? state.profile.tdee : 0);
-        const dayGoalMultiplier = (log && log.goalMultiplier !== undefined) ? log.goalMultiplier : defaultGoalMultiplier;
-        const bonus = (log && log.bonusTDEE) ? log.bonusTDEE : 0;
-        const dayGoal = (log && log.goal) ? log.goal : (state.profile ? state.profile.goal : 'maintenance');
+    while (loopDate <= endDate) {
+
+        const dStr = formatISOLocal(loopDate);
+        const log = state.history[dStr];
+
+        const isActive = log && ((log.entries && log.entries.length > 0) || (log.bonusTDEE && log.bonusTDEE !== 0));
+
+        // Priorité : Profil actuel si jour vide, sinon Snapshot (ou historique des objectifs)
+        let dayGoal, dayBaseTdee, dayGoalMultiplier;
+
+        if (isActive && log.baseTDEE && dStr !== todayStr) {
+
+            dayBaseTdee = log.baseTDEE;
+            dayGoal = log.goal || 'maintenance';
+            dayGoalMultiplier = log.goalMultiplier !== undefined ? log.goalMultiplier : (dayGoal === 'loss' ? 0.9 : (dayGoal === 'gain' ? 1.1 : 1.0));
+        } else {
+            // Jour inactif : On utilise les valeurs ACTUELLES du profil
+            dayBaseTdee = state.profile ? state.profile.tdee : 0;
+            dayGoal = state.profile ? state.profile.goal : 'maintenance';
+            dayGoalMultiplier = state.profile ? (state.profile.goal === 'loss' ? 0.9 : (state.profile.goal === 'gain' ? 1.1 : 1.0)) : 1.0;
+        }
+
+        const bonus = (isActive && log.bonusTDEE) ? log.bonusTDEE : 0;
         const staticTarget = Math.round(dayBaseTdee * dayGoalMultiplier);
+
 
         goalFreq[dayGoal] = (goalFreq[dayGoal] || 0) + 1;
         dailyLogs.push({
@@ -1103,14 +1289,19 @@ window.renderSuivi = function() {
     // Calculate totals using majority multiplier
     let sumCalsConsumed = 0; let sumCalsGoal = 0;
     let sumProtConsumed = 0; let sumProtGoal = 0;
+    let activeDaysCount = 0;
 
     dailyLogs.forEach(day => {
-        sumCalsConsumed += day.consumedCals;
-        sumProtConsumed += day.consumedProt;
-        // La cible est calculée selon l'objectif REEL de chaque jour pour correspondre à la saisie, 
-        // tout en corrigeant la formule (base * mult) + bonus
-        sumCalsGoal += Math.round((day.baseTDEE * day.multiplier) + day.bonus);
-        sumProtGoal += targetProtein;
+        // On ne comptabilise les objectifs que si l'utilisateur a saisi qqch ce jour-là
+        if (day.consumedCals > 0) {
+            activeDaysCount++;
+            sumCalsConsumed += day.consumedCals;
+            sumProtConsumed += day.consumedProt;
+            // La cible est calculée selon l'objectif REEL de chaque jour pour correspondre à la saisie, 
+            // tout en corrigeant la formule (base * mult) + bonus
+            sumCalsGoal += Math.round((day.baseTDEE * day.multiplier) + day.bonus);
+            sumProtGoal += targetProtein;
+        }
     });
 
     // 3. UI Update: Consumption Totals
@@ -1126,7 +1317,18 @@ window.renderSuivi = function() {
         cGoalEl.textContent = Math.round(sumCalsGoal) + ' kcal';
         const cDiff = Math.round(sumCalsConsumed - sumCalsGoal);
         cDiffEl.textContent = (cDiff > 0 ? '+' : '') + cDiff + ' kcal';
-        cDiffEl.style.color = Math.abs(cDiff) < (sumCalsGoal * 0.05) ? 'var(--accent-success)' : 'var(--accent-danger)';
+        
+        // Calcul de la tolérance dynamique basée sur les JOURS ACTIFS : 10 kcal par jour pour maintenance/gain
+        const totalTolerance = activeDaysCount * 10;
+        
+        let calsMatch = false;
+        if (majorityGoal === 'loss') {
+            calsMatch = cDiff <= 0;
+        } else {
+            calsMatch = Math.abs(cDiff) <= totalTolerance;
+        }
+        
+        cDiffEl.style.color = calsMatch ? 'var(--accent-success)' : 'var(--accent-danger)';
 
         pConsEl.textContent = Math.round(sumProtConsumed) + ' g';
         pGoalEl.textContent = Math.round(sumProtGoal) + ' g';
@@ -1138,18 +1340,87 @@ window.renderSuivi = function() {
     // 4. UI Update: Objectifs Details
     const objCard = document.getElementById('card-suivi-objectifs');
     if (objCard) {
-        if (periods.length > 1) {
-            objCard.classList.remove('hidden');
-            document.getElementById('suivi-objectifs-inner').innerHTML = periods.map((p, idx) => `
+        const history = state.goalHistory || [];
+        const displayItems = [];
+        
+        // Trouver l'objectif actif au DEBUT de la période
+        // On prend le dernier enregistrement dont la date <= loopStart
+        const startMs = loopStart.getTime();
+        const initialGoalEntry = [...history].reverse().find(g => new Date(g.date).getTime() <= startMs);
+        
+        if (initialGoalEntry) {
+            displayItems.push({
+                label: 'Dès le',
+                date: formatDateFR(new Date(initialGoalEntry.date)),
+                goal: initialGoalEntry.goal,
+                isCurrent: false
+            });
+        } else if (history.length > 0) {
+            // Si aucun avant, on prend le tout premier connu
+            displayItems.push({
+                label: 'Dès le',
+                date: formatDateFR(new Date(history[0].date)),
+                goal: history[0].goal,
+                isCurrent: false
+            });
+        } else if (state.profile) {
+            // Fallback profil
+            displayItems.push({
+                label: 'Dès le',
+                date: 'Origine',
+                goal: state.profile.goal,
+                isCurrent: true
+            });
+        }
+
+        // Trouver les changements DURANT la période
+        const endMs = endDate.getTime();
+        const changesInPeriod = history.filter(g => {
+            const d = new Date(g.date).getTime();
+            return d > startMs && d <= endMs;
+        });
+
+        changesInPeriod.forEach(g => {
+            displayItems.push({
+                label: 'Modifié le',
+                date: formatDateFR(new Date(g.date)),
+                goal: g.goal,
+                isCurrent: false
+            });
+        });
+
+        // Marquer le dernier comme "Toujours en cours" s'il correspond au profil actuel
+        if (displayItems.length > 0 && state.profile) {
+            const lastItem = displayItems[displayItems.length - 1];
+            if (lastItem.goal === state.profile.goal) {
+                lastItem.isCurrent = true;
+            }
+        }
+
+        const goalNames = { 'loss': 'Sèche', 'gain': 'Prise de masse', 'maintenance': 'Maintien' };
+        
+        document.getElementById('suivi-objectifs-inner').innerHTML = displayItems.map(item => {
+            // Estimation des calories/protéines pour cet objectif spécifiquement
+            // On utilise les valeurs du profil actuel comme base de calcul simplifiée
+            const multiplier = item.goal === 'loss' ? 0.9 : (item.goal === 'gain' ? 1.1 : 1.0);
+            const estCals = Math.round((state.profile ? state.profile.bmr * 1.2 : 2000) * multiplier);
+            const estProt = Math.round(getLatestWeight() * 2);
+
+            return `
                 <div class="obj-period-item">
-                    <div class="obj-period-date">${idx === 0 ? 'Dès le' : 'Changement le'} ${p.start}</div>
+                    <div class="obj-period-date">
+                        ${item.label} ${item.date}
+                        ${item.isCurrent ? ' <span style="color:var(--accent-success); font-size:0.75rem; margin-left:5px;">● Toujours en cours</span>' : ''}
+                    </div>
                     <div class="obj-period-details">
-                        ${p.goal === 'loss' ? 'Sèche' : p.goal === 'gain' ? 'Prise de masse' : 'Maintien'} 
-                        — ${p.cals} kcal | ${Math.round(p.prot)}g prot
+                        ${goalNames[item.goal] || item.goal} 
+                        — ${estCals} kcal | ${estProt}g prot
                     </div>
                 </div>
-            `).join('');
-        } else { objCard.classList.add('hidden'); }
+            `;
+        }).join('');
+        
+        objCard.classList.remove('hidden');
     }
 
     // 5. UI Update: Bilan Card
@@ -1157,50 +1428,106 @@ window.renderSuivi = function() {
     const bilanInner = document.getElementById('suivi-bilan-inner');
     if (bilanCard && bilanInner) {
         bilanCard.classList.remove('hidden');
+
+        // --- Icônes SVG (Style Lucide) ---
+        const ICON_TARGET = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="bilan-stat-icon"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>`;
+        const ICON_PROTEIN = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="bilan-stat-icon"><path d="M6 18h8"/><path d="M3 22h18"/><path d="M9 10c1.5-1 3.5-1 5 0"/><path d="M19 10c-1.5-1-3.5-1-5 0"/><path d="M12 2v6"/><path d="M12 18v4"/><path d="M12 10c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></svg>`;
+        const ICON_SCALE = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="bilan-footer-icon"><path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="M7 21h10"/><path d="M12 3v18"/><path d="M3 7h18"/></svg>`;
+        const ICON_CHECK = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px;color:#2b8a3e"><polyline points="20 6 9 17 4 12"/></svg>`;
+        const ICON_ALERT = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px;color:#f59f00"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>`;
+        const ICON_HANDSHAKE = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:24px;height:24px;margin-right:8px;color:var(--accent-secondary)"><path d="m11 17 2 2 6-6"/><path d="m18 14 1.5 1.5"/><path d="M20 18v2"/><path d="M12 11h.01"/><path d="M16 11h.01"/><path d="M20 11h.01"/><path d="M12 15h.01"/><path d="M16 15h.01"/><path d="M20 15h.01"/><path d="M12 19h.01"/><path d="M16 19h.01"/><path d="M20 19h.01"/><path d="M12 7h.01"/><path d="M16 7h.01"/><path d="M20 7h.01"/><path d="M12 3h.01"/><path d="M16 3h.01"/><path d="M20 3h.01"/><path d="M3 3v18h18"/></svg>`;
+
         const calsDiff = sumCalsConsumed - sumCalsGoal;
         const protDiff = sumProtConsumed - sumProtGoal;
-        const calsOk = Math.abs(calsDiff) < (sumCalsGoal * 0.05);
-        const protOk = protDiff >= -10;
         
+        const totalTolerance = activeDaysCount * 10;
+        
+        let calsOk = false;
+        if (activeDaysCount === 0) {
+            calsOk = true; 
+        } else if (majorityGoal === 'loss') {
+            calsOk = calsDiff <= 0;
+        } else {
+            calsOk = Math.abs(calsDiff) <= totalTolerance;
+        }
+        
+        const protOk = protDiff >= -10;
         let weightOk = (majorityGoal === 'loss' && wDiffVal < 0) || (majorityGoal === 'gain' && wDiffVal > 0) || (majorityGoal === 'maintenance' && Math.abs(wDiffVal) < 0.3);
 
-        let score = (calsOk ? 1 : 0) + (protOk ? 1 : 0) + (weightOk ? 1 : 0);
-        const motivationMsg = score === 3 ? "Excellent travail, tu es parfaitement sur la bonne voie !" : 
-                               score === 2 ? "Tu es sur la bonne voie, affine les détails." :
-                               "Continue tes efforts, la régularité est la clé !";
+        const score = (calsOk ? 1 : 0) + (protOk ? 1 : 0) + (weightOk ? 1 : 0);
+        const motivationMsg = score === 3 ? "Parfait, tu es sur la trajectoire idéale !" : 
+                               score === 2 ? "Très bien, quelques ajustements et ce sera parfait." :
+                               "Continue tes efforts, la constance est ton meilleur allié.";
         
         const daysAnalyzed = dailyLogs.length;
-        const periodText = daysAnalyzed <= 1 ? "aujourd'hui" : `des ${daysAnalyzed} derniers jours`;
+        const periodBadgeLabel = daysAnalyzed <= 1 ? "Aujourd'hui" : `Analyse : ${daysAnalyzed} jours`;
+
+        // Détection intelligente d'un REEL changement d'objectif (pas juste une variation de calories)
+        const distinctGoals = new Set(periods.map(p => p.goal));
+        const hasRealGoalChange = distinctGoals.size > 1;
 
         bilanInner.innerHTML = `
-            ${periods.length > 1 ? `<div class="bilan-warning-bar"><span>⚠️</span> Objectif modifié en cours de période — bilan basé sur l'objectif majoritaire (${majorityGoalName})</div>` : ''}
-            <div class="bilan-content">
-                <div class="bilan-item ${calsOk ? 'success' : 'warning'}">
-                    <div class="bilan-item-icon">${calsOk ? '✅' : '⚠️'}</div>
-                    <div class="bilan-item-text">
-                        <strong>Calories :</strong> ${calsOk ? "Tu es parfaitement dans l'objectif" : "Objectif calorique non atteint"} — 
-                        ${calsDiff <= 0 ? Math.abs(Math.round(calsDiff)) + ' kcal en moins' : Math.round(calsDiff) + ' kcal en trop'}.
+            <div class="bilan-period-badge">${periodBadgeLabel}</div>
+
+            ${hasRealGoalChange ? `
+                <div class="bilan-warning-bar">
+                    ${ICON_ALERT} 
+                    <span>Changement d'objectif détecté — Analyse basée sur : <strong>${majorityGoalName}</strong></span>
+                </div>` : ''}
+            
+            <div class="bilan-grid">
+                <!-- Carte Calories -->
+                <div class="bilan-stat-card calories">
+                    <div class="bilan-stat-header">
+                        <span>Calories</span>
+                        <div class="bilan-stat-icon">${ICON_TARGET}</div>
+                    </div>
+                    <div class="bilan-stat-body">
+                        <div class="bilan-stat-value">
+                            ${Math.round(sumCalsConsumed)} <span class="bilan-stat-unit">kcal</span>
+                        </div>
+                        <div class="bilan-stat-target">
+                            ${calsOk ? ICON_CHECK : ICON_ALERT} 
+                            Objectif : <strong>${Math.round(sumCalsGoal)}</strong>
+                        </div>
+                        <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 2px;">
+                            (${calsDiff <= 0 ? Math.abs(Math.round(calsDiff)) + ' kcal de déficit' : Math.round(calsDiff) + ' kcal de surplus'})
+                        </div>
                     </div>
                 </div>
-                <div class="bilan-item ${protOk ? 'success' : 'warning'}">
-                    <div class="bilan-item-icon">${protOk ? '✅' : '⚠️'}</div>
-                    <div class="bilan-item-text">
-                        <strong>Protéines :</strong> ${protOk ? "Apport protéique idéal" : "Manque de protéines"} — 
-                        ${protDiff >= 0 ? Math.abs(Math.round(protDiff)) + 'g en plus' : Math.abs(Math.round(protDiff)) + 'g en moins'}.
+
+                <!-- Carte Protéines -->
+                <div class="bilan-stat-card proteins">
+                    <div class="bilan-stat-header">
+                        <span>Protéines</span>
+                        <div class="bilan-stat-icon">${ICON_PROTEIN}</div>
                     </div>
-                </div>
-                <div class="bilan-item ${weightOk ? 'success' : 'warning'}">
-                    <div class="bilan-item-icon">${weightOk ? '✅' : '⚠️'}</div>
-                    <div class="bilan-item-text">
-                        <strong>Poids :</strong> ${weightOk ? "Tendance idéale" : "Tendance à surveiller"} — 
-                        ${Math.abs(wDiffVal.toFixed(1))} kg ${wDiffVal >= 0 ? 'pris' : 'perdu(s)'}.
+                    <div class="bilan-stat-body">
+                        <div class="bilan-stat-value">
+                            ${Math.round(sumProtConsumed)} <span class="bilan-stat-unit">g</span>
+                        </div>
+                        <div class="bilan-stat-target">
+                            ${protOk ? ICON_CHECK : ICON_ALERT}
+                            Objectif : <strong>${Math.round(sumProtGoal)}g</strong>
+                        </div>
+                        <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 2px;">
+                            (${protDiff >= 0 ? Math.abs(Math.round(protDiff)) + 'g bonus' : Math.abs(Math.round(protDiff)) + 'g manquants'})
+                        </div>
                     </div>
                 </div>
             </div>
-            <div class="bilan-footer"><span>🤝</span> Bilan ${periodText} : ${score} / 3 — ${motivationMsg}</div>
+
+            <!-- Pied de page Poids & Score -->
+            <div class="bilan-footer-premium">
+                <div class="bilan-stat-icon" style="color:var(--accent-primary)">${ICON_SCALE}</div>
+                <div style="text-align: left; flex: 1;">
+                    <div style="font-size: 0.9rem;">Tendance Poids : <strong>${Math.abs(wDiffVal.toFixed(1))} kg ${wDiffVal >= 0 ? 'pris' : 'perdus'}</strong></div>
+                    <div style="font-size: 0.75rem; color: var(--text-muted); font-weight: 700;">Score final : ${score}/3 — ${motivationMsg}</div>
+                </div>
+            </div>
         `;
     }
-};
+}
 
 
 
