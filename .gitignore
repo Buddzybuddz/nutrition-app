@@ -1,0 +1,10 @@
+# PocketBase
+pb/pocketbase.exe
+pb/pb_data/
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Local session
+.env

@@ -1375,85 +1375,181 @@ input:focus, select:focus {
     display: none;
 }
 
-/* === Bloc Bilan Suivi === */
-.suivi-bilan-card {
-    transition: background 0.4s ease, box-shadow 0.3s ease;
-}
+/* === Bloc Bilan Suivi Premium (Tactile & Stratifié) === */
 .suivi-bilan-card {
     background: #fff9db;
     border: var(--border-thick);
-    border-radius: var(--radius-md);
-    box-shadow: var(--shadow-deep);
-    padding: 1.25rem;
+    border-radius: var(--radius-lg);
+    box-shadow: 8px 8px 0px var(--border-color);
+    padding: 1.5rem;
+    display: block; /* Passage en block pour contrôle total des marges */
+    transition: var(--transition);
+    position: relative;
 }
 
 .bilan-warning-bar {
     display: flex;
     align-items: center;
     gap: 0.75rem;
-    padding: 0.6rem 0.8rem;
-    background: #fff3bf;
+    padding: 0.75rem 1rem;
+    background: #ffffff;
     border-radius: var(--radius-sm);
-    border: 1.5px dashed #f59f00;
-    margin-bottom: 1rem;
+    border: 2px solid #f59f00;
     color: #f59f00;
-    font-size: 0.85rem;
-    font-weight: 700;
+    font-size: 0.9rem;
+    font-weight: 800;
+    box-shadow: 4px 4px 0px var(--border-color);
+    margin-bottom: 1.75rem; /* Espacement forcé */
 }
 
-.bilan-content {
+.bilan-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem; /* Garder pour l'écart horizontal desktop */
+    margin-bottom: 1.75rem; /* Espacement forcé vers le footer */
+}
+
+.bilan-stat-card {
+    background: #ffffff;
+    border: 2px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 1.25rem;
     display: flex;
     flex-direction: column;
     gap: 0.75rem;
+    position: relative;
+    box-shadow: 4px 4px 0px var(--border-color);
+    transition: var(--transition);
+    cursor: default;
 }
 
-.bilan-item {
+.bilan-stat-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 7px 7px 0px var(--border-color);
+}
+
+.bilan-stat-card::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 6px;
+    border-radius: var(--radius-md) var(--radius-md) 0 0;
+}
+
+.bilan-stat-card.calories::before { background: var(--accent-warning); }
+.bilan-stat-card.proteins::before { background: var(--accent-secondary); }
+
+.bilan-stat-header {
     display: flex;
-    align-items: flex-start;
-    gap: 0.8rem;
-    padding: 0.75rem 1rem;
-    background: rgba(255, 255, 255, 0.7);
-    border: var(--border-thin);
-    border-radius: var(--radius-sm);
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px dashed #eee;
+    padding-bottom: 0.5rem;
 }
 
-.bilan-item-icon {
-    font-size: 1.25rem;
-    min-width: 28px;
-    height: 28px;
+.bilan-stat-header span {
+    font-family: var(--font-heading);
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-muted);
+}
+
+.bilan-stat-icon {
+    width: 32px;
+    height: 32px;
     display: flex;
     align-items: center;
     justify-content: center;
-    background: white;
-    border-radius: 50%;
-    border: 2px solid var(--border-color);
+    color: var(--border-color);
 }
 
-.bilan-item-text {
-    font-size: 0.92rem;
-    line-height: 1.4;
+.bilan-stat-body {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.bilan-stat-value {
+    font-family: var(--font-heading);
+    font-size: 2.2rem;
+    line-height: 1;
+    color: var(--text-main);
+    display: flex;
+    align-items: baseline;
+    gap: 0.4rem;
+}
+
+.bilan-stat-unit {
+    font-size: 1rem;
+    color: var(--text-muted);
+}
+
+.bilan-stat-target {
+    font-size: 0.85rem;
+    font-weight: 800;
+    color: var(--text-muted);
+    margin-top: 0.25rem;
+}
+
+.bilan-stat-target strong {
     color: var(--text-main);
 }
 
-.bilan-item-text strong {
-    font-weight: 800;
-}
-
-.bilan-item.success .bilan-item-icon { color: #2b8a3e; border-color: #2b8a3e; }
-.bilan-item.warning .bilan-item-icon { color: #f59f00; border-color: #f59f00; }
-.bilan-item.error .bilan-item-icon   { color: #c92a2a; border-color: #c92a2a; }
-
-.bilan-footer {
-    margin-top: 1rem;
-    padding-top: 1rem;
-    border-top: 2px dashed var(--border-color);
+.bilan-footer-premium {
+    padding: 1rem;
+    background: #ffffff;
+    border: 2px solid var(--border-color);
+    border-radius: var(--radius-sm);
     text-align: center;
     font-weight: 800;
-    color: var(--text-main);
     display: flex;
     align-items: center;
     justify-content: center;
+    gap: 0.75rem;
+    box-shadow: 4px 4px 0px var(--border-color); /* Augmenté à 4px pour l'unité */
 }
+
+.bilan-period-badge {
+    position: absolute;
+    top: -15px;
+    right: 20px;
+    background: var(--accent-secondary);
+    color: white;
+    padding: 0.4rem 1rem;
+    border: 2px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    font-family: var(--font-heading);
+    font-size: 0.85rem;
+    box-shadow: 3px 3px 0px var(--border-color);
+    z-index: 5;
+}
+
+.bilan-footer-icon {
+    width: 24px;
+    height: 24px;
+    color: var(--accent-success);
+}
+
+@media (max-width: 480px) {
+    .bilan-grid {
+        display: block; /* Passage en block sur mobile pour éviter grid overlap */
+        margin-bottom: 1.5rem;
+    }
+    .bilan-stat-card {
+        margin-bottom: 1.5rem; /* Espacement entre Calories et Protéines */
+    }
+    .bilan-stat-card:last-child {
+        margin-bottom: 0;
+    }
+    .suivi-bilan-card {
+        padding: 1.25rem;
+    }
+    .bilan-stat-value {
+        font-size: 1.8rem;
+    }
+}
+
 /* === Grille Suivi === */
 #suivi-view .dashboard-grid {
     display: grid;

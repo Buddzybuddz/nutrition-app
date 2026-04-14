@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Importation de données Historiques</title>
+    <style>
+        body { font-family: system-ui; max-width: 800px; margin: 2rem auto; padding: 1rem; background: #fdfdfd; }
+        input, button, textarea { display: block; width: 100%; margin: 10px 0; padding: 12px; box-sizing: border-box; border-radius: 6px; border: 1px solid #ccc; font-size: 16px;}
+        textarea { height: 200px; font-family: monospace; }
+        pre { background: #1e1e1e; color: #00ff00; padding: 15px; height: 350px; overflow-y: scroll; border-radius: 8px; font-family: monospace; white-space: pre-wrap; }
+        .success { color: #50fa7b; } .error { color: #ff5555; } .info { color: #8be9fd; }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/pocketbase/dist/pocketbase.umd.min.js"></script>
+</head>
+<body>
+    <h2>📥 Intégration des anciennes données (JSON)</h2>
+    <p>Ce script va lire vos données JSON et les insérer dans votre base de données locale pour l'utilisateur indiqué. Ensuite, vous pourrez relancer la migration vers Fly.io !</p>
+
+    <label>URL Locale :</label>
+    <input type="text" id="localUrl" value="http://127.0.0.1:8091">
+    
+    <label>Email Administrateur Local :</label>
+    <input type="email" id="adminEmail" placeholder="admin@example.com">
+    <label>Mot de passe Administrateur Local :</label>
+    <input type="password" id="adminLocalPass" placeholder="Mot de passe">
+    
+    <label style="margin-top:20px; font-weight:bold;">Email de l'utilisateur concerné :</label>
+    <input type="email" id="userEmail" value="baudouinjeremy@gmail.com">
+
+    <label style="margin-top:20px; font-weight:bold;">Collez vos données JSON ici :</label>
+    <textarea id="jsonData" placeholder='{"history": {"01/04/2026": ...}}'></textarea>
+
+    <button onclick="startImport()" style="background:#4CAF50; color:white; font-weight:bold; cursor:pointer; font-size:18px; border:none; margin-top: 20px;">Importer les données !</button>
+
+    <pre id="log" style="margin-top: 20px;"></pre>
+
+    <script>
+        function log(msg, type="") {
+            const l = document.getElementById("log");
+            l.innerHTML += `<div class="${type}">${msg}</div>`;
+            l.scrollTop = l.scrollHeight;
+        }
+
+        function toPBDate(dateStr) {
+            // Format JJ/MM/AAAA -> YYYY-MM-DD 12:00:00.000Z
+            const parts = dateStr.split('/');
+            if (parts.length === 3) {
+                return new Date(Date.UTC(parts[2], parts[1] - 1, parts[0], 12, 0, 0)).toISOString().replace('T', ' ');
+            }
+            return new Date().toISOString().replace('T', ' ');
+        }
+
+        function mapType(name) {
+            const n = (name || "").toLowerCase();
+            if (n.includes('petit-déjeuner') || n.includes('petit déj')) return 'breakfast';
+            if (n.includes('déjeuner') && !n.includes('petit')) return 'lunch';
+            if (n.includes('dîner')) return 'dinner';
+            return 'snack';
+        }
+
+        async function startImport() {
+            document.getElementById("log").innerHTML = "";
+
+            const localUrl = document.getElementById("localUrl").value;
+            const adminEmail = document.getElementById("adminEmail").value;
+            const adminLocalPass = document.getElementById("adminLocalPass").value;
+            const targetEmail = document.getElementById("userEmail").value;
+            const jsonText = document.getElementById("jsonData").value;
+
+            if(!adminEmail || !adminLocalPass || !jsonText) {
+                log("❌ Veuillez remplir tous les champs et coller le JSON.", "error"); return;
+            }
+
+            let dataObj;
+            try {
+                dataObj = JSON.parse(jsonText);
+                if (!dataObj.history) throw new Error("L'objet JSON doit contenir une clé 'history'.");
+            } catch (e) {
+                log("❌ JSON Invalide : " + e.message, "error");
+                return;
+            }
+
+            const pb = new PocketBase(localUrl);
+            pb.autoCancellation(false);
+
+            try {
+                log("• Connexion à l'Admin local...", "info");
+                try {
+                    await pb.collection('_superusers').authWithPassword(adminEmail, adminLocalPass);
+                } catch {
+                    await pb.admins.authWithPassword(adminEmail, adminLocalPass);
+                }
+                log("✅ Auth Local OK", "success");
+
+                log(`• Recherche de l'utilisateur ${targetEmail}...`, "info");
+                const user = await pb.collection('users').getFirstListItem(`email="${targetEmail}"`);
+                log(`✅ Utilisateur trouvé ! (ID: ${user.id})`, "success");
+
+                const historyKeys = Object.keys(dataObj.history);
+                log(`\n• Début de l'import : ${historyKeys.length} jours trouvés...`, "info");
+
+                for(let dateKey of historyKeys) {
+                    const dayData = dataObj.history[dateKey];
+                    const pbDate = toPBDate(dateKey);
+                    log(`Traitement du ${dateKey}...`);
+
+                    // 1. Goal History
+                    try {
+                        const existingGoal = await pb.collection('goal_history').getFirstListItem(`user="${user.id}" && date >= "${pbDate.split(' ')[0]} 00:00:00" && date <= "${pbDate.split(' ')[0]} 23:59:59"`).catch(() => null);
+                        const goalPayload = {
+                            user: user.id,
+                            date: pbDate,
+                            goal: dayData.goal || 'maintenance'
+                        };
+                        if (existingGoal) {
+                            await pb.collection('goal_history').update(existingGoal.id, goalPayload);
+                        } else {
+                            await pb.collection('goal_history').create(goalPayload);
+                        }
+                    } catch(e) { log(`  ⚠️ Erreur Goal: ${e.message}`, "error"); }
+
+                    // 2. Daily Stats
+                    try {
+                        const existingStat = await pb.collection('daily_stats').getFirstListItem(`user="${user.id}" && date >= "${pbDate.split(' ')[0]} 00:00:00" && date <= "${pbDate.split(' ')[0]} 23:59:59"`).catch(() => null);
+                        const statPayload = {
+                            user: user.id,
+                            date: pbDate,
+                            baseTDEE: parseFloat(dayData.baseTDEE) || 2000,
+                            bonusTDEE: parseFloat(dayData.bonusTDEE) || 0,
+                            consumedCals: parseFloat(dayData.consumedCals) || 0,
+                            consumedProtein: parseFloat(dayData.consumedProtein) || 0,
+                            goalMultiplier: parseFloat(dayData.goalMultiplier) || 1
+                        };
+                        if (existingStat) {
+                            await pb.collection('daily_stats').update(existingStat.id, statPayload);
+                        } else {
+                            await pb.collection('daily_stats').create(statPayload);
+                        }
+                    } catch(e) { log(`  ⚠️ Erreur Daily Stats: ${e.message}`, "error"); }
+
+                    // 3. Entries (Meals & Activities)
+                    if (dayData.entries && dayData.entries.length > 0) {
+                        try {
+                            const dateFilter = `user="${user.id}" && date >= "${pbDate.split(' ')[0]} 00:00:00" && date <= "${pbDate.split(' ')[0]} 23:59:59"`;
+                            
+                            // Nettoyage des doublons/anciens repas pour ce jour
+                            const oldMeals = await pb.collection('meals').getFullList({ filter: dateFilter });
+                            for (let o of oldMeals) await pb.collection('meals').delete(o.id);
+                            
+                            // Nettoyage des anciennes activités pour ce jour
+                            const oldActs = await pb.collection('activities_log').getFullList({ filter: dateFilter });
+                            for (let o of oldActs) await pb.collection('activities_log').delete(o.id);
+                        } catch(e) { log(`  ⚠️ Erreur lors du nettoyage : ${e.message}`, "error"); }
+
+                        for(let entry of dayData.entries) {
+                            if (entry.type === 'Repas') {
+                                try {
+                                    await pb.collection('meals').create({
+                                        user: user.id,
+                                        date: pbDate,
+                                        mealType: entry.mealType || mapType(entry.name),
+                                        name: entry.name,
+                                        calories: parseFloat(entry.cals) || 0,
+                                        protein: parseFloat(entry.prot) || 0
+                                    });
+                                } catch(e) { log(`  ⚠️ Erreur Repas (${entry.name}): ${e.message}`, "error"); }
+                            } else if (entry.type === 'Activité') {
+                                try {
+                                    await pb.collection('activities_log').create({
+                                        user: user.id,
+                                        date: pbDate,
+                                        name: entry.name,
+                                        calories: parseFloat(entry.cals) || 0
+                                    });
+                                } catch(e) { log(`  ⚠️ Erreur Activité (${entry.name}): ${e.message}`, "error"); }
+                            }
+                        }
+                    }
+                }
+                
+                log("\n🎉 IMPORTATION EN BASE LOCALE TERMINÉE AVEC SUCCÈS !", "success");
+                log("Vous pouvez maintenant ouvrir et utiliser 'migration_tool.html' pour tout envoyer sur Fly.io !", "info");
+
+            } catch (err) {
+                log("\n❌ Erreur globale : " + err.message, "error");
+                console.error(err);
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Migration des données PocketBase</title>
+    <style>
+        body { font-family: system-ui; max-width: 600px; margin: 2rem auto; padding: 1rem; background: #fdfdfd; }
+        input, button { display: block; width: 100%; margin: 10px 0; padding: 12px; box-sizing: border-box; border-radius: 6px; border: 1px solid #ccc; font-size: 16px;}
+        pre { background: #1e1e1e; color: #00ff00; padding: 15px; height: 350px; overflow-y: scroll; border-radius: 8px; font-family: monospace; white-space: pre-wrap; }
+        .success { color: #50fa7b; } .error { color: #ff5555; } .info { color: #8be9fd;}
+    </style>
+    <!-- Use Pocketbase UMD -->
+    <script src="https://cdn.jsdelivr.net/npm/pocketbase/dist/pocketbase.umd.min.js"></script>
+</head>
+<body>
+    <h2>🚀 Migration des données utilisateur</h2>
+    <p>Renseignez les accès de votre <b>compte Administrateur</b> (pas vos identifiants d'application, mais ceux pour vous connecter à PocketBase /_/) pour migrer les données.</p>
+
+    <label>URL Locale :</label>
+    <input type="text" id="localUrl" value="http://127.0.0.1:8091">
+    
+    <label>Email Administrateur :</label>
+    <input type="email" id="adminEmail" placeholder="admin@example.com">
+    
+    <label>Mot de passe Administrateur (Local) :</label>
+    <input type="password" id="adminLocalPass" placeholder="Mot de passe Local">
+    
+    <label>Mot de passe Administrateur (Prod) :</label>
+    <input type="password" id="adminProdPass" placeholder="Mot de passe Prod (Fly.io)">
+
+    <label style="margin-top:20px; font-weight:bold; display:block;">Email de l'utilisateur à migrer :</label>
+    <input type="email" id="userEmail" value="baudouinjeremy@gmail.com" style="border: 2px solid #f4511e;">
+
+    <button onclick="startMigration()" style="background:#f4511e; color:white; font-weight:bold; cursor:pointer; font-size:18px; border:none; margin-top: 20px;">Lancer la migration !</button>
+
+    <pre id="log" style="margin-top: 20px;"></pre>
+
+    <script>
+        function log(msg, type="") {
+            const l = document.getElementById("log");
+            l.innerHTML += `<div class="${type}">${msg}</div>`;
+            l.scrollTop = l.scrollHeight;
+        }
+
+        async function startMigration() {
+            document.getElementById("log").innerHTML = "";
+
+            const localUrl = document.getElementById("localUrl").value.trim();
+            const adminEmail = document.getElementById("adminEmail").value.trim();
+            const adminLocalPass = document.getElementById("adminLocalPass").value.trim();
+            const adminProdPass = document.getElementById("adminProdPass").value.trim();
+            const targetEmail = document.getElementById("userEmail").value.trim();
+
+            if(!adminEmail || !adminLocalPass || !adminProdPass) {
+                log("❌ Veuillez remplir tous les champs de connexion.", "error"); return;
+            }
+
+            const localPb = new PocketBase(localUrl);
+            const prodPb = new PocketBase('https://nutridash-pb.fly.dev');
+            prodPb.autoCancellation(false);
+            localPb.autoCancellation(false);
+
+            try {
+                log("• Connexion à l'Admin local...", "info");
+                try {
+                    await localPb.collection('_superusers').authWithPassword(adminEmail, adminLocalPass);
+                } catch {
+                     await localPb.admins.authWithPassword(adminEmail, adminLocalPass);
+                }
+                log("✅ Auth Local OK", "success");
+
+                log("• Connexion à l'Admin local...", "info");
+                try {
+                    await localPb.collection('_superusers').authWithPassword(adminEmail, adminLocalPass);
+                } catch {
+                     await localPb.admins.authWithPassword(adminEmail, adminLocalPass);
+                }
+                log("✅ Auth Local OK", "success");
+
+                log(`• Recherche de l'utilisateur ${targetEmail} dans la base LOCALE (${localUrl})...`, "info");
+                const foundUsers = await localPb.collection('users').getFullList({ filter: `email="${targetEmail}"` });
+                if (foundUsers.length === 0) {
+                     log(`❌ L'utilisateur ${targetEmail} n'existe pas dans la base LOCALE (${localUrl}) !`, "error");
+                     log(`➡️ Avez-vous bien importé vos données ou renseigné la bonne URL Locale ?`, "error");
+                     return;
+                }
+                const user = foundUsers[0];
+                log(`✅ Utilisateur trouvé ! (ID: ${user.id})`, "success");
+
+                // --- 1. CHARGEMENT DE TOUTES LES DONNÉES LOCALES ---
+                const collections = ['profiles', 'user_data', 'weigh_ins', 'meals', 'activities_log', 'daily_stats', 'goal_history'];
+                const localData = {};
+                for(let coll of collections) {
+                    log(`• Récupération locale de : ${coll}...`, "info");
+                    localData[coll] = await localPb.collection(coll).getFullList({ filter: `user="${user.id}"` });
+                }
+
+                // --- 2. CONNEXION A LA PROD (Écrase le token local dans le navigateur, c'est pour ça qu'on le fait après) ---
+                log("\n• Connexion à l'Admin Prod...", "info");
+                try {
+                    await prodPb.collection('_superusers').authWithPassword(adminEmail, adminProdPass);
+                } catch {
+                     await prodPb.admins.authWithPassword(adminEmail, adminProdPass);
+                }
+                log("✅ Auth Prod OK", "success");
+
+                // --- 3. ENVOI DES DONNÉES EN PROD ---
+                log("• Création/Mise à jour du compte utilisateur...", "info");
+                user.password = "Migration2024!";
+                user.passwordConfirm = "Migration2024!";
+                try { 
+                    await prodPb.collection('users').create(user); 
+                } catch(e) { 
+                    try {
+                        await prodPb.collection('users').update(user.id, user);
+                    } catch(err) {
+                        throw new Error(`Échec de création et mise à jour de l'utilisateur: ${err.message}`);
+                    }
+                }
+                log("✅ Compte utilisateur synchronisé.", "success");
+
+                for(let coll of collections) {
+                    log(`\n• Copie des données vers la prod : ${coll}...`, "info");
+                    let ok = 0;
+                    for(let rec of localData[coll]) {
+                        try {
+                            await prodPb.collection(coll).create(rec);
+                            ok++;
+                        } catch(e) {
+                            try {
+                                await prodPb.collection(coll).update(rec.id, rec);
+                                ok++;
+                            } catch (err) {
+                                log(`   ❌ Erreur sur l'item ${rec.id}: ${err.message}`, "error");
+                            }
+                        }
+                    }
+                    if (localData[coll].length > 0) {
+                        log(`✅ ${coll} : ${ok} enregistrement(s) copié(s).`, "success");
+                    } else {
+                        log(`ℹ️ ${coll} : Aucune donnée à copier.`, "info");
+                    }
+                }
+                
+                log("\n🎉 MIGRATION TERMINÉE AVEC SUCCÈS !", "success");
+                log("Vous pouvez maintenant vous connecter sur l'application de production avec vos identifiants habituels !", "info");
+
+            } catch (err) {
+                log("\n❌ Erreur globale : " + err.message, "error");
+                console.error(err);
+            }
+        }
+    </script>
+</body>
+</html>
