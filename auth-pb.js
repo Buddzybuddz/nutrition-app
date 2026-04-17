@@ -256,7 +256,7 @@ async function migrateLegacyData(user, cloudState) {
                 goal: p.goal === 'maintain' ? 'maintenance' : (p.goal || 'maintenance'),
                 targetWeight: parseFloat(p.targetWeight) || 0,
                 weighInDay: parseInt(p.weighInDay) || 1,
-                customActivities: (cloudState.customActivities || []).map(a => typeof a === 'object' ? a.name : a)
+                customActivities: (cloudState.customActivities || []).map(a => typeof a === 'object' ? JSON.stringify({ name: a.name, cals: a.cals }) : a)
             };
 
             const list = await pb.collection('profiles').getList(1, 1, {
@@ -355,7 +355,29 @@ window.loadFromCloud = async (user) => {
     // Cas 2 : Chargement relationnel
     try {
         // 1. Profil
-        const profile = await pb.collection('profiles').getFirstListItem(`user="${userId}"`).catch(() => null);
+        let profile = await pb.collection('profiles').getFirstListItem(`user="${userId}"`).catch(() => null);
+        
+        // --- RÉCUPÉRATION AUTOMATIQUE (Cas ID mismatch entre Prod et Dev) ---
+        // SÉCURITÉ : Recherche par email si l'ID technique ne correspond pas
+        if (!profile && user.email) {
+            console.log(`[PocketBase] Profil introuvable par ID (${userId}). Recherche par email (${user.email})...`);
+            
+            // On cherche un profil qui n'est pas encore lié au bon ID mais qui a le bon email (via la relation user)
+            profile = await pb.collection('profiles').getFirstListItem(`user.email="${user.email}"`).catch(() => null);
+            
+            if (profile) {
+                console.log(`[PocketBase] ✓ Profil trouvé via email (${profile.id}). Tentative de rattachement...`);
+                try {
+                    // On met à jour le profil pour le lier au nouvel ID technique local/prod
+                    profile = await pb.collection('profiles').update(profile.id, { user: userId });
+                    console.log("[PocketBase] ✓ Profil rattaché avec succès.");
+                } catch(e) {
+                    console.error("[PocketBase] ❌ Échec du rattachement du profil:", e);
+                    // On garde quand même le profil pour l'affichage session, même si l'update DB a échoué
+                }
+            }
+        }
+
         if (profile) {
             state.profile = {
                 id: profile.id,
@@ -370,7 +392,31 @@ window.loadFromCloud = async (user) => {
                 tdee: profile.weight * 30, // Fallback si non calculé
                 bmr: 1500
             };
-            state.customActivities = profile.customActivities || [];
+            // Les activités custom sont stockées en JSON strings dans PB (pour préserver name + cals)
+            const rawActivities = profile.customActivities || [];
+            let needsMigration = false;
+            state.customActivities = rawActivities.map(a => {
+                if (typeof a === 'string') {
+                    needsMigration = true; // L'entrée est une string brute → ancien format
+                    try { return JSON.parse(a); } catch(e) { return { name: a, cals: 0 }; }
+                }
+                return a; // déjà un objet {name, cals}
+            });
+
+            // Si l'ancien format détecté : resync immédiate du profil vers PocketBase avec le nouveau format
+            if (needsMigration && profile.id) {
+                console.log('🔄 Migration du format customActivities dans PocketBase...');
+                try {
+                    await pb.collection('profiles').update(profile.id, {
+                        customActivities: state.customActivities.map(a =>
+                            typeof a === 'object' ? JSON.stringify({ name: a.name, cals: a.cals }) : a
+                        )
+                    });
+                    console.log('✅ Format customActivities migré dans PocketBase. Calories à 0 — utilisez "Gérer mes activités" pour les corriger.');
+                } catch(e) {
+                    console.error('❌ Erreur lors de la migration du format:', e);
+                }
+            }
         }
 
         // 2. Pesées (toutes pour le suivi)
@@ -521,14 +567,32 @@ window.syncToCloud = async () => {
         goal: state.profile.goal,
         targetWeight: state.profile.targetWeight,
         weighInDay: state.profile.weighInDay,
-        customActivities: state.customActivities || []
+        // Sérialisation en JSON strings pour PocketBase (préserve name + cals)
+        customActivities: (state.customActivities || []).map(a => typeof a === 'object' ? JSON.stringify({ name: a.name, cals: a.cals }) : a)
     };
 
     try {
-        const existing = await pb.collection('profiles').getFirstListItem(`user="${currentUser.id}"`).catch(() => null);
-        if (existing) await pb.collection('profiles').update(existing.id, profileData);
-        else await pb.collection('profiles').create(profileData);
-    } catch(e) {}
+        // Recherche par ID technique
+        let existing = await pb.collection('profiles').getFirstListItem(`user="${currentUser.id}"`, { requestKey: null }).catch(() => null);
+        
+        // Sécurité anti-doublon : Recherche par email si l'ID n'a rien donné
+        if (!existing && currentUser.email) {
+            existing = await pb.collection('profiles').getFirstListItem(`user.email="${currentUser.email}"`, { requestKey: null }).catch(() => null);
+            if (existing) {
+                console.log("[PocketBase] Doublon évité : un profil existe déjà pour cet email. Rattachement en cours...");
+                await pb.collection('profiles').update(existing.id, { user: currentUser.id }, { requestKey: null });
+            }
+        }
+
+        if (existing) {
+            await pb.collection('profiles').update(existing.id, profileData, { requestKey: null });
+        } else {
+            console.log("[PocketBase] Création d'un nouveau profil...");
+            await pb.collection('profiles').create(profileData, { requestKey: null });
+        }
+    } catch(e) {
+        console.error('❌ Erreur syncToCloud (profil):', e.response?.data || e.message || e);
+    }
 
     // 2. Sync Stats du jour
     const log = state.history[state.currentViewDate];
@@ -747,6 +811,27 @@ window.pb_logGoalChange = async (goalValue) => {
     }
 };
 
+// Sauvegarde dédiée des activités custom directement dans PocketBase
+// Appelée explicitement depuis app.js lors d'une édition/suppression
+window.pb_saveCustomActivities = async () => {
+    if (!currentUser) return;
+    try {
+        const profile = await pb.collection('profiles').getFirstListItem(`user="${currentUser.id}"`, { requestKey: null }).catch(() => null);
+        if (!profile) {
+            console.warn('⚠️ pb_saveCustomActivities : profil introuvable.');
+            return;
+        }
+        const serialized = (state.customActivities || []).map(a =>
+            typeof a === 'object' ? JSON.stringify({ name: a.name, cals: a.cals }) : a
+        );
+        await pb.collection('profiles').update(profile.id, { customActivities: serialized }, { requestKey: null });
+        console.log('✅ customActivities sauvegardées dans PocketBase :', serialized);
+    } catch(e) {
+        console.error('❌ Erreur pb_saveCustomActivities:', e.response?.data || e.message || e);
+    }
+};
+
+
 function showAuthError(message) {
     const errorDiv = document.getElementById('auth-error');
     if (errorDiv) {
@@ -760,3 +845,50 @@ function showAuthError(message) {
         window.authErrorTimeout = setTimeout(() => errorDiv.classList.add('hidden'), delay);
     }
 }
+
+// --- FONCTION DE SECOURS (Si le rattachement auto échoue) ---
+window.forceProfileLink = async () => {
+    const user = pb.authStore.model;
+    if (!user) return alert("Veuillez vous connecter.");
+    
+    const btn = document.getElementById('btn-fix-profile');
+    try {
+        btn.innerText = "Recherche...";
+        // On récupère tous les profils (FullList car il y en a peu)
+        const allProfiles = await pb.collection('profiles').getFullList();
+        
+        // On cherche celui qui contient l'email dans son champ user (même si le lien est technically broken)
+        // Ou on cible l'ID spécifique vu dans le screenshot
+        const myProfile = allProfiles.find(p => p.user === user.email || p.id === "5rycbyingse1ohu");
+        
+        if (myProfile) {
+            await pb.collection('profiles').update(myProfile.id, { user: user.id });
+            alert("✓ Profil rattaché avec succès ! L'application va redémarrer.");
+            window.location.reload();
+        } else {
+            alert("Aucun profil orphelin trouvé pour cet email (" + user.email + ").");
+        }
+    } catch(e) {
+        console.error(e);
+        alert("Erreur lors du rattachement : " + e.message);
+    } finally {
+        btn.innerText = "🚀 Rattacher mon profil";
+    }
+};
+
+// --- LOGIQUE DE VÉRIFICATION PROFIL VIDE ---
+function checkProfileEmpty() {
+    setTimeout(() => {
+        const btn = document.getElementById('btn-fix-profile');
+        const weightInput = document.getElementById('weight');
+        // Si on est sur le profil et que le poids est vide après 1.5s, on propose le fix
+        if (btn && weightInput && !weightInput.value && window.location.hash === '#profile-view') {
+            btn.classList.remove('hidden');
+        }
+    }, 1500);
+}
+// Écouter les changements de vue
+window.addEventListener('hashchange', checkProfileEmpty);
+// Et au chargement initial
+if (window.location.hash === '#profile-view') checkProfileEmpty();
+
