@@ -25,8 +25,12 @@ console.log(`[PocketBase] Mode: ${IS_DEV ? 'DEVELOPPEMENT' : 'PRODUCTION'}`);
 console.log(`[PocketBase] URL: ${PB_URL}`);
 console.log(`[PocketBase] Hostname: "${_hostname}" | Protocol: "${_protocol}"`);
 
+// Clé API Gemini (en dur pour plus de simplicité)
+const GEMINI_API_KEY = "AIzaSyAsOSf7V9XCDy3tgkU6JfSjvnOGt9kOgC4";
+
 // Exposer globalement pour les autres scripts
 window.PB_CONFIG = {
     url: PB_URL,
-    isDev: IS_DEV
+    isDev: IS_DEV,
+    geminiApiKey: GEMINI_API_KEY
 };

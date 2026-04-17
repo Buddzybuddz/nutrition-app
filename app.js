@@ -467,7 +467,7 @@ document.getElementById('profile-form').addEventListener('submit', (e) => {
         weight: parseFloat(document.getElementById('weight').value),
         height: parseInt(document.getElementById('height').value),
         goal: document.getElementById('goal').value,
-        targetWeight: document.getElementById('targetWeight').value ? parseFloat(document.getElementById('targetWeight').value) : null,
+        targetWeight: document.getElementById('targetWeight').value ? parseFloat(document.getElementById('targetWeight').value) : parseFloat(document.getElementById('weight').value),
         activity: 1.2, // Niveau sédentaire utilisé par défaut
         weighInDay: parseInt(document.getElementById('weighInDay').value)
     };
@@ -797,6 +797,12 @@ window.openMealModal = function(editMode = false) {
         document.getElementById('meal-form').reset();
         delete document.getElementById('meal-form').dataset.editingId;
         document.getElementById('meal-form').querySelector('button[type="submit"]').textContent = 'Ajouter le repas';
+        
+        // Reset AI fields
+        const aiDesc = document.getElementById('ai-meal-desc');
+        if (aiDesc) aiDesc.value = '';
+        const aiFeedback = document.getElementById('ai-feedback');
+        if (aiFeedback) aiFeedback.textContent = '';
 
         // Sélection intelligente du prochain repas
         const actLog = getActiveLog();
@@ -819,7 +825,161 @@ window.openMealModal = function(editMode = false) {
 window.closeMealModal = function() {
     const modal = document.getElementById('meal-modal');
     if (modal) modal.classList.add('hidden');
+    
+    // Reset potential loading state
+    const btn = document.getElementById('btn-ai-estimate');
+    if (btn) btn.disabled = false;
+    const loader = document.querySelector('.ai-loader');
+    if (loader) loader.classList.add('hidden');
+
+    // Réinitialisation du formulaire
+    const form = document.getElementById('meal-form');
+    if (form) form.reset();
+    
+    // Réinitialisation spécifique IA
+    const feedback = document.getElementById('ai-feedback');
+    if (feedback) feedback.textContent = "";
+    
+    const detailContainer = document.getElementById('ai-items-detail');
+    if (detailContainer) {
+        detailContainer.innerHTML = "";
+        detailContainer.classList.add('hidden');
+    }
 }
+
+window.estimateMealWithAI = async function() {
+    const descField = document.getElementById('ai-meal-desc');
+    const desc = descField ? descField.value.trim() : '';
+    
+    if (!desc) {
+        alert("Veuillez décrire votre repas d'abord.");
+        return;
+    }
+
+    const apiKey = window.PB_CONFIG?.geminiApiKey;
+    if (!apiKey) {
+        alert("Clé API Gemini introuvable dans la configuration.");
+        return;
+    }
+
+    const btn = document.getElementById('btn-ai-estimate');
+    const btnText = document.getElementById('btn-ai-text');
+    const btnLoader = document.getElementById('btn-ai-loader');
+    const feedback = document.getElementById('ai-feedback');
+    const detailContainer = document.getElementById('ai-items-detail');
+
+    if (btn) btn.disabled = true;
+    if (btnText) btnText.classList.add('hidden');
+    if (btnLoader) btnLoader.classList.remove('hidden');
+    if (detailContainer) {
+        detailContainer.innerHTML = "";
+        detailContainer.classList.add('hidden');
+    }
+    
+    if (feedback) {
+        feedback.classList.remove('hidden');
+        feedback.innerHTML = '<span class="ai-status-text">Initialisation de l\'analyse expert...</span>';
+    }
+
+    // Rotation des messages pour masquer la latence du modèle Pro
+    const statusMessages = [
+        "Consultation des bases de données nutritionnelles (CIQUAL)...",
+        "Analyse de la densité calorique des ingrédients...",
+        "Calcul des ratios de macronutriments (Protéines/Glucides/Lipides)...",
+        "Évaluation des portions estimées selon l'expertise pro...",
+        "Finalisation de votre bilan nutritionnel expert..."
+    ];
+    let msgIndex = 0;
+    const statusInterval = setInterval(() => {
+        if (feedback) {
+            msgIndex = (msgIndex + 1) % statusMessages.length;
+            feedback.innerHTML = `<span class="ai-status-text">${statusMessages[msgIndex]}</span>`;
+        }
+    }, 3000);
+
+    try {
+        const prompt = `Tu es un expert en nutrition clinique de classe mondiale (Niveau Expert Pro). 
+Estimation précise pour : "${desc}".
+
+RÈGLES D'EXPERTISE :
+1. Utilise les bases CIQUAL/USDA.
+2. Décompose chaque ingrédient avec son poids estimé (ex: 1 œuf = 50g).
+3. Calcule précisément calories et protéines.
+4. Réponds EXCLUSIVEMENT en JSON strict.
+
+Format JSON :
+{
+  "total": { "calories": nombre, "protein": nombre },
+  "items": [
+    { "name": "Nom (quantité)", "calories": nombre, "protein": nombre }
+  ]
+}`;
+        
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent?key=${apiKey}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                contents: [{ parts: [{ text: prompt }] }],
+                generationConfig: { 
+                    response_mime_type: "application/json",
+                    temperature: 0.1
+                }
+            })
+        });
+
+        clearInterval(statusInterval);
+
+        if (!response.ok) throw new Error(`Erreur API: ${response.status}`);
+
+        const data = await response.json();
+        const textResponse = data.candidates[0].content.parts[0].text;
+        const jsonResponse = JSON.parse(textResponse);
+
+        const totalCals = Math.round(jsonResponse.total?.calories || jsonResponse.calories || 0);
+        const totalProt = Math.round(jsonResponse.total?.protein || jsonResponse.protein || 0);
+
+        if (totalCals > 0 || totalProt > 0) {
+            document.getElementById('meal-cals').value = totalCals;
+            document.getElementById('meal-protein').value = totalProt;
+            
+            if (feedback) {
+                feedback.innerHTML = '<span style="color: var(--accent-success); font-weight: 800;">Analyse expert terminée ! ✨</span>';
+            }
+
+            if (detailContainer && jsonResponse.items && jsonResponse.items.length > 0) {
+                detailContainer.classList.remove('hidden');
+                let detailHtml = '<div style="font-size: 0.8rem; font-weight: 800; color: var(--text-muted); margin-bottom: 0.8rem; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px dashed #ddd; padding-bottom: 5px;">Composition détaillée (Pro) :</div>';
+                jsonResponse.items.forEach(item => {
+                    detailHtml += `
+                        <div class="ai-item-badge">
+                            <span class="ai-item-name">${item.name}</span>
+                            <span class="ai-item-macros">${Math.round(item.calories)} kcal | ${Math.round(item.protein)}g prot</span>
+                        </div>
+                    `;
+                });
+                detailContainer.innerHTML = detailHtml;
+            }
+        }
+    } catch (err) {
+        clearInterval(statusInterval);
+        console.error("AI Error:", err);
+        if (feedback) {
+            feedback.innerHTML = '<span style="color: var(--accent-danger); font-weight: 800;">⚠️ Échec de l\'expertise. Réessayez.</span>';
+        }
+    } finally {
+        if (btn) btn.disabled = false;
+        if (btnText) btnText.classList.remove('hidden');
+        if (btnLoader) btnLoader.classList.add('hidden');
+    }
+};
+
+// Listener pour le bouton IA
+document.addEventListener('DOMContentLoaded', () => {
+    const btnAi = document.getElementById('btn-ai-estimate');
+    if (btnAi) {
+        btnAi.addEventListener('click', window.estimateMealWithAI);
+    }
+});
 
 window.openActivityModal = function(editMode = false) {
     const modal = document.getElementById('activity-modal');
@@ -844,7 +1004,16 @@ window.closeActivityModal = function() {
 document.querySelectorAll('.modal-overlay').forEach(overlay => {
     overlay.addEventListener('click', (e) => {
         if(e.target === overlay) {
-            overlay.classList.add('hidden');
+            const id = overlay.id;
+            if (id === 'meal-modal' && window.closeMealModal) {
+                window.closeMealModal();
+            } else if (id === 'activity-modal' && window.closeActivityModal) {
+                window.closeActivityModal();
+            } else if (id === 'weigh-in-modal' && window.closeWeighInModal) {
+                window.closeWeighInModal();
+            } else {
+                overlay.classList.add('hidden');
+            }
         }
     });
 });

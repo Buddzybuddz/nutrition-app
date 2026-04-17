@@ -565,7 +565,7 @@ window.syncToCloud = async () => {
         weight: state.profile.weight,
         height: state.profile.height,
         goal: state.profile.goal,
-        targetWeight: state.profile.targetWeight,
+        targetWeight: state.profile.targetWeight || state.profile.weight,
         weighInDay: state.profile.weighInDay,
         // Sérialisation en JSON strings pour PocketBase (préserve name + cals)
         customActivities: (state.customActivities || []).map(a => typeof a === 'object' ? JSON.stringify({ name: a.name, cals: a.cals }) : a)
