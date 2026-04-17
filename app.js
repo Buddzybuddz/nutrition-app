@@ -257,9 +257,117 @@ function renderActivityOptions() {
     customOption.setAttribute('data-name', 'Autre');
     customOption.textContent = 'Autre (Créer une activité)...';
     actSelect.appendChild(customOption);
+
+    // Afficher/masquer le lien de gestion selon si des custom existent
+    const manageLink = document.getElementById('manage-custom-activities-link');
+    if (manageLink) {
+        manageLink.style.display = (state.customActivities && state.customActivities.length > 0) ? 'block' : 'none';
+    }
 }
 
-// --- Routing ---
+// --- Gestion des activités personnalisées ---
+
+let _editingCustomActivityIndex = -1;
+
+window.openManageActivitiesModal = function() {
+    const modal = document.getElementById('manage-activities-modal');
+    if (!modal) return;
+    modal.classList.remove('hidden');
+    renderManageActivitiesList();
+    cancelEditCustomActivity(); // S'assurer que le formulaire d'édition est masqué à l'ouverture
+};
+
+window.closeManageActivitiesModal = function() {
+    const modal = document.getElementById('manage-activities-modal');
+    if (modal) modal.classList.add('hidden');
+    _editingCustomActivityIndex = -1;
+};
+
+function renderManageActivitiesList() {
+    const container = document.getElementById('manage-activities-list');
+    if (!container) return;
+
+    if (!state.customActivities || state.customActivities.length === 0) {
+        container.innerHTML = '<p style="color: var(--text-muted); font-size: 0.9rem; text-align: center; padding: 1rem;">Aucune activité personnalisée enregistrée.</p>';
+        return;
+    }
+
+    container.innerHTML = '';
+    state.customActivities.forEach((act, index) => {
+        const item = document.createElement('div');
+        item.style.cssText = 'display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem; background: #f8f9fa; border: 2px solid var(--border-color); border-radius: var(--radius-sm);';
+        item.innerHTML = `
+            <div style="flex: 1; min-width: 0;">
+                <div style="font-weight: 800; font-size: 0.95rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${act.name || '?'}</div>
+                <div style="font-size: 0.82rem; color: var(--text-muted); font-weight: 600;">${act.cals || 0} kcal</div>
+            </div>
+            <button type="button" class="btn-edit" onclick="startEditCustomActivity(${index})" title="Modifier" style="flex-shrink:0;">✎</button>
+            <button type="button" class="btn-delete" onclick="deleteCustomActivity(${index})" title="Supprimer" style="flex-shrink:0;">✕</button>
+        `;
+        container.appendChild(item);
+    });
+}
+
+window.startEditCustomActivity = function(index) {
+    _editingCustomActivityIndex = index;
+    const act = state.customActivities[index];
+    if (!act) return;
+
+    document.getElementById('edit-act-name').value = act.name || '';
+    document.getElementById('edit-act-cals').value = act.cals || 0;
+
+    const form = document.getElementById('edit-custom-activity-form');
+    if (form) form.classList.remove('hidden');
+};
+
+window.cancelEditCustomActivity = function() {
+    _editingCustomActivityIndex = -1;
+    const form = document.getElementById('edit-custom-activity-form');
+    if (form) form.classList.add('hidden');
+};
+
+window.saveEditCustomActivity = function() {
+    if (_editingCustomActivityIndex < 0) return;
+    const newName = document.getElementById('edit-act-name').value.trim();
+    const newCals = parseInt(document.getElementById('edit-act-cals').value) || 0;
+
+    if (!newName) {
+        alert('Veuillez saisir un nom pour l\'activité.');
+        return;
+    }
+
+    state.customActivities[_editingCustomActivityIndex] = { name: newName, cals: newCals };
+    saveState();
+    // Forcer la sauvegarde directe dans PocketBase (contourne les éventuels blocages de syncToCloud)
+    if (typeof window.pb_saveCustomActivities === 'function') window.pb_saveCustomActivities();
+    renderActivityOptions();
+    renderManageActivitiesList();
+    cancelEditCustomActivity();
+};
+
+window.deleteCustomActivity = function(index) {
+    if (!confirm('Supprimer cette activité de votre liste ?')) return;
+    state.customActivities.splice(index, 1);
+    saveState();
+    // Forcer la sauvegarde directe dans PocketBase
+    if (typeof window.pb_saveCustomActivities === 'function') window.pb_saveCustomActivities();
+    renderActivityOptions();
+    renderManageActivitiesList();
+    // Si on était en train d'éditer cet index ou un suivant, annuler l'édition
+    if (_editingCustomActivityIndex >= index) cancelEditCustomActivity();
+};
+
+// Fermeture du modal gestion au clic extérieur
+document.addEventListener('DOMContentLoaded', () => {
+    const manageModal = document.getElementById('manage-activities-modal');
+    if (manageModal) {
+        manageModal.addEventListener('click', (e) => {
+            if (e.target === manageModal) window.closeManageActivitiesModal();
+        });
+    }
+});
+
+
 window.routes = {
     'landingpage': { section: 'landing-page' },
     'login': { section: 'auth-screen' },
@@ -862,28 +970,28 @@ function updateDashboard() {
     // Journée active si elle contient des repas ou du bonus TDEE (activités)
     const isDayActive = (actLog.entries && actLog.entries.length > 0) || (actLog.bonusTDEE && actLog.bonusTDEE !== 0);
     const isToday = (dateStr === formatISOLocal(new Date()));
+    const isFuture = (dateStr > formatISOLocal(new Date())); // Jour futur (j+1, j+2, ...)
 
 
     // Récupération des réglages : 
     // - Si c'est AUJOURD'HUI : On utilise TOUJOURS les réglages du profil pour rester à jour (pesées, etc.)
-    // - Si Jour Inactif : On utilise le profil (initialisation)
-    // - Si Jour Actif passé : On garde le Snapshot original pour l'historique
+    // - Si Jour FUTUR (j+1, j+2) : On utilise aussi le profil actuel (planification, jamais de snapshot figé)
+    // - Si Jour Inactif passé : On utilise le profil (initialisation)
+    // - Si Jour Actif PASSÉ : On garde le Snapshot original pour l'historique
     let baseTdee, goalMultiplier, goalName;
 
-    if (isDayActive && actLog.baseTDEE && !isToday) {
-        // Jour PASSE avec historique réel : on garde ce qui a été enregistré pour ce jour J
+    if (isDayActive && actLog.baseTDEE && !isToday && !isFuture) {
+        // Jour PASSÉ avec historique réel : on garde ce qui a été enregistré pour ce jour J
         baseTdee = actLog.baseTDEE;
         goalMultiplier = actLog.goalMultiplier || 1.0;
         goalName = actLog.goal || 'maintenance';
     } else {
-        // AUJOURD'HUI ou Jour sans historique : on utilise les réglages du profil à jour
+        // AUJOURD'HUI, FUTUR ou Jour sans historique : on utilise les réglages du profil à jour
         const currentTdee = state.profile ? state.profile.tdee : 0;
         const currentGoal = state.profile ? state.profile.goal : 'maintenance';
         const currentMultiplier = state.profile ? (state.profile.goal === 'loss' ? 0.9 : (state.profile.goal === 'gain' ? 1.1 : 1.0)) : 1.0;
         
-        // Si les valeurs en mémoire sont différentes du profil (ex: nouvelle pesée aujourd'hui), on synchronise
-        // IMPORTANT : On ne force la sauvegarde automatique QUE pour "Aujourd'hui".
-        // Pour les jours futurs, on laisse l'affichage dynamique sans polluer la BDD.
+        // Synchronisation du snapshot uniquement pour "Aujourd'hui" (pas les jours futurs pour ne pas polluer la BDD)
         if (isToday && (actLog.baseTDEE !== currentTdee || actLog.goal !== currentGoal)) {
             actLog.baseTDEE = currentTdee;
             actLog.goal = currentGoal;
@@ -893,6 +1001,13 @@ function updateDashboard() {
             if (typeof saveState === 'function') saveState();
         }
 
+        // Pour les jours futurs actifs, on met à jour le snapshot en mémoire (sans sync cloud)
+        // afin que les calculs internes (ex: suivi) soient cohérents
+        if (isFuture && isDayActive && (actLog.baseTDEE !== currentTdee || actLog.goal !== currentGoal)) {
+            actLog.baseTDEE = currentTdee;
+            actLog.goal = currentGoal;
+            actLog.goalMultiplier = currentMultiplier;
+        }
 
         baseTdee = currentTdee;
         goalName = currentGoal;
@@ -1350,7 +1465,7 @@ window.renderSuivi = function() {
         
         if (initialGoalEntry) {
             displayItems.push({
-                label: 'Dès le',
+                label: 'Depuis le',
                 date: formatDateFR(new Date(initialGoalEntry.date)),
                 goal: initialGoalEntry.goal,
                 isCurrent: false
@@ -1358,7 +1473,7 @@ window.renderSuivi = function() {
         } else if (history.length > 0) {
             // Si aucun avant, on prend le tout premier connu
             displayItems.push({
-                label: 'Dès le',
+                label: 'Depuis le',
                 date: formatDateFR(new Date(history[0].date)),
                 goal: history[0].goal,
                 isCurrent: false
@@ -1366,7 +1481,7 @@ window.renderSuivi = function() {
         } else if (state.profile) {
             // Fallback profil
             displayItems.push({
-                label: 'Dès le',
+                label: 'Depuis le',
                 date: 'Origine',
                 goal: state.profile.goal,
                 isCurrent: true
@@ -1389,17 +1504,35 @@ window.renderSuivi = function() {
             });
         });
 
-        // Marquer le dernier comme "Toujours en cours" s'il correspond au profil actuel
-        if (displayItems.length > 0 && state.profile) {
-            const lastItem = displayItems[displayItems.length - 1];
-            if (lastItem.goal === state.profile.goal) {
-                lastItem.isCurrent = true;
+        // --- NOUVEAU : Filtrage des doublons consécutifs ---
+        const filteredItems = [];
+        displayItems.forEach((item, index) => {
+            if (index === 0) {
+                // Le tout premier garde "Dès le"
+                filteredItems.push(item);
+            } else {
+                const prev = filteredItems[filteredItems.length - 1];
+                // On ne l'ajoute que si l'objectif a CHANGE par rapport au précédent
+                if (item.goal !== prev.goal) {
+                    filteredItems.push(item);
+                }
             }
+        });
+
+        // Marquer le dernier comme "Toujours en cours" systématiquement
+        if (filteredItems.length > 0) {
+            filteredItems[filteredItems.length - 1].isCurrent = true;
+        }
+
+        // Si après filtrage il n'y a qu'un seul item et qu'il est actuel, 
+        // on s'assure qu'il utilise "Dès le" (parfois déjà le cas, mais sécurité)
+        if (filteredItems.length === 1) {
+            filteredItems[0].label = 'Depuis le';
         }
 
         const goalNames = { 'loss': 'Sèche', 'gain': 'Prise de masse', 'maintenance': 'Maintien' };
         
-        document.getElementById('suivi-objectifs-inner').innerHTML = displayItems.map(item => {
+        document.getElementById('suivi-objectifs-inner').innerHTML = filteredItems.map(item => {
             // Estimation des calories/protéines pour cet objectif spécifiquement
             // On utilise les valeurs du profil actuel comme base de calcul simplifiée
             const multiplier = item.goal === 'loss' ? 0.9 : (item.goal === 'gain' ? 1.1 : 1.0);
@@ -1409,8 +1542,13 @@ window.renderSuivi = function() {
             return `
                 <div class="obj-period-item">
                     <div class="obj-period-date">
-                        ${item.label} ${item.date}
-                        ${item.isCurrent ? ' <span style="color:var(--accent-success); font-size:0.75rem; margin-left:5px;">● Toujours en cours</span>' : ''}
+                        <span style="opacity: 0.8; font-weight: 700;">${item.label}</span> ${item.date}
+                        ${item.isCurrent ? `
+                            <span class="status-badge">
+                                <span class="pulse-dot"></span>
+                                Toujours en cours
+                            </span>
+                        ` : ''}
                     </div>
                     <div class="obj-period-details">
                         ${goalNames[item.goal] || item.goal} 
