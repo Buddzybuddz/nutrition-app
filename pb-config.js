@@ -14,7 +14,7 @@ const IS_DEV = (
 );
 
 // URL de développement (PocketBase local sur port 8091)
-const DEV_PB_URL = 'http://127.0.0.1:8091';
+const DEV_PB_URL = 'http://127.0.0.1:8090';
 
 // URL de production (Fly.io)
 const PROD_PB_URL = 'https://nutridash-pb.fly.dev';
