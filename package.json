@@ -1,0 +1,14 @@
+{
+  "name": "nutrition-app",
+  "version": "1.0.0",
+  "description": "Application de suivi nutritionnel",
+  "main": "app.js",
+  "scripts": {
+    "test": "vitest"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "vitest": "^4.1.5"
+  }
+}
