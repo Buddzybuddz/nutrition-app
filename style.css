@@ -38,6 +38,11 @@
     display: none !important;
 }
 
+html, body {
+    overflow-x: hidden;
+    width: 100%;
+}
+
 body {
     font-family: var(--font-main);
     background-color: var(--bg-main);
@@ -279,9 +284,13 @@ input:focus, select:focus {
     white-space: nowrap;
 }
 
-.btn:hover {
-    transform: translate(-2px, -2px);
-    box-shadow: var(--shadow-hard-hover);
+@media (hover: hover) {
+    .btn:hover {
+        transform: translate(-2px, -2px);
+        box-shadow: var(--shadow-hard-hover);
+    }
+    .btn-primary:hover { background: #ffe066; }
+    .btn-secondary:hover { background: #8ce99a; }
 }
 
 .btn:active {
@@ -290,9 +299,7 @@ input:focus, select:focus {
 }
 
 .btn-primary { background: var(--accent-warning); }
-.btn-primary:hover { background: #ffe066; }
 .btn-secondary { background: var(--accent-success); }
-.btn-secondary:hover { background: #8ce99a; }
 
 /* Dashboard Grid */
 .dashboard-grid {
@@ -599,17 +606,32 @@ input:focus, select:focus {
     justify-content: center;
 }
 
-.history-actions .btn-edit:hover {
-    background: var(--accent-warning);
-    transform: translate(-2px, -2px);
-    box-shadow: 4px 4px 0px var(--border-color);
+@media (hover: hover) {
+    .history-actions .btn-edit:hover {
+        background: var(--accent-warning);
+        transform: translate(-2px, -2px);
+        box-shadow: 4px 4px 0px var(--border-color);
+    }
+
+    .history-actions .btn-delete:hover {
+        background: var(--accent-danger);
+        color: #fff;
+        transform: translate(-2px, -2px);
+        box-shadow: 4px 4px 0px var(--border-color);
+    }
 }
 
-.history-actions .btn-delete:hover {
+.history-actions .btn-edit:active {
+    background: var(--accent-warning);
+    transform: translate(2px, 2px);
+    box-shadow: 0px 0px 0px var(--border-color);
+}
+
+.history-actions .btn-delete:active {
     background: var(--accent-danger);
     color: #fff;
-    transform: translate(-2px, -2px);
-    box-shadow: 4px 4px 0px var(--border-color);
+    transform: translate(2px, 2px);
+    box-shadow: 0px 0px 0px var(--border-color);
 }
 
 /* Stats */
@@ -829,6 +851,7 @@ input:focus, select:focus {
     z-index: 1000;
     opacity: 1;
     transition: opacity 0.3s ease;
+    overflow-x: hidden; /* Empêche le contenu et les box-shadows de dépasser la largeur de l'écran sur mobile */
 }
 
 .modal-overlay.hidden {
@@ -915,9 +938,17 @@ input:focus, select:focus {
     transition: var(--transition);
 }
 
-.close-btn:hover {
-    transform: translate(-2px, -2px) rotate(15deg);
-    box-shadow: var(--shadow-hard-hover);
+@media (hover: hover) {
+    .close-btn:hover {
+        transform: translate(-2px, -2px) rotate(15deg);
+        box-shadow: var(--shadow-hard-hover);
+        background: var(--accent-danger);
+    }
+}
+
+.close-btn:active {
+    transform: translate(2px, 2px) rotate(15deg);
+    box-shadow: var(--shadow-hard-active);
     background: var(--accent-danger);
 }
 
@@ -1082,12 +1113,13 @@ input:focus, select:focus {
     
     /* Modals */
     .modal-content {
-        width: 95%;
-        padding: 2rem 1.5rem 1.5rem;
+        width: 90%;
+        padding: 2rem 1.25rem 1.5rem;
+        box-shadow: 6px 6px 0px var(--border-color);
     }
     .close-btn {
         top: -10px;
-        right: -10px;
+        right: -5px;
         width: 40px;
         height: 40px;
         font-size: 1.5rem;
@@ -1752,24 +1784,6 @@ input:focus, select:focus {
     to { opacity: 1; transform: translateX(0); }
 }
 /* --- AI PREMIUM (NIVEAU 1) EXPERIENCE --- */
-.ai-loader {
-    display: inline-flex;
-    align-items: center;
-    gap: 10px;
-    margin-top: 10px;
-}
-
-.ai-pulse-dot {
-    width: 12px;
-    height: 12px;
-    background-color: var(--accent-purple);
-    border-radius: 50%;
-    animation: ai-pulse 1.5s infinite ease-in-out;
-    border: 2px solid var(--border-color);
-}
-
-.ai-pulse-dot:nth-child(2) { animation-delay: 0.2s; background-color: var(--accent-secondary); }
-.ai-pulse-dot:nth-child(3) { animation-delay: 0.4s; background-color: var(--accent-primary); }
 
 @keyframes ai-pulse {
     0%, 100% { transform: scale(0.8); opacity: 0.5; }
