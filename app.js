@@ -837,6 +837,50 @@ window.estimateMealWithAI = async function() {
         return;
     }
 
+    // --- DEBUT DU SYSTEME DE CACHE LOCAL ---
+    // Si l'utilisateur a déjà demandé ce repas, on sort immédiatement le résultat sans appeler Google (Anti-503 et Anti-Facturation)
+    const cacheKey = `ai_meal_cache_${desc.toLowerCase().replace(/\s+/g, '_')}`;
+    const cachedResult = localStorage.getItem(cacheKey);
+    
+    if (cachedResult) {
+        console.log("⚡ Résultat instantané via Cache Local (0 appel API) !");
+        try {
+            const jsonResponse = JSON.parse(cachedResult);
+            const totalCals = Math.round(jsonResponse.total?.calories || jsonResponse.calories || 0);
+            const totalProt = Math.round(jsonResponse.total?.protein || jsonResponse.protein || 0);
+            
+            if (totalCals > 0 || totalProt > 0) {
+                document.getElementById('meal-cals').value = totalCals;
+                document.getElementById('meal-protein').value = totalProt;
+                
+                const feedback = document.getElementById('ai-feedback');
+                if (feedback) {
+                    feedback.classList.remove('hidden');
+                    feedback.innerHTML = '<span style="color: var(--accent-success); font-weight: 800;">Analyse experte récupérée ! ✨⚡</span>';
+                }
+
+                const detailContainer = document.getElementById('ai-items-detail');
+                if (detailContainer && jsonResponse.items && jsonResponse.items.length > 0) {
+                    detailContainer.classList.remove('hidden');
+                    let detailHtml = '<div style="font-size: 0.8rem; font-weight: 800; color: var(--text-muted); margin-bottom: 0.8rem; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px dashed #ddd; padding-bottom: 5px;">Composition détaillée :</div>';
+                    jsonResponse.items.forEach(item => {
+                        detailHtml += `
+                            <div class="ai-item-badge">
+                                <span class="ai-item-name">${item.name}</span>
+                                <span class="ai-item-macros">${Math.round(item.calories)} kcal | ${Math.round(item.protein)}g prot</span>
+                            </div>
+                        `;
+                    });
+                    detailContainer.innerHTML = detailHtml;
+                }
+                return; // On arrête tout, pas besoin d'appeler l'API !
+            }
+        } catch (e) {
+            console.warn("Cache invalide, fallback sur l'API", e);
+        }
+    }
+    // --- FIN DU SYSTEME DE CACHE LOCAL ---
+
     const btn = document.getElementById('btn-ai-estimate');
     const btnText = document.getElementById('btn-ai-text');
     const btnLoader = document.getElementById('btn-ai-loader');
@@ -879,8 +923,9 @@ Estimation précise pour : "${desc}".
 RÈGLES D'EXPERTISE :
 1. Utilise les bases CIQUAL/USDA.
 2. Décompose chaque ingrédient avec son poids estimé (ex: 1 œuf = 50g).
-3. Calcule précisément calories et protéines.
-4. Réponds EXCLUSIVEMENT en JSON strict.
+3. INTERDICTION ABSOLUE d'ajouter des ingrédients non mentionnés (n'ajoute PAS de matière grasse, d'huile, de beurre ou de sauces si ce n'est pas explicitement écrit par l'utilisateur).
+4. Calcule précisément calories et protéines.
+5. Réponds EXCLUSIVEMENT en JSON strict.
 
 Format JSON :
 {
@@ -890,17 +935,35 @@ Format JSON :
   ]
 }`;
         
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent?key=${apiKey}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                contents: [{ parts: [{ text: prompt }] }],
-                generationConfig: { 
-                    response_mime_type: "application/json",
-                    temperature: 0.1
-                }
-            })
-        });
+        // On utilise la version 'flash' figée car elle est extrêmement rapide et économique (voire gratuite selon les quotas), parfaite pour des calculs simples en JSON.
+        // Système de Retry (Exponential Backoff) pour encaisser les surcharges serveurs (503) ou quotas (429) très fréquents sur les API gratuites.
+        let response;
+        let retries = 3;
+        let delay = 1000;
+
+        for (let i = 0; i < retries; i++) {
+            response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${apiKey}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    contents: [{ parts: [{ text: prompt }] }],
+                    generationConfig: { 
+                        response_mime_type: "application/json",
+                        temperature: 0.0 // 0.0 = le modèle est 100% déterministe
+                    }
+                })
+            });
+
+            if (response.ok) break;
+
+            if (response.status === 503 || response.status === 429) {
+                console.warn(`Surcharge API Google (${response.status}). Nouvelle tentative dans ${delay}ms...`);
+                await new Promise(resolve => setTimeout(resolve, delay));
+                delay *= 2; // 1s, puis 2s, puis 4s
+            } else {
+                break; // Erreurs critiques (400, 403, 404)
+            }
+        }
 
         clearInterval(statusInterval);
 
@@ -909,6 +972,9 @@ Format JSON :
         const data = await response.json();
         const textResponse = data.candidates[0].content.parts[0].text;
         const jsonResponse = JSON.parse(textResponse);
+
+        // Sauvegarde en cache pour la prochaine fois
+        localStorage.setItem(cacheKey, JSON.stringify(jsonResponse));
 
         const totalCals = Math.round(jsonResponse.total?.calories || jsonResponse.calories || 0);
         const totalProt = Math.round(jsonResponse.total?.protein || jsonResponse.protein || 0);
