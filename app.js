@@ -989,12 +989,15 @@ Format JSON :
 
             if (detailContainer && jsonResponse.items && jsonResponse.items.length > 0) {
                 detailContainer.classList.remove('hidden');
-                let detailHtml = '<div style="font-size: 0.8rem; font-weight: 800; color: var(--text-muted); margin-bottom: 0.8rem; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px dashed #ddd; padding-bottom: 5px;">Composition détaillée (Pro) :</div>';
+                let detailHtml = '<div style="font-size: 0.8rem; font-weight: 800; color: var(--text-muted); margin-bottom: 1rem; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px dashed #ddd; padding-bottom: 5px;">Composition détaillée (Pro) :</div>';
                 jsonResponse.items.forEach(item => {
                     detailHtml += `
                         <div class="ai-item-badge">
                             <span class="ai-item-name">${item.name}</span>
-                            <span class="ai-item-macros">${Math.round(item.calories)} kcal | ${Math.round(item.protein)}g prot</span>
+                            <div class="ai-item-macros">
+                                <span class="macro-pill cals">${Math.round(item.calories)} kcal</span>
+                                <span class="macro-pill prot">${Math.round(item.protein)}g prot</span>
+                            </div>
                         </div>
                     `;
                 });

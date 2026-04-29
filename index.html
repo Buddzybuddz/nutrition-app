@@ -797,7 +797,7 @@
                                 <textarea id="ai-meal-desc" placeholder="Décrivez votre repas... (ex: Une salade César et une pomme)" style="width: 100%; min-height: 100px; padding: 0.75rem; border: 2px solid var(--border-color); border-radius: 8px; font-family: inherit; resize: vertical;"></textarea>
                             </div>
                             <button type="button" id="btn-ai-estimate" class="btn" style="width: 100%; background: var(--accent-secondary); color: white; display: flex; align-items: center; justify-content: center; gap: 0.5rem; font-weight: 800; border: 2px solid var(--border-color); border-radius: var(--radius-sm); transition: transform 0.2s ease;">
-                                <span id="btn-ai-text">✨ Estimer les calories & prot</span>
+                                <span id="btn-ai-text">✨ Estimer via IA</span>
                                 <div id="btn-ai-loader" class="ai-loader hidden"></div>
                             </button>
                         </div>
@@ -810,14 +810,14 @@
                             <!-- Les items seront ajoutés dynamiquement ici -->
                         </div>
 
-                        <div class="form-row" style="margin-bottom: 1rem;">
-                            <div class="form-group">
-                                <label for="meal-cals">Calories (kcal)</label>
-                                <input type="number" id="meal-cals" min="0" step="1" required>
+                        <div class="form-row" style="margin-bottom: 0.5rem;">
+                            <div class="form-group form-group-macro">
+                                <label for="meal-cals" class="macro-icon-label cals">🔥 Calories (kcal)</label>
+                                <input type="number" id="meal-cals" class="modal-input-premium" min="0" step="1" required>
                             </div>
-                            <div class="form-group">
-                                <label for="meal-protein">Protéines (g)</label>
-                                <input type="number" id="meal-protein" min="0" step="1" required>
+                            <div class="form-group form-group-macro">
+                                <label for="meal-protein" class="macro-icon-label prot">🥩 Protéines (g)</label>
+                                <input type="number" id="meal-protein" class="modal-input-premium" min="0" step="1" required>
                             </div>
                         </div>
                     </div>
