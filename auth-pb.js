@@ -490,6 +490,25 @@ async function loadFullHistory() {
         // 2. Injection dans l'état global
         for (const dateStr in grouped) {
             const data = grouped[dateStr];
+
+            // Résolution de l'objectif : priorité au snapshot daily_stats,
+            // sinon on remonte goal_history pour trouver le dernier objectif connu ≤ dateStr,
+            // sinon profil actuel.
+            const resolveGoalForDate = (d) => {
+                if (data.stats && data.stats.goal) return data.stats.goal;
+                // Chercher dans goal_history le dernier objectif valide pour cette date
+                const gh = (state.goalHistory || [])
+                    .filter(g => g.date <= d)
+                    .sort((a, b) => b.date.localeCompare(a.date));
+                if (gh.length > 0) return gh[0].goal;
+                return state.profile ? state.profile.goal : 'maintenance';
+            };
+
+            const resolvedGoal = resolveGoalForDate(dateStr);
+            const resolvedMultiplier = data.stats && data.stats.goalMultiplier
+                ? data.stats.goalMultiplier
+                : (resolvedGoal === 'loss' ? 0.9 : (resolvedGoal === 'gain' ? 1.1 : 1.0));
+
             state.history[dateStr] = {
                 date: dateStr,
                 consumedCals: data.meals.reduce((acc, m) => acc + (m.calories || 0), 0),
@@ -500,8 +519,8 @@ async function loadFullHistory() {
                     ...data.acts.map(a => ({ id: a.id, type: 'Activité', name: a.name, cals: a.calories }))
                 ],
                 baseTDEE: data.stats ? data.stats.baseTDEE : (state.profile ? (state.profile.weight * 33) : 0),
-                goal: data.stats ? (data.stats.goal || 'maintenance') : (state.profile ? state.profile.goal : 'maintenance'),
-                goalMultiplier: data.stats ? data.stats.goalMultiplier : (state.profile ? (state.profile.goal === 'loss' ? 0.9 : (state.profile.goal === 'gain' ? 1.1 : 1.0)) : 1.0)
+                goal: resolvedGoal,
+                goalMultiplier: resolvedMultiplier
             };
         }
         
@@ -525,7 +544,21 @@ async function loadDayData(dateStr) {
         ]);
 
         if (!state.history) state.history = {};
-        
+
+        // Résolution de l'objectif via goal_history si le snapshot daily_stats n'a pas de champ goal
+        const resolveGoalForDate = (d) => {
+            if (stats && stats.goal) return stats.goal;
+            const gh = (state.goalHistory || [])
+                .filter(g => g.date <= d)
+                .sort((a, b) => b.date.localeCompare(a.date));
+            if (gh.length > 0) return gh[0].goal;
+            return state.profile ? state.profile.goal : 'maintenance';
+        };
+        const resolvedGoal = resolveGoalForDate(dateStr);
+        const resolvedMultiplier = stats && stats.goalMultiplier
+            ? stats.goalMultiplier
+            : (resolvedGoal === 'loss' ? 0.9 : (resolvedGoal === 'gain' ? 1.1 : 1.0));
+
         state.history[dateStr] = {
             date: dateStr,
             consumedCals: meals.reduce((acc, m) => acc + (m.calories || 0), 0),
@@ -536,8 +569,8 @@ async function loadDayData(dateStr) {
                 ...activities.map(a => ({ id: a.id, type: 'Activité', name: a.name, cals: a.calories }))
             ],
             baseTDEE: stats ? stats.baseTDEE : (state.profile ? (state.profile.weight * 33) : 0),
-            goal: stats ? (stats.goal || 'maintenance') : (state.profile ? state.profile.goal : 'maintenance'),
-            goalMultiplier: stats ? stats.goalMultiplier : (state.profile ? (state.profile.goal === 'loss' ? 0.9 : (state.profile.goal === 'gain' ? 1.1 : 1.0)) : 1.0)
+            goal: resolvedGoal,
+            goalMultiplier: resolvedMultiplier
         };
     } catch(e) {
         if (!e.isAbort) {
@@ -601,6 +634,7 @@ window.syncToCloud = async () => {
             user: currentUser.id,
             date: toPBDate(log.date),
             baseTDEE: log.baseTDEE || 0,
+            goal: log.goal || (state.profile ? state.profile.goal : 'maintenance'),
             goalMultiplier: log.goalMultiplier || 1
         };
         try {
