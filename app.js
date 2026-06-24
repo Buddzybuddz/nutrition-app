@@ -78,7 +78,7 @@ function loadState() {
             
             window.PB_CONFIG?.isDev && console.log("État chargé depuis le stockage local spécialisé.");
         } catch (e) {
-            console.error("Erreur lors du chargement du localStorage", e);
+            window.PB_CONFIG?.isDev && console.error("Erreur lors du chargement du localStorage", e);
         }
     }
     
@@ -1499,7 +1499,7 @@ window.renderSuivi = function() {
             return `
                 <div class="obj-period-item">
                     <div class="obj-period-date">
-                        <span style="opacity: 0.8; font-weight: 700;">${item.label}</span> ${item.date}
+                        <span style="opacity: 0.8; font-weight: 700;">${escapeHtml(item.label)}</span> ${escapeHtml(item.date)}
                         ${item.isCurrent ? `
                             <span class="status-badge">
                                 <span class="pulse-dot"></span>
@@ -1508,7 +1508,7 @@ window.renderSuivi = function() {
                         ` : ''}
                     </div>
                     <div class="obj-period-details">
-                        ${goalNames[item.goal] || item.goal} 
+                        ${escapeHtml(goalNames[item.goal] || item.goal)}
                         — ${estCals} kcal | ${estProt}g prot
                     </div>
                 </div>

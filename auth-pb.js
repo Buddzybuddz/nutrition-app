@@ -8,6 +8,7 @@ let lastUserId = null;
 
 const devLog = (...a) => window.PB_CONFIG?.isDev && window.console.log(...a);
 const devWarn = (...a) => window.PB_CONFIG?.isDev && window.console.warn(...a);
+const devErr = (...a) => window.PB_CONFIG?.isDev && window.console.error(...a);
 
 // Initialisation
 document.addEventListener('DOMContentLoaded', () => {
@@ -112,7 +113,7 @@ window.handleLoginSubmit = async function(e) {
         btn.textContent = "Connexion...";
         await signIn(email, password);
     } catch (err) {
-        console.error("Erreur Login:", err);
+        devErr("Erreur Login:", err);
         showAuthError("Email ou mot de passe incorrect.");
     } finally {
         btn.disabled = false;
@@ -148,21 +149,22 @@ window.handleSignupSubmit = async function(e) {
         await signIn(email, password);
         
     } catch (err) {
-        console.error("Erreur Signup détaillé:", err.response);
+        devErr("Erreur Signup détaillé:", err.response);
         let errorMsg = "Erreur lors de la création du compte.";
         
         if (err.response?.data) {
             const data = err.response.data;
             if (data.email?.code === 'validation_not_unique' || (typeof data.identity === 'object' && data.identity?.code === 'validation_not_unique')) {
-                errorMsg = `Cet email est déjà pris. <a href="#" onclick="event.preventDefault(); window.showLoginForm();" style="color: white; text-decoration: underline; font-weight: 800;">Se connecter ?</a>`;
+                showAuthErrorWithLink("Cet email est déjà pris.", "Se connecter ?", window.showLoginForm);
+                errorMsg = null;
             } else if (data.password?.code === 'validation_length_out_of_range') {
                 errorMsg = "Le mot de passe doit faire au moins 8 caractères.";
             } else if (err.message) {
                 errorMsg = err.message;
             }
         }
-        
-        showAuthError(errorMsg);
+
+        if (errorMsg) showAuthError(errorMsg);
     } finally {
         btn.disabled = false;
         btn.textContent = "Créer le compte";
@@ -180,7 +182,7 @@ window.handleResetSubmit = async function(e) {
         alert("Si un compte correspond à cet email, un lien de réinitialisation a été envoyé.");
         window.showLoginForm();
     } catch (err) {
-        console.error("Erreur Reset:", err);
+        devErr("Erreur Reset:", err);
         showAuthError("Erreur lors de l'envoi de l'email.");
     } finally {
         btn.disabled = false;
@@ -274,7 +276,7 @@ async function migrateLegacyData(user, cloudState) {
                 await pb.collection('profiles').create(profileData);
             }
         } catch(e) { 
-            console.error("❌ Erreur validation Profil (vérifiez vos Selects):", e.response?.data || e); 
+            devErr("❌ Erreur validation Profil (vérifiez vos Selects):", e.response?.data || e); 
         }
     }
 
@@ -352,7 +354,7 @@ window.loadFromCloud = async (user) => {
         try {
             const legacy = typeof user.data === 'string' ? JSON.parse(user.data) : user.data;
             await migrateLegacyData(user, legacy);
-        } catch(e) { console.error("Migration échouée:", e); }
+        } catch(e) { devErr("Migration échouée:", e); }
     }
 
     // Cas 2 : Chargement relationnel
@@ -375,7 +377,7 @@ window.loadFromCloud = async (user) => {
                     profile = await pb.collection('profiles').update(profile.id, { user: userId });
                     devLog("[PocketBase] ✓ Profil rattaché avec succès.");
                 } catch(e) {
-                    console.error("[PocketBase] ❌ Échec du rattachement du profil:", e);
+                    devErr("[PocketBase] ❌ Échec du rattachement du profil:", e);
                     // On garde quand même le profil pour l'affichage session, même si l'update DB a échoué
                 }
             }
@@ -417,7 +419,7 @@ window.loadFromCloud = async (user) => {
                     });
                     devLog('✅ Format customActivities migré dans PocketBase. Calories à 0 — utilisez "Gérer mes activités" pour les corriger.');
                 } catch(e) {
-                    console.error('❌ Erreur lors de la migration du format:', e);
+                    devErr('❌ Erreur lors de la migration du format:', e);
                 }
             }
         }
@@ -444,7 +446,7 @@ window.loadFromCloud = async (user) => {
         devLog("✓ Données relationnelles chargées.");
         if (typeof updateDashboard === 'function') updateDashboard();
     } catch (err) {
-        console.error("Erreur de chargement Cloud:", err);
+        devErr("Erreur de chargement Cloud:", err);
     }
 };
 
@@ -528,7 +530,7 @@ async function loadFullHistory() {
         }
         
     } catch (err) {
-        console.error("Erreur lors du chargement de l'historique:", err);
+        devErr("Erreur lors du chargement de l'historique:", err);
     }
 }
 
@@ -577,7 +579,7 @@ async function loadDayData(dateStr) {
         };
     } catch(e) {
         if (!e.isAbort) {
-            console.error("Impossible de charger les données du jour:", e);
+            devErr("Impossible de charger les données du jour:", e);
         }
     }
 }
@@ -627,7 +629,7 @@ window.syncToCloud = async () => {
             await pb.collection('profiles').create(profileData, { requestKey: null });
         }
     } catch(e) {
-        console.error('❌ Erreur syncToCloud (profil):', e.response?.data || e.message || e);
+        devErr('❌ Erreur syncToCloud (profil):', e.response?.data || e.message || e);
     }
 
     // 2. Sync Stats du jour
@@ -647,7 +649,7 @@ window.syncToCloud = async () => {
             else await pb.collection('daily_stats').create(statsData);
         } catch(e) {
             if (!e.isAbort) {
-                console.error("Erreur Sync Stats:", e.response || e);
+                devErr("Erreur Sync Stats:", e.response || e);
             }
         }
     } 
@@ -659,7 +661,7 @@ window.syncToCloud = async () => {
 // Fonction de nettoyage des profils en double (Correction unique)
 window.pb_cleanupProfiles = async () => {
     if (!currentUser) {
-        console.error("Veuillez vous connecter avant de lancer le nettoyage.");
+        devErr("Veuillez vous connecter avant de lancer le nettoyage.");
         return;
     }
     
@@ -687,7 +689,7 @@ window.pb_cleanupProfiles = async () => {
         
         devLog(`✓ Nettoyage terminé : ${toDelete.length} doublons supprimés.`);
     } catch (err) {
-        console.error("Erreur durant le nettoyage :", err);
+        devErr("Erreur durant le nettoyage :", err);
     }
 };
 
@@ -714,7 +716,7 @@ window.pb_saveMeal = async (meal) => {
 // Migration des types de repas basés sur le nom (Correction unique)
 window.pb_migrateMealTypes = async () => {
     if (!currentUser) {
-        console.error("Veuillez vous connecter avant de lancer la migration.");
+        devErr("Veuillez vous connecter avant de lancer la migration.");
         return;
     }
     
@@ -742,7 +744,7 @@ window.pb_migrateMealTypes = async () => {
         devLog(`✓ Migration terminée : ${updatedCount} repas mis à jour.`);
         if (typeof updateDashboard === 'function') updateDashboard();
     } catch (err) {
-        console.error("Erreur durant la migration :", err);
+        devErr("Erreur durant la migration :", err);
     }
 };
 
@@ -753,7 +755,7 @@ window.pb_deleteEntry = async (id, type) => {
         await pb.collection(collection).delete(id);
         devLog(`✓ ${type} supprimé du Cloud`);
     } catch(e) {
-        console.error("Erreur suppression Cloud:", e);
+        devErr("Erreur suppression Cloud:", e);
     }
 };
 
@@ -798,7 +800,7 @@ window.pb_saveWeighIn = async (win) => {
         }
     } catch(e) {
         if (!e.isAbort) {
-            console.error("Erreur Sync Poids:", e.response || e);
+            devErr("Erreur Sync Poids:", e.response || e);
         }
     }
 };
@@ -843,7 +845,7 @@ window.pb_logGoalChange = async (goalValue) => {
         }
     } catch (err) {
         if (!err.isAbort) {
-            console.error("Erreur historisation objectif:", err);
+            devErr("Erreur historisation objectif:", err);
         }
     }
 };
@@ -864,7 +866,7 @@ window.pb_saveCustomActivities = async () => {
         await pb.collection('profiles').update(profile.id, { customActivities: serialized }, { requestKey: null });
         devLog('✅ customActivities sauvegardées dans PocketBase :', serialized);
     } catch(e) {
-        console.error('❌ Erreur pb_saveCustomActivities:', e.response?.data || e.message || e);
+        devErr('❌ Erreur pb_saveCustomActivities:', e.response?.data || e.message || e);
     }
 };
 
@@ -874,13 +876,27 @@ function showAuthError(message) {
     if (errorDiv) {
         errorDiv.textContent = message;
         errorDiv.classList.remove('hidden');
-        
-        // On augmente le délai pour les erreurs d'inscription (8s)
-        const delay = message.includes('connecter') ? 8000 : 5000;
-        
         if (window.authErrorTimeout) clearTimeout(window.authErrorTimeout);
-        window.authErrorTimeout = setTimeout(() => errorDiv.classList.add('hidden'), delay);
+        window.authErrorTimeout = setTimeout(() => errorDiv.classList.add('hidden'), 5000);
     }
+}
+
+function showAuthErrorWithLink(text, linkText, linkAction) {
+    const errorDiv = document.getElementById('auth-error');
+    if (!errorDiv) return;
+    errorDiv.textContent = '';
+    const span = document.createElement('span');
+    span.textContent = text + ' ';
+    const a = document.createElement('a');
+    a.href = '#';
+    a.textContent = linkText;
+    a.style.cssText = 'color: white; text-decoration: underline; font-weight: 800;';
+    a.addEventListener('click', (e) => { e.preventDefault(); linkAction(); });
+    errorDiv.appendChild(span);
+    errorDiv.appendChild(a);
+    errorDiv.classList.remove('hidden');
+    if (window.authErrorTimeout) clearTimeout(window.authErrorTimeout);
+    window.authErrorTimeout = setTimeout(() => errorDiv.classList.add('hidden'), 8000);
 }
 
 // --- FONCTION DE SECOURS (Si le rattachement auto échoue) ---
@@ -904,7 +920,7 @@ window.forceProfileLink = async () => {
             alert("Aucun profil trouvé pour ce compte.");
         }
     } catch(e) {
-        console.error(e);
+        devErr(e);
         alert("Erreur lors du rattachement : " + e.message);
     } finally {
         btn.innerText = "🚀 Rattacher mon profil";
