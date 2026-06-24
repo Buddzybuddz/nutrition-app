@@ -1,37 +1,22 @@
-/**
- * Configuration de PocketBase (Local vs Production)
- * 
- * DEV  → ouverture via file://, localhost ou 127.0.0.1
- * PROD → tout autre hostname (ex: buddzybuddz.github.io, fly.dev, etc.)
- */
 const _hostname = window.location.hostname;
 const _protocol = window.location.protocol;
 
 const IS_DEV = (
-    _protocol === 'file:'           ||  // Ouverture directe via fichier (ex: VS Code, double-clic)
-    _hostname === 'localhost'       ||  // Serveur local classique
-    _hostname === '127.0.0.1'           // Serveur local IP
+    _protocol === 'file:'           ||
+    _hostname === 'localhost'       ||
+    _hostname === '127.0.0.1'
 );
 
-// URL de développement (PocketBase local sur port 8091)
 const DEV_PB_URL = 'http://127.0.0.1:8090';
-
-// URL de production (Fly.io)
 const PROD_PB_URL = 'https://nutridash-pb.fly.dev';
-
 const PB_URL = IS_DEV ? DEV_PB_URL : PROD_PB_URL;
 
-console.log(`[PocketBase] Mode: ${IS_DEV ? 'DEVELOPPEMENT' : 'PRODUCTION'}`);
-console.log(`[PocketBase] URL: ${PB_URL}`);
-console.log(`[PocketBase] Hostname: "${_hostname}" | Protocol: "${_protocol}"`);
+if (IS_DEV) {
+    console.log(`[PocketBase] Mode: DEVELOPPEMENT`);
+    console.log(`[PocketBase] URL: ${PB_URL}`);
+}
 
-// Clé API Gemini. Sécurisée par restriction de domaine (Referrer) côté Google Cloud.
-// La chaîne est scindée en deux pour éviter les faux positifs du scanner de sécurité GitHub (qui révoquerait la clé).
-const GEMINI_API_KEY = "AIzaSyAcC" + "NmApfjkrCFEl2gYwnQKOKqf5CnZTN4";
-
-// Exposer globalement pour les autres scripts
 window.PB_CONFIG = {
     url: PB_URL,
-    isDev: IS_DEV,
-    geminiApiKey: GEMINI_API_KEY
+    isDev: IS_DEV
 };

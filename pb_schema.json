@@ -58,7 +58,7 @@
     "authRule": "",
     "manageRule": null,
     "passwordAuth": { "enabled": true, "identityFields": ["email"] },
-    "authToken": { "duration": 604800 }
+    "authToken": { "duration": 86400 }
   },
   {
     "id": "pbc_4275539003",
@@ -147,7 +147,7 @@
       { "id": "autodate2990389176", "name": "created", "type": "autodate", "system": false, "onCreate": true, "onUpdate": false },
       { "id": "autodate3332085495", "name": "updated", "type": "autodate", "system": false, "onCreate": true, "onUpdate": true }
     ],
-    "listRule": "user = @request.auth.id || user.email = @request.auth.email",
+    "listRule": "user = @request.auth.id",
     "viewRule": "user = @request.auth.id",
     "createRule": "user = @request.auth.id",
     "updateRule": "user = @request.auth.id"

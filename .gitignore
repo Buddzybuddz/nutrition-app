@@ -1,6 +1,11 @@
 # PocketBase
 pb/pocketbase.exe
 pb/pb_data/
+pb_schema.json
+
+# Outils d'administration (ne jamais commiter)
+migration_tool.html
+import_legacy_data.html
 
 # OS
 Thumbs.db

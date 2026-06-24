@@ -1,11 +1,20 @@
 let state = {
     profile: null,
     history: {},
-    currentViewDate: "", // Sera initialisé dans init() ou loadState()
+    currentViewDate: "",
     customActivities: [],
     weighIns: [],
     goalHistory: []
 };
+
+function escapeHtml(str) {
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
 
 let STORAGE_KEY = 'nutridash_state_none';
 
@@ -15,7 +24,7 @@ let STORAGE_KEY = 'nutridash_state_none';
 window.setUserId = function(userId) {
     if (userId) {
         STORAGE_KEY = `nutridash_state_${userId}`;
-        console.log(`Clé de stockage mise à jour : ${STORAGE_KEY}`);
+        window.PB_CONFIG?.isDev && console.log(`Clé de stockage mise à jour : ${STORAGE_KEY}`);
     } else {
         STORAGE_KEY = 'nutridash_state_none';
     }
@@ -31,7 +40,7 @@ window.clearLocalData = function() {
     state.customActivities = [];
     state.weighIns = [];
     state.goalHistory = [];
-    console.log("État mémoire réinitialisé.");
+    window.PB_CONFIG?.isDev && console.log("État mémoire réinitialisé.");
 };
 
 function getActiveLog() {
@@ -67,7 +76,7 @@ function loadState() {
             if (tempState.customActivities) state.customActivities = tempState.customActivities;
             if (tempState.weighIns) state.weighIns = tempState.weighIns;
             
-            console.log("État chargé depuis le stockage local spécialisé.");
+            window.PB_CONFIG?.isDev && console.log("État chargé depuis le stockage local spécialisé.");
         } catch (e) {
             console.error("Erreur lors du chargement du localStorage", e);
         }
@@ -273,8 +282,8 @@ function renderManageActivitiesList() {
         item.style.cssText = 'display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem; background: #f8f9fa; border: 2px solid var(--border-color); border-radius: var(--radius-sm);';
         item.innerHTML = `
             <div style="flex: 1; min-width: 0;">
-                <div style="font-weight: 800; font-size: 0.95rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${act.name || '?'}</div>
-                <div style="font-size: 0.82rem; color: var(--text-muted); font-weight: 600;">${act.cals || 0} kcal</div>
+                <div style="font-weight: 800; font-size: 0.95rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${escapeHtml(act.name || '?')}</div>
+                <div style="font-size: 0.82rem; color: var(--text-muted); font-weight: 600;">${Number(act.cals) || 0} kcal</div>
             </div>
             <button type="button" class="btn-edit" onclick="startEditCustomActivity(${index})" title="Modifier" style="flex-shrink:0;">✎</button>
             <button type="button" class="btn-delete" onclick="deleteCustomActivity(${index})" title="Supprimer" style="flex-shrink:0;">✕</button>
@@ -353,16 +362,16 @@ window.routes = {
 };
 
 window.navigateTo = function(slug, updateHistory = true) {
-    console.log(`Navigation vers: ${slug} (updateHistory: ${updateHistory})`);
+    window.PB_CONFIG?.isDev && console.log(`Navigation vers: ${slug} (updateHistory: ${updateHistory})`);
     const route = window.routes[slug];
     if (!route) {
-        console.warn(`Route non trouvée pour: ${slug}, redirection vers landingpage`);
+        window.PB_CONFIG?.isDev && console.warn(`Route non trouvée pour: ${slug}, redirection vers landingpage`);
         return window.navigateTo('landingpage');
     }
 
     // Validation profil pour les vues de l'app (sauf profil lui-même)
     if (route.section === 'app' && !state.profile && slug !== 'profil') {
-        console.log("Accès app refusé: profil manquant. Redirection vers profil.");
+        window.PB_CONFIG?.isDev && console.log("Accès app refusé: profil manquant. Redirection vers profil.");
         // Désactivation visuelle des autres boutons si le profil est manquant
         document.querySelectorAll('.nav-btn').forEach(btn => {
             if (btn.dataset.target !== 'profile-view') btn.style.opacity = '0.5';
@@ -417,7 +426,7 @@ window.navigateTo = function(slug, updateHistory = true) {
 
 window.addEventListener('hashchange', () => {
     const slug = window.location.hash.replace('#', '') || 'landingpage';
-    console.log(`Hashchange détecté: ${slug}`);
+    window.PB_CONFIG?.isDev && console.log(`Hashchange détecté: ${slug}`);
     window.navigateTo(slug, false);
 });
 
@@ -773,12 +782,6 @@ window.openMealModal = function(editMode = false) {
         delete document.getElementById('meal-form').dataset.editingId;
         document.getElementById('meal-form').querySelector('button[type="submit"]').textContent = 'Ajouter le repas';
         
-        // Reset AI fields
-        const aiDesc = document.getElementById('ai-meal-desc');
-        if (aiDesc) aiDesc.value = '';
-        const aiFeedback = document.getElementById('ai-feedback');
-        if (aiFeedback) aiFeedback.textContent = '';
-
         // Sélection intelligente du prochain repas
         const actLog = getActiveLog();
         const loggedNames = actLog.entries.filter(e => e.type === 'Repas').map(e => e.name);
@@ -801,229 +804,10 @@ window.closeMealModal = function() {
     const modal = document.getElementById('meal-modal');
     if (modal) modal.classList.add('hidden');
     
-    // Reset potential loading state
-    const btn = document.getElementById('btn-ai-estimate');
-    if (btn) btn.disabled = false;
-    const loader = document.querySelector('.ai-loader');
-    if (loader) loader.classList.add('hidden');
-
     // Réinitialisation du formulaire
     const form = document.getElementById('meal-form');
     if (form) form.reset();
-    
-    // Réinitialisation spécifique IA
-    const feedback = document.getElementById('ai-feedback');
-    if (feedback) feedback.textContent = "";
-    
-    const detailContainer = document.getElementById('ai-items-detail');
-    if (detailContainer) {
-        detailContainer.innerHTML = "";
-        detailContainer.classList.add('hidden');
-    }
 }
-
-window.estimateMealWithAI = async function() {
-    const descField = document.getElementById('ai-meal-desc');
-    const desc = descField ? descField.value.trim() : '';
-    
-    if (!desc) {
-        alert("Veuillez décrire votre repas d'abord.");
-        return;
-    }
-
-    const apiKey = window.PB_CONFIG?.geminiApiKey;
-    if (!apiKey) {
-        alert("Clé API Gemini introuvable dans la configuration.");
-        return;
-    }
-
-    // --- DEBUT DU SYSTEME DE CACHE LOCAL ---
-    // Si l'utilisateur a déjà demandé ce repas, on sort immédiatement le résultat sans appeler Google (Anti-503 et Anti-Facturation)
-    const cacheKey = `ai_meal_cache_${desc.toLowerCase().replace(/\s+/g, '_')}`;
-    const cachedResult = localStorage.getItem(cacheKey);
-    
-    if (cachedResult) {
-        console.log("⚡ Résultat instantané via Cache Local (0 appel API) !");
-        try {
-            const jsonResponse = JSON.parse(cachedResult);
-            const totalCals = Math.round(jsonResponse.total?.calories || jsonResponse.calories || 0);
-            const totalProt = Math.round(jsonResponse.total?.protein || jsonResponse.protein || 0);
-            
-            if (totalCals > 0 || totalProt > 0) {
-                document.getElementById('meal-cals').value = totalCals;
-                document.getElementById('meal-protein').value = totalProt;
-                
-                const feedback = document.getElementById('ai-feedback');
-                if (feedback) {
-                    feedback.classList.remove('hidden');
-                    feedback.innerHTML = '<span style="color: var(--accent-success); font-weight: 800;">Analyse experte récupérée ! ✨⚡</span>';
-                }
-
-                const detailContainer = document.getElementById('ai-items-detail');
-                if (detailContainer && jsonResponse.items && jsonResponse.items.length > 0) {
-                    detailContainer.classList.remove('hidden');
-                    let detailHtml = '<div style="font-size: 0.8rem; font-weight: 800; color: var(--text-muted); margin-bottom: 0.8rem; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px dashed #ddd; padding-bottom: 5px;">Composition détaillée :</div>';
-                    jsonResponse.items.forEach(item => {
-                        detailHtml += `
-                            <div class="ai-item-badge">
-                                <span class="ai-item-name">${item.name}</span>
-                                <span class="ai-item-macros">${Math.round(item.calories)} kcal | ${Math.round(item.protein)}g prot</span>
-                            </div>
-                        `;
-                    });
-                    detailContainer.innerHTML = detailHtml;
-                }
-                return; // On arrête tout, pas besoin d'appeler l'API !
-            }
-        } catch (e) {
-            console.warn("Cache invalide, fallback sur l'API", e);
-        }
-    }
-    // --- FIN DU SYSTEME DE CACHE LOCAL ---
-
-    const btn = document.getElementById('btn-ai-estimate');
-    const btnText = document.getElementById('btn-ai-text');
-    const btnLoader = document.getElementById('btn-ai-loader');
-    const feedback = document.getElementById('ai-feedback');
-    const detailContainer = document.getElementById('ai-items-detail');
-
-    if (btn) btn.disabled = true;
-    if (btnText) btnText.classList.add('hidden');
-    if (btnLoader) btnLoader.classList.remove('hidden');
-    if (detailContainer) {
-        detailContainer.innerHTML = "";
-        detailContainer.classList.add('hidden');
-    }
-    
-    if (feedback) {
-        feedback.classList.remove('hidden');
-        feedback.innerHTML = '<span class="ai-status-text">Initialisation de l\'analyse expert...</span>';
-    }
-
-    // Rotation des messages pour masquer la latence du modèle Pro
-    const statusMessages = [
-        "Consultation des bases de données nutritionnelles (CIQUAL)...",
-        "Analyse de la densité calorique des ingrédients...",
-        "Calcul des ratios de macronutriments (Protéines/Glucides/Lipides)...",
-        "Évaluation des portions estimées selon l'expertise pro...",
-        "Finalisation de votre bilan nutritionnel expert..."
-    ];
-    let msgIndex = 0;
-    const statusInterval = setInterval(() => {
-        if (feedback) {
-            msgIndex = (msgIndex + 1) % statusMessages.length;
-            feedback.innerHTML = `<span class="ai-status-text">${statusMessages[msgIndex]}</span>`;
-        }
-    }, 3000);
-
-    try {
-        const prompt = `Tu es un expert en nutrition clinique de classe mondiale (Niveau Expert Pro). 
-Estimation précise pour : "${desc}".
-
-RÈGLES D'EXPERTISE :
-1. Utilise les bases CIQUAL/USDA.
-2. Décompose chaque ingrédient avec son poids estimé (ex: 1 œuf = 50g).
-3. INTERDICTION ABSOLUE d'ajouter des ingrédients non mentionnés (n'ajoute PAS de matière grasse, d'huile, de beurre ou de sauces si ce n'est pas explicitement écrit par l'utilisateur).
-4. Calcule précisément calories et protéines.
-5. Réponds EXCLUSIVEMENT en JSON strict.
-
-Format JSON :
-{
-  "total": { "calories": nombre, "protein": nombre },
-  "items": [
-    { "name": "Nom (quantité)", "calories": nombre, "protein": nombre }
-  ]
-}`;
-        
-        // On utilise la version 'flash' figée car elle est extrêmement rapide et économique (voire gratuite selon les quotas), parfaite pour des calculs simples en JSON.
-        // Système de Retry (Exponential Backoff) pour encaisser les surcharges serveurs (503) ou quotas (429) très fréquents sur les API gratuites.
-        let response;
-        let retries = 3;
-        let delay = 1000;
-
-        for (let i = 0; i < retries; i++) {
-            response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${apiKey}`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    contents: [{ parts: [{ text: prompt }] }],
-                    generationConfig: { 
-                        response_mime_type: "application/json",
-                        temperature: 0.0 // 0.0 = le modèle est 100% déterministe
-                    }
-                })
-            });
-
-            if (response.ok) break;
-
-            if (response.status === 503 || response.status === 429) {
-                console.warn(`Surcharge API Google (${response.status}). Nouvelle tentative dans ${delay}ms...`);
-                await new Promise(resolve => setTimeout(resolve, delay));
-                delay *= 2; // 1s, puis 2s, puis 4s
-            } else {
-                break; // Erreurs critiques (400, 403, 404)
-            }
-        }
-
-        clearInterval(statusInterval);
-
-        if (!response.ok) throw new Error(`Erreur API: ${response.status}`);
-
-        const data = await response.json();
-        const textResponse = data.candidates[0].content.parts[0].text;
-        const jsonResponse = JSON.parse(textResponse);
-
-        // Sauvegarde en cache pour la prochaine fois
-        localStorage.setItem(cacheKey, JSON.stringify(jsonResponse));
-
-        const totalCals = Math.round(jsonResponse.total?.calories || jsonResponse.calories || 0);
-        const totalProt = Math.round(jsonResponse.total?.protein || jsonResponse.protein || 0);
-
-        if (totalCals > 0 || totalProt > 0) {
-            document.getElementById('meal-cals').value = totalCals;
-            document.getElementById('meal-protein').value = totalProt;
-            
-            if (feedback) {
-                feedback.innerHTML = '<span style="color: var(--accent-success); font-weight: 800;">Analyse expert terminée ! ✨</span>';
-            }
-
-            if (detailContainer && jsonResponse.items && jsonResponse.items.length > 0) {
-                detailContainer.classList.remove('hidden');
-                let detailHtml = '<div style="font-size: 0.8rem; font-weight: 800; color: var(--text-muted); margin-bottom: 1rem; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px dashed #ddd; padding-bottom: 5px;">Composition détaillée (Pro) :</div>';
-                jsonResponse.items.forEach(item => {
-                    detailHtml += `
-                        <div class="ai-item-badge">
-                            <span class="ai-item-name">${item.name}</span>
-                            <div class="ai-item-macros">
-                                <span class="macro-pill cals">${Math.round(item.calories)} kcal</span>
-                                <span class="macro-pill prot">${Math.round(item.protein)}g prot</span>
-                            </div>
-                        </div>
-                    `;
-                });
-                detailContainer.innerHTML = detailHtml;
-            }
-        }
-    } catch (err) {
-        clearInterval(statusInterval);
-        console.error("AI Error:", err);
-        if (feedback) {
-            feedback.innerHTML = '<span style="color: var(--accent-danger); font-weight: 800;">⚠️ Échec de l\'expertise. Réessayez.</span>';
-        }
-    } finally {
-        if (btn) btn.disabled = false;
-        if (btnText) btnText.classList.remove('hidden');
-        if (btnLoader) btnLoader.classList.add('hidden');
-    }
-};
-
-// Listener pour le bouton IA
-document.addEventListener('DOMContentLoaded', () => {
-    const btnAi = document.getElementById('btn-ai-estimate');
-    if (btnAi) {
-        btnAi.addEventListener('click', window.estimateMealWithAI);
-    }
-});
 
 window.openActivityModal = function(editMode = false) {
     const modal = document.getElementById('activity-modal');
@@ -1315,12 +1099,12 @@ function updateDashboard() {
 
             li.innerHTML = `
                 <div class="history-title-group">
-                    <div class="history-title">${entry.name}</div>
+                    <div class="history-title">${escapeHtml(entry.name)}</div>
                     <div class="history-details">${details}</div>
                 </div>
                 <div class="history-actions">
-                    <button type="button" class="btn-edit" onclick="editEntry('${entry.id}')" title="Modifier">✎</button>
-                    <button type="button" class="btn-delete" onclick="deleteEntry('${entry.id}')" title="Supprimer">✕</button>
+                    <button type="button" class="btn-edit" onclick="editEntry('${escapeHtml(entry.id)}')" title="Modifier">✎</button>
+                    <button type="button" class="btn-delete" onclick="deleteEntry('${escapeHtml(entry.id)}')" title="Supprimer">✕</button>
                 </div>
             `;
             list.appendChild(li);

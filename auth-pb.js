@@ -6,6 +6,9 @@ const pb = new PocketBase(PB_URL);
 let currentUser = null;
 let lastUserId = null;
 
+const devLog = (...a) => window.PB_CONFIG?.isDev && window.console.log(...a);
+const devWarn = (...a) => window.PB_CONFIG?.isDev && window.console.warn(...a);
+
 // Initialisation
 document.addEventListener('DOMContentLoaded', () => {
     initAuth();
@@ -137,7 +140,7 @@ window.handleSignupSubmit = async function(e) {
             email,
             password,
             passwordConfirm: confirm,
-            emailVisibility: true,
+            emailVisibility: false,
             is_active: true
         });
 
@@ -221,7 +224,7 @@ async function updateUI(user) {
 
 async function migrateLegacyData(user, cloudState) {
     const userId = user.id;
-    console.warn("🚀 Migration des données legacy en cours...");
+    devWarn("🚀 Migration des données legacy en cours...");
 
     const mapType = (name) => {
         const n = name.toLowerCase();
@@ -235,7 +238,7 @@ async function migrateLegacyData(user, cloudState) {
     // 1. Profil
     if (cloudState.profile) {
         const p = cloudState.profile;
-        console.log("- Migration Profil...");
+        devLog("- Migration Profil...");
         try {
             // Mapping selon vos options exactes (Homme / Femme)
             const genderMap = {
@@ -264,10 +267,10 @@ async function migrateLegacyData(user, cloudState) {
             });
             
             if (list.items.length > 0) {
-                console.log("  (Mise à jour du profil ID: " + list.items[0].id + ")");
+                devLog("  (Mise à jour du profil ID: " + list.items[0].id + ")");
                 await pb.collection('profiles').update(list.items[0].id, profileData);
             } else {
-                console.log("  (Création d'un nouveau profil)");
+                devLog("  (Création d'un nouveau profil)");
                 await pb.collection('profiles').create(profileData);
             }
         } catch(e) { 
@@ -277,7 +280,7 @@ async function migrateLegacyData(user, cloudState) {
 
     // 2. Historique
     if (cloudState.history) {
-        console.log("- Migration Historique...");
+        devLog("- Migration Historique...");
         const dates = Object.keys(cloudState.history);
         for (const dateKey of dates) {
             const log = cloudState.history[dateKey];
@@ -321,7 +324,7 @@ async function migrateLegacyData(user, cloudState) {
 
     // 3. Pesées
     if (cloudState.weighIns) {
-        console.log("- Migration Pesées...");
+        devLog("- Migration Pesées...");
         for (const win of cloudState.weighIns) {
             const pbDate = toPBDate(win.date);
             if (!pbDate) continue;
@@ -335,14 +338,14 @@ async function migrateLegacyData(user, cloudState) {
         }
     }
 
-    console.log("✅ Migration terminée.");
+    devLog("✅ Migration terminée.");
 }
 
 // --- CHARGEMENT ---
 
 window.loadFromCloud = async (user) => {
     const userId = user.id;
-    console.log("Chargement des données Cloud...");
+    devLog("Chargement des données Cloud...");
 
     // Cas 1 : Migration nécessaire
     if (user.data) {
@@ -360,17 +363,17 @@ window.loadFromCloud = async (user) => {
         // --- RÉCUPÉRATION AUTOMATIQUE (Cas ID mismatch entre Prod et Dev) ---
         // SÉCURITÉ : Recherche par email si l'ID technique ne correspond pas
         if (!profile && user.email) {
-            console.log(`[PocketBase] Profil introuvable par ID (${userId}). Recherche par email (${user.email})...`);
+            devLog(`[PocketBase] Profil introuvable par ID (${userId}). Recherche par email (${user.email})...`);
             
             // On cherche un profil qui n'est pas encore lié au bon ID mais qui a le bon email (via la relation user)
             profile = await pb.collection('profiles').getFirstListItem(`user.email="${user.email}"`).catch(() => null);
             
             if (profile) {
-                console.log(`[PocketBase] ✓ Profil trouvé via email (${profile.id}). Tentative de rattachement...`);
+                devLog(`[PocketBase] ✓ Profil trouvé via email (${profile.id}). Tentative de rattachement...`);
                 try {
                     // On met à jour le profil pour le lier au nouvel ID technique local/prod
                     profile = await pb.collection('profiles').update(profile.id, { user: userId });
-                    console.log("[PocketBase] ✓ Profil rattaché avec succès.");
+                    devLog("[PocketBase] ✓ Profil rattaché avec succès.");
                 } catch(e) {
                     console.error("[PocketBase] ❌ Échec du rattachement du profil:", e);
                     // On garde quand même le profil pour l'affichage session, même si l'update DB a échoué
@@ -405,14 +408,14 @@ window.loadFromCloud = async (user) => {
 
             // Si l'ancien format détecté : resync immédiate du profil vers PocketBase avec le nouveau format
             if (needsMigration && profile.id) {
-                console.log('🔄 Migration du format customActivities dans PocketBase...');
+                devLog('🔄 Migration du format customActivities dans PocketBase...');
                 try {
                     await pb.collection('profiles').update(profile.id, {
                         customActivities: state.customActivities.map(a =>
                             typeof a === 'object' ? JSON.stringify({ name: a.name, cals: a.cals }) : a
                         )
                     });
-                    console.log('✅ Format customActivities migré dans PocketBase. Calories à 0 — utilisez "Gérer mes activités" pour les corriger.');
+                    devLog('✅ Format customActivities migré dans PocketBase. Calories à 0 — utilisez "Gérer mes activités" pour les corriger.');
                 } catch(e) {
                     console.error('❌ Erreur lors de la migration du format:', e);
                 }
@@ -438,7 +441,7 @@ window.loadFromCloud = async (user) => {
         // 4. Données complètes de l'historique (Suivi + Navigation)
         await loadFullHistory();
 
-        console.log("✓ Données relationnelles chargées.");
+        devLog("✓ Données relationnelles chargées.");
         if (typeof updateDashboard === 'function') updateDashboard();
     } catch (err) {
         console.error("Erreur de chargement Cloud:", err);
@@ -448,7 +451,7 @@ window.loadFromCloud = async (user) => {
 async function loadFullHistory() {
     if (!currentUser) return;
     const userId = currentUser.id;
-    console.log("Extraction de l'historique (6 derniers mois)...");
+    devLog("Extraction de l'historique (6 derniers mois)...");
     
     try {
         // Limite à 6 mois pour garantir les performances et couvrir tous les filtres du Suivi
@@ -612,7 +615,7 @@ window.syncToCloud = async () => {
         if (!existing && currentUser.email) {
             existing = await pb.collection('profiles').getFirstListItem(`user.email="${currentUser.email}"`, { requestKey: null }).catch(() => null);
             if (existing) {
-                console.log("[PocketBase] Doublon évité : un profil existe déjà pour cet email. Rattachement en cours...");
+                devLog("[PocketBase] Doublon évité : un profil existe déjà pour cet email. Rattachement en cours...");
                 await pb.collection('profiles').update(existing.id, { user: currentUser.id }, { requestKey: null });
             }
         }
@@ -620,7 +623,7 @@ window.syncToCloud = async () => {
         if (existing) {
             await pb.collection('profiles').update(existing.id, profileData, { requestKey: null });
         } else {
-            console.log("[PocketBase] Création d'un nouveau profil...");
+            devLog("[PocketBase] Création d'un nouveau profil...");
             await pb.collection('profiles').create(profileData, { requestKey: null });
         }
     } catch(e) {
@@ -660,7 +663,7 @@ window.pb_cleanupProfiles = async () => {
         return;
     }
     
-    console.log("Début du nettoyage des profils en double...");
+    devLog("Début du nettoyage des profils en double...");
     try {
         const profiles = await pb.collection('profiles').getFullList({ 
             filter: `user="${currentUser.id}"`,
@@ -668,7 +671,7 @@ window.pb_cleanupProfiles = async () => {
         });
 
         if (profiles.length <= 1) {
-            console.log("✓ Aucun doublon trouvé.");
+            devLog("✓ Aucun doublon trouvé.");
             return;
         }
 
@@ -676,13 +679,13 @@ window.pb_cleanupProfiles = async () => {
         const toKeep = profiles[0];
         const toDelete = profiles.slice(1);
 
-        console.log(`Profil à conserver : ${toKeep.id} (créé le ${toKeep.created})`);
+        devLog(`Profil à conserver : ${toKeep.id} (créé le ${toKeep.created})`);
         for (const p of toDelete) {
-            console.log(`Suppression du doublon : ${p.id} (créé le ${p.created})`);
+            devLog(`Suppression du doublon : ${p.id} (créé le ${p.created})`);
             await pb.collection('profiles').delete(p.id);
         }
         
-        console.log(`✓ Nettoyage terminé : ${toDelete.length} doublons supprimés.`);
+        devLog(`✓ Nettoyage terminé : ${toDelete.length} doublons supprimés.`);
     } catch (err) {
         console.error("Erreur durant le nettoyage :", err);
     }
@@ -715,7 +718,7 @@ window.pb_migrateMealTypes = async () => {
         return;
     }
     
-    console.log("Début de la migration des types de repas...");
+    devLog("Début de la migration des types de repas...");
     try {
         const meals = await pb.collection('meals').getFullList({ filter: `user="${currentUser.id}"` });
         let updatedCount = 0;
@@ -731,12 +734,12 @@ window.pb_migrateMealTypes = async () => {
 
             // Si le type a changé ou s'il était en PascalCase (ex: 'Snack')
             if (targetType !== meal.mealType) {
-                console.log(`Mise à jour meal ${meal.id} : "${meal.name}" -> ${targetType}`);
+                devLog(`Mise à jour meal ${meal.id} : "${meal.name}" -> ${targetType}`);
                 await pb.collection('meals').update(meal.id, { mealType: targetType });
                 updatedCount++;
             }
         }
-        console.log(`✓ Migration terminée : ${updatedCount} repas mis à jour.`);
+        devLog(`✓ Migration terminée : ${updatedCount} repas mis à jour.`);
         if (typeof updateDashboard === 'function') updateDashboard();
     } catch (err) {
         console.error("Erreur durant la migration :", err);
@@ -748,7 +751,7 @@ window.pb_deleteEntry = async (id, type) => {
     try {
         const collection = type === 'Repas' ? 'meals' : 'activities_log';
         await pb.collection(collection).delete(id);
-        console.log(`✓ ${type} supprimé du Cloud`);
+        devLog(`✓ ${type} supprimé du Cloud`);
     } catch(e) {
         console.error("Erreur suppression Cloud:", e);
     }
@@ -790,7 +793,7 @@ window.pb_saveWeighIn = async (win) => {
             const profile = await pb.collection('profiles').getFirstListItem(`user="${currentUser.id}"`).catch(() => null);
             if (profile) {
                 await pb.collection('profiles').update(profile.id, { weight: win.weight });
-                console.log(`✓ Poids du profil mis à jour : ${win.weight} kg`);
+                devLog(`✓ Poids du profil mis à jour : ${win.weight} kg`);
             }
         }
     } catch(e) {
@@ -816,7 +819,7 @@ window.pb_logGoalChange = async (goalValue) => {
         
         // Si la valeur est la même que le dernier enregistrement connu, on ignore (évite les doublons inutiles)
         if (lastEntry && lastEntry.goal === goalValue) {
-            console.log("✓ Objectif inchangé dans l'historique.");
+            devLog("✓ Objectif inchangé dans l'historique.");
             return;
         }
 
@@ -833,10 +836,10 @@ window.pb_logGoalChange = async (goalValue) => {
 
         if (todayEntry) {
             await pb.collection('goal_history').update(todayEntry.id, data);
-            console.log(`✓ Objectif du jour mis à jour dans l'historique : ${goalValue}`);
+            devLog(`✓ Objectif du jour mis à jour dans l'historique : ${goalValue}`);
         } else {
             await pb.collection('goal_history').create(data);
-            console.log(`✓ Nouvel objectif ajouté à l'historique : ${goalValue}`);
+            devLog(`✓ Nouvel objectif ajouté à l'historique : ${goalValue}`);
         }
     } catch (err) {
         if (!err.isAbort) {
@@ -852,14 +855,14 @@ window.pb_saveCustomActivities = async () => {
     try {
         const profile = await pb.collection('profiles').getFirstListItem(`user="${currentUser.id}"`, { requestKey: null }).catch(() => null);
         if (!profile) {
-            console.warn('⚠️ pb_saveCustomActivities : profil introuvable.');
+            devWarn('⚠️ pb_saveCustomActivities : profil introuvable.');
             return;
         }
         const serialized = (state.customActivities || []).map(a =>
             typeof a === 'object' ? JSON.stringify({ name: a.name, cals: a.cals }) : a
         );
         await pb.collection('profiles').update(profile.id, { customActivities: serialized }, { requestKey: null });
-        console.log('✅ customActivities sauvegardées dans PocketBase :', serialized);
+        devLog('✅ customActivities sauvegardées dans PocketBase :', serialized);
     } catch(e) {
         console.error('❌ Erreur pb_saveCustomActivities:', e.response?.data || e.message || e);
     }
@@ -869,7 +872,7 @@ window.pb_saveCustomActivities = async () => {
 function showAuthError(message) {
     const errorDiv = document.getElementById('auth-error');
     if (errorDiv) {
-        errorDiv.innerHTML = message; // innerHTML pour permettre les liens
+        errorDiv.textContent = message;
         errorDiv.classList.remove('hidden');
         
         // On augmente le délai pour les erreurs d'inscription (8s)
@@ -884,23 +887,21 @@ function showAuthError(message) {
 window.forceProfileLink = async () => {
     const user = pb.authStore.model;
     if (!user) return alert("Veuillez vous connecter.");
-    
+
     const btn = document.getElementById('btn-fix-profile');
     try {
         btn.innerText = "Recherche...";
-        // On récupère tous les profils (FullList car il y en a peu)
-        const allProfiles = await pb.collection('profiles').getFullList();
-        
-        // On cherche celui qui contient l'email dans son champ user (même si le lien est technically broken)
-        // Ou on cible l'ID spécifique vu dans le screenshot
-        const myProfile = allProfiles.find(p => p.user === user.email || p.id === "5rycbyingse1ohu");
-        
+        const profiles = await pb.collection('profiles').getFullList({
+            filter: `user = "${user.id}"`
+        });
+        const myProfile = profiles[0];
+
         if (myProfile) {
             await pb.collection('profiles').update(myProfile.id, { user: user.id });
             alert("✓ Profil rattaché avec succès ! L'application va redémarrer.");
             window.location.reload();
         } else {
-            alert("Aucun profil orphelin trouvé pour cet email (" + user.email + ").");
+            alert("Aucun profil trouvé pour ce compte.");
         }
     } catch(e) {
         console.error(e);

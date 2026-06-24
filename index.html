@@ -3,6 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; connect-src 'self' https://nutridash-pb.fly.dev http://127.0.0.1:8090 https://cdn.jsdelivr.net; font-src https://fonts.googleapis.com https://fonts.gstatic.com; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; frame-ancestors 'none';">
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
     <title>Dashboard Nutrition</title>
     <meta name="description" content="Application de suivi nutritionnel précis et moderne.">
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@600;700;800&display=swap" rel="stylesheet">
@@ -776,56 +778,40 @@
             <button type="button" class="close-btn" onclick="closeMealModal()">&times;</button>
             <h3>Saisie Journalière</h3>
             <form id="meal-form">
-                <div class="modal-grid">
-                    <div class="modal-col-left">
-                        <div class="form-group">
-                            <label for="meal-type">Repas</label>
-                            <select id="meal-type" required>
-                                <option value="breakfast">Petit-déjeuner</option>
-                                <option value="lunch">Déjeuner</option>
-                                <option value="snack">Collation</option>
-                                <option value="dinner">Dîner</option>
-                            </select>
-                        </div>
-                        
-                        <div class="ai-estimate-container">
-                            <div style="display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.75rem;">
-                                <span style="font-size: 1.4rem;">🪄</span>
-                                <strong style="color: var(--text-main); font-size: 0.95rem;">Estimation Magique (IA)</strong>
-                            </div>
-                            <div class="form-group" style="margin-bottom: 0.75rem;">
-                                <textarea id="ai-meal-desc" placeholder="Décrivez votre repas... (ex: Une salade César et une pomme)" style="width: 100%; min-height: 100px; padding: 0.75rem; border: 2px solid var(--border-color); border-radius: 8px; font-family: inherit; resize: vertical;"></textarea>
-                            </div>
-                            <button type="button" id="btn-ai-estimate" class="btn" style="width: 100%; background: var(--accent-secondary); color: white; display: flex; align-items: center; justify-content: center; gap: 0.5rem; font-weight: 800; border: 2px solid var(--border-color); border-radius: var(--radius-sm); transition: transform 0.2s ease;">
-                                <span id="btn-ai-text">✨ Estimer via IA</span>
-                                <div id="btn-ai-loader" class="ai-loader hidden"></div>
-                            </button>
-                        </div>
+                <div class="form-group">
+                    <label for="meal-type">Repas</label>
+                    <select id="meal-type" required>
+                        <option value="breakfast">Petit-déjeuner</option>
+                        <option value="lunch">Déjeuner</option>
+                        <option value="snack">Collation</option>
+                        <option value="dinner">Dîner</option>
+                    </select>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="meal-cals">Calories (kcal)</label>
+                        <input type="number" id="meal-cals" min="0" step="1" required>
                     </div>
-
-                    <div class="modal-col-right">
-                        <div id="ai-feedback" class="hidden" style="margin-bottom: 0.5rem;"></div>
-                        
-                        <div id="ai-items-detail" class="hidden">
-                            <!-- Les items seront ajoutés dynamiquement ici -->
-                        </div>
-
-                        <div class="form-row" style="margin-bottom: 0.5rem;">
-                            <div class="form-group form-group-macro">
-                                <label for="meal-cals" class="macro-icon-label cals">🔥 Calories (kcal)</label>
-                                <input type="number" id="meal-cals" class="modal-input-premium" min="0" step="1" required>
-                            </div>
-                            <div class="form-group form-group-macro">
-                                <label for="meal-protein" class="macro-icon-label prot">🥩 Protéines (g)</label>
-                                <input type="number" id="meal-protein" class="modal-input-premium" min="0" step="1" required>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="modal-full-width">
-                        <button type="submit" class="btn btn-primary" style="width:100%; margin-top: 0.5rem;">Ajouter le repas</button>
+                    <div class="form-group">
+                        <label for="meal-protein">Protéines (g)</label>
+                        <input type="number" id="meal-protein" min="0" step="0.1" required>
                     </div>
                 </div>
+
+                <div class="ai-hint" style="margin-bottom: 1rem; padding: 0.75rem; background: #e7f5ff; border-radius: var(--radius-sm); border: 2px dashed var(--accent-secondary); font-size: 0.85rem;">
+                    <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;">
+                        <span style="font-size: 1.2rem;">🤖</span>
+                        <strong style="color: var(--text-main);">Astuce IA</strong>
+                    </div>
+                    <p style="margin-bottom: 0.5rem; color: var(--text-muted); line-height: 1.4;">Pour être précis sans chercher, demandez à une IA (ex: ChatGPT) d'estimer vos macros :</p>
+                    <details>
+                        <summary style="color: var(--accent-secondary); font-weight: 800; cursor: pointer; outline: none;">Voir un exemple de prompt (à copier)</summary>
+                        <div style="margin-top: 0.5rem; padding: 0.75rem; background: #ffffff; border-radius: 4px; border: 1px solid var(--accent-secondary); font-style: italic; color: var(--text-main);">
+                            « J'ai mangé un steak haché 5% (100g), 150g de pâtes cuites et un peu de sauce tomate. Donne-moi uniquement le total estimé en Calories et en Protéines (g). »
+                        </div>
+                    </details>
+                </div>
+                <button type="submit" class="btn btn-primary" style="margin-top:1rem;">Ajouter le repas</button>
             </form>
         </div>
     </div>
