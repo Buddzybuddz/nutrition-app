@@ -7,633 +7,799 @@
     <meta http-equiv="X-Content-Type-Options" content="nosniff">
     <title>Dashboard Nutrition</title>
     <meta name="description" content="Application de suivi nutritionnel précis et moderne.">
-    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css?v=2">
     <link rel="icon" type="image/png" href="favicon.png">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3"></script>
     <script src="https://cdn.jsdelivr.net/npm/pocketbase/dist/pocketbase.umd.min.js"></script>
 </head>
 <body>
     <!-- Landing Page -->
     <div id="landing-page" class="landing-page">
-        <header class="landing-header">
-            <h1 class="logo" style="margin: 0;">Nutri<span>Dash</span></h1>
-            <div class="landing-nav">
-                <button class="btn btn-secondary login-btn" onclick="showAuthPage(false)">Connexion</button>
-            </div>
+
+        <!-- Header sticky -->
+        <header class="lp-header">
+            <span class="lp-logo">Nutri<span>Dash</span></span>
+            <nav class="lp-nav">
+                <button class="lp-btn-ghost" onclick="showAuthPage(false)">Connexion</button>
+            </nav>
         </header>
 
-        <section class="hero-section">
-            <div class="hero-content card" style="padding: 2.5rem; background: #ffffff;">
-                <h2>Maîtrisez votre nutrition, atteignez vos objectifs.</h2>
-                <p>NutriDash calcule vos besoins réels et suit votre apport en calories et protéines au quotidien. Pour une perte de poids ou une prise de masse sans prise de tête.</p>
-                <button class="btn btn-primary" style="width:auto; padding: 1rem 2rem; font-size: 1.1rem; border-color: var(--accent-warning); background: var(--accent-warning);" onclick="showAuthPage(true)">Démarrer gratuitement</button>
-            </div>
-            <div class="hero-image">
-                <img src="hero.png" alt="Ambiance NutriDash">
-            </div>
-        </section>
-
-        <section class="features-section">
-            <h2>Votre corps mérite mieux que des approximations.</h2>
-            <div class="features-grid">
-                <div class="card feature-card">
-                    <img src="icon_tdee.png" alt="TDEE" class="feature-icon-img">
-                    <h3 style="border: none; padding: 0;">Calculateur TDEE Intelligent</h3>
-                    <p style="color: var(--text-muted);">Découvrez instantanément combien de calories vous devez consommer pour atteindre votre objectif.</p>
-                    <img src="tdee.png" alt="Calcul TDEE" class="feature-mockup">
+        <!-- Hero -->
+        <section class="lp-hero">
+            <div class="lp-hero-inner">
+                <div class="lp-hero-content">
+                    <h1 class="lp-hero-title">Maîtrisez votre nutrition.</h1>
+                    <p class="lp-hero-subtitle">Calculez vos besoins réels, suivez vos calories et atteignez vos objectifs avec précision.</p>
+                    <button class="lp-btn-primary" onclick="showAuthPage(true)">Démarrer gratuitement &rarr;</button>
+                    <p class="lp-hero-meta">&#10003; 14 jours gratuits &nbsp;&nbsp;&#10003; Sans engagement</p>
                 </div>
-                <div class="card feature-card">
-                    <img src="icon_dashboard.png" alt="Dashboard" class="feature-icon-img">
-                    <h3 style="border: none; padding: 0;">Journal de bord intuitif</h3>
-                    <p style="color: var(--text-muted);">Ajoutez vos repas et vos activités puis suivez vos calories et vos protéines.</p>
-                    <img src="dashboard.png" alt="Dashboard" class="feature-mockup">
-                </div>
-                <div class="card feature-card">
-                    <img src="icon_history.png" alt="Historique" class="feature-icon-img">
-                    <h3 style="border: none; padding: 0;">Analyse de l'évolution</h3>
-                    <p style="color: var(--text-muted);">Surveillez votre évolution grâce au suivi détaillé. Fiez-vous aux données.</p>
-                    <img src="history.png" alt="Historique" class="feature-mockup">
+                <div class="lp-hero-image">
+                    <img src="hero.png" alt="Aperçu de l'application NutriDash">
                 </div>
             </div>
         </section>
 
-        <section class="process-section">
-            <h2 style="color: var(--text-main); display: flex; align-items: center; justify-content: center; gap: 15px;">
-                <img src="rocket_3d.png" alt="Rocket" style="width: 60px; height: 60px; mix-blend-mode: multiply;">
-                Le Process NutriDash : Votre Méthode vers le Succès
-            </h2>
-            <p style="max-width: 800px; margin: 0 auto 3rem; line-height: 1.6;">Pour obtenir des résultats visibles et durables, la clé n'est pas la restriction, mais la précision. Voici le parcours éprouvé par la communauté NutriDash.</p>
-            
-            <div class="process-grid">
-                <div class="card process-step">
-                    <img src="pin_3d.png" alt="Step 1" class="process-icon-img">
-                    <h3>Étape 1 : Fixer le Cap</h3>
-                    <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 1rem;">Personnaliser votre profil : </p>
-                    <ul>
-                        <li>Identité métabolique (âge, poids, taille)</li>
-                        <li>Choix de l'objectif (Sèche, Masse, Maintien)</li>
-                        <li>Calcul automatique de votre budget kcal/prot</li>
+        <!-- Features -->
+        <section class="lp-features">
+            <div class="lp-section-inner">
+                <h2 class="lp-section-title">Votre corps mérite mieux que des approximations.</h2>
+                <div class="lp-features-grid">
+                    <div class="lp-feature-card">
+                        <img src="icon_tdee.png" alt="TDEE" class="lp-feature-icon">
+                        <h3 class="lp-feature-title">Calculateur TDEE Intelligent</h3>
+                        <p class="lp-feature-text">Découvrez instantanément combien de calories vous devez consommer pour atteindre votre objectif.</p>
+                        <img src="tdee.png" alt="Calcul TDEE" class="lp-feature-mockup">
+                    </div>
+                    <div class="lp-feature-card">
+                        <img src="icon_dashboard.png" alt="Dashboard" class="lp-feature-icon">
+                        <h3 class="lp-feature-title">Journal de bord intuitif</h3>
+                        <p class="lp-feature-text">Ajoutez vos repas et vos activités puis suivez vos calories et vos protéines.</p>
+                        <img src="dashboard.png" alt="Dashboard" class="lp-feature-mockup">
+                    </div>
+                    <div class="lp-feature-card">
+                        <img src="icon_history.png" alt="Historique" class="lp-feature-icon">
+                        <h3 class="lp-feature-title">Analyse de l'évolution</h3>
+                        <p class="lp-feature-text">Surveillez votre évolution grâce au suivi détaillé. Fiez-vous aux données.</p>
+                        <img src="history.png" alt="Historique" class="lp-feature-mockup">
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Process -->
+        <section class="lp-process">
+            <div class="lp-section-inner">
+                <h2 class="lp-section-title">Le Process NutriDash</h2>
+                <p class="lp-process-intro">Pour obtenir des résultats visibles et durables, la clé n'est pas la restriction, mais la précision.</p>
+                <div class="lp-process-grid">
+                    <div class="lp-process-step">
+                        <div class="lp-step-number" aria-hidden="true">1</div>
+                        <div class="lp-step-body">
+                            <h3 class="lp-step-title">Fixer le cap</h3>
+                            <ul class="lp-step-list">
+                                <li>Identité métabolique (âge, poids, taille)</li>
+                                <li>Choix de l'objectif (Sèche, Masse, Maintien)</li>
+                                <li>Calcul automatique de votre budget kcal/prot</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="lp-process-step">
+                        <div class="lp-step-number" aria-hidden="true">2</div>
+                        <div class="lp-step-body">
+                            <h3 class="lp-step-title">Piloter au quotidien</h3>
+                            <ul class="lp-step-list">
+                                <li>Saisie des repas en moins de 20 secondes</li>
+                                <li>Saisie de l'activité physique</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="lp-process-step">
+                        <div class="lp-step-number" aria-hidden="true">3</div>
+                        <div class="lp-step-body">
+                            <h3 class="lp-step-title">Analyser &amp; Ajuster</h3>
+                            <ul class="lp-step-list">
+                                <li>Rendez-vous hebdomadaire de pesée</li>
+                                <li>Suivi de votre objectif</li>
+                                <li>Ajustement basé sur les données réelles</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="lp-process-highlight">
+                    <p>L'avantage NutriDash : ce process élimine l'incertitude. Vous ne "testez" pas un régime, vous pilotez vos résultats.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Tarif -->
+        <section class="lp-pricing">
+            <div class="lp-section-inner">
+                <h2 class="lp-section-title">Tarif Simple &amp; Transparent</h2>
+                <div class="lp-pricing-card">
+                    <div class="lp-pricing-badge">14 jours gratuits</div>
+                    <div class="lp-pricing-price">
+                        <span class="lp-price-amount">10€</span>
+                        <span class="lp-price-period">/ mois</span>
+                    </div>
+                    <ul class="lp-pricing-list">
+                        <li>
+                            <svg class="lp-check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+                            Accès complet à toutes les fonctionnalités
+                        </li>
+                        <li>
+                            <svg class="lp-check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+                            Synchronisation cloud illimitée
+                        </li>
+                        <li>
+                            <svg class="lp-check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+                            Historique illimité
+                        </li>
+                        <li>
+                            <svg class="lp-check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+                            Sans engagement, résiliation à tout moment
+                        </li>
                     </ul>
+                    <button class="lp-btn-white" onclick="showAuthPage(true)">Commencer l'essai &rarr;</button>
                 </div>
-                <div class="card process-step">
-                    <img src="salad_3d.png" alt="Step 2" class="process-icon-img">
-                    <h3>Étape 2 : Le Pilotage Quotidien</h3>
-                    <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 1rem;">2 actions simples : </p>
-                    <ul>
-                        <li>Saisie des repas</li>
-                        <li>Saisie de l'activité physique</li>
-                    </ul>
-                </div>
-                <div class="card process-step">
-                    <img src="growth_3d.png" alt="Step 3" class="process-icon-img">
-                    <h3>Étape 3 : Analyse & Ajustement</h3>
-                    <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 1rem;">Votre suivi quand vous le désirez : </p>
-                    <ul>
-                        <li>Rendez-vous hebdomadaire de pesée</li>
-                        <li>Suivi de votre objectif</li>
-                        <li>Ajustement basé sur les données réelles</li>
-                    </ul>
-                </div>
-            </div>
-            
-            <div style="margin-top: 3rem; background: var(--accent-secondary); color: white; padding: 1.5rem; border-radius: var(--radius-sm); max-width: 900px; margin-left: auto; margin-right: auto; display: flex; align-items: center; gap: 1rem; text-align: left;">
-                <span style="font-size: 1.5rem;">💡</span>
-                <p style="margin: 0; font-weight: 600;">L'avantage NutriDash : Ce process élimine l'incertitude. Vous ne "testez" pas un régime, vous pilotez vos résultats.</p>
             </div>
         </section>
 
-        <!-- Section Tarifs -->
-        <section class="pricing-section" style="padding: 4rem 2rem; background: #fff3bf; text-align: center; border-top: var(--border-thick); border-bottom: var(--border-thick);">
-            <h2 style="font-size: 2.8rem; margin-bottom: 3rem; text-shadow: 2px 2px 0 #fff;">Tarif Simple & Transparent</h2>
-            
-            <div class="card pricing-card" style="max-width: 450px; margin: 0 auto; padding: 2.5rem; border: var(--border-thick); border-radius: 36px; box-shadow: 12px 12px 0px var(--border-color); background: #ffffff; transition: transform 0.3s ease, box-shadow 0.3s ease;">
-                <img src="icon_crown.png" alt="Premium" style="width: 100px; height: 100px; object-fit: contain; margin-bottom: 1.5rem; mix-blend-mode: multiply;">
-                
-                <div style="font-size: 2.5rem; font-family: var(--font-heading); color: var(--text-main); margin-bottom: 0.5rem;">
-                    10€ <span style="font-size: 1.2rem; color: var(--text-muted); font-family: var(--font-main);">/ mois</span>
+        <!-- Goals -->
+        <section class="lp-goals">
+            <div class="lp-goals-inner">
+                <div class="lp-goals-image">
+                    <img src="targets.png" alt="Sèche vs Masse">
                 </div>
-                
-                <div style="font-size: 1.1rem; color: var(--accent-success); font-weight: 800; margin-bottom: 2rem; background: #e3fafc; padding: 0.5rem; border-radius: var(--radius-sm); border: 2px solid var(--accent-success); display: flex; align-items: center; justify-content: center; gap: 8px;">
-                    <img src="icon_gift.png" alt="Cadeau" style="width: 28px; height: 28px; mix-blend-mode: multiply;"> Essai gratuit pendant 2 semaines !
+                <div class="lp-goals-content">
+                    <h2 class="lp-goals-title">Choisissez votre chemin : Sèche ou Masse.</h2>
+                    <p class="lp-goals-text">Construire du muscle ou fondre à vue d'œil ? NutriDash adapte votre objectif journalier instantanément avec des cibles caloriques ajustées (-10% à +10%).</p>
+                    <button class="lp-btn-secondary" onclick="showAuthPage(true)">Créer mon compte gratuit</button>
                 </div>
-                
-                <ul style="list-style: none; padding: 0; text-align: left; margin-bottom: 2.5rem;">
-                    <li style="margin-bottom: 1.25rem; position: relative; padding-left: 2.2rem; font-weight: 700; font-size: 1.1rem; line-height: 1.4;">
-                        <img src="icon_check.png" alt="Ok" style="width: 24px; height: 24px; position: absolute; left: 0; top: 0px; mix-blend-mode: multiply;">
-                        Sans engagement, tu peux résilier à tout moment.
-                    </li>
-                    <li style="margin-bottom: 1.25rem; position: relative; padding-left: 2.2rem; font-weight: 700; font-size: 1.1rem; line-height: 1.4;">
-                        <img src="icon_warning.png" alt="Attention" style="width: 24px; height: 24px; position: absolute; left: 0; top: 0px; mix-blend-mode: multiply;">
-                        Pas de remboursement, chaque période entamée est due.
-                    </li>
-                </ul>
-                
-                <button class="btn btn-primary" style="width: 100%; font-size: 1.3rem; padding: 1.25rem; border-radius: var(--radius-lg); box-shadow: 6px 6px 0px var(--border-color);" onclick="showAuthPage(true)">
-                    Démarrer maintenant
-                </button>
             </div>
         </section>
 
-        <section class="goals-section">
-            <div class="goals-content card" style="padding: 2.5rem; background: #ffffff;">
-                <h2>Choisissez votre chemin : Sèche ou Masse.</h2>
-                <p>Construire du muscle ou fondre à vue d'œil ? NutriDash adapte votre objectif journalier instantanément avec des cibles caloriques ajustées (-10% à +10%).</p>
-                <button class="btn btn-secondary" style="width:auto; padding: 1rem 2rem; font-size: 1.1rem;" onclick="showAuthPage(true)">Créer mon compte gratuit</button>
+        <!-- Footer -->
+        <footer class="lp-footer">
+            <div class="lp-footer-inner">
+                <span class="lp-logo lp-logo-white">NutriDash</span>
+                <p class="lp-footer-copy">&copy; 2026 NutriDash</p>
+                <nav class="lp-footer-links">
+                    <a href="/cgu.html" target="_blank" rel="noopener">CGU</a>
+                    <span aria-hidden="true">&middot;</span>
+                    <a href="/confidentialite.html" target="_blank" rel="noopener">Confidentialité</a>
+                </nav>
             </div>
-            <div class="goals-image">
-                <img src="targets.png" alt="Sèche vs Masse">
-            </div>
-        </section>
-
-        <footer class="landing-footer">
-            <h1 class="logo" style="font-size: 1.5rem; margin-bottom: 0.5rem;">Nutri<span>Dash</span></h1>
-            <p style="color: var(--text-muted); font-size: 0.9rem;">Plus de calculs mentaux. Juste vos résultats.</p>
         </footer>
+
     </div>
 
     <!-- Auth Screen -->
     <div id="auth-screen" class="auth-screen hidden">
-        <div class="auth-container card">
-            <button onclick="window.showLandingPage()" style="background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:1rem; margin-bottom:1rem; display:flex; align-items:center; padding:0; font-weight:700;">
-                <svg width="20" height="20" fill="currentColor" style="margin-right:6px" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8z"/></svg>
-                Accueil
+        <div class="auth-container">
+
+            <!-- Lien retour -->
+            <button class="auth-back-btn" onclick="window.showLandingPage()">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+                Retour à l'accueil
             </button>
-            <h1 class="logo" style="text-align:center; margin-bottom:1.5rem;">Nutri<span>Dash</span></h1>
-            
-            <div id="auth-error" class="auth-error hidden"></div>
 
-            <!-- Login Form -->
+            <!-- Logo -->
+            <div class="auth-logo" aria-label="NutriDash">NutriDash</div>
+
+            <!-- Bannière d'erreur — le JS écrit directement textContent ici -->
+            <div id="auth-error" class="auth-error hidden" role="alert"></div>
+
+            <!-- ==================== LOGIN FORM ==================== -->
             <form id="login-form" onsubmit="event.preventDefault(); if(window.handleLoginSubmit) window.handleLoginSubmit(event);">
-                <h3 style="text-align:center; margin-bottom:1rem;">Connexion</h3>
-                <div class="form-group">
-                    <label for="login-email">Email</label>
-                    <input type="email" id="login-email" required placeholder="votre@email.com">
+
+                <div class="auth-form-header">
+                    <h2 class="auth-form-title">Bon retour !</h2>
+                    <p class="auth-form-subtitle">Connectez-vous pour retrouver vos données.</p>
                 </div>
-                <div class="form-group">
+
+                <!-- Email -->
+                <div class="auth-input-group">
+                    <svg class="auth-input-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                    <input type="email" id="login-email" name="email" required autocomplete="email" placeholder=" ">
+                    <label for="login-email">Adresse email</label>
+                </div>
+
+                <!-- Mot de passe -->
+                <div class="auth-input-group">
+                    <svg class="auth-input-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                    <input type="password" id="login-password" name="password" required minlength="8" autocomplete="current-password" placeholder=" ">
                     <label for="login-password">Mot de passe</label>
-                    <input type="password" id="login-password" required minlength="8" placeholder="Min. 8 caractères">
+                    <button type="button" class="auth-eye-btn" aria-label="Afficher le mot de passe" onclick="togglePasswordVisibility('login-password', this)">
+                        <svg class="eye-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                        <svg class="eye-off-icon hidden" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                    </button>
                 </div>
-                <button type="submit" class="btn btn-primary" style="width:100%; margin-bottom:1rem;">Se connecter</button>
-                <p style="text-align:center; font-size:0.9rem;">
-                    <a href="#" id="show-reset" onclick="event.preventDefault(); window.showResetForm();" style="color: var(--accent-secondary);">Mot de passe oublié ?</a>
-                </p>
-                <p style="text-align:center; font-size:0.9rem; margin-top:0.5rem;">
-                    Pas encore de compte ? <a href="#" id="show-signup" onclick="event.preventDefault(); window.showSignupForm();" style="color: var(--accent-primary); font-weight:700;">S'inscrire</a>
-                </p>
+
+                <!-- Lien mot de passe oublié -->
+                <div class="auth-forgot-wrap">
+                    <a href="#" id="show-reset" class="auth-link-small" onclick="event.preventDefault(); window.showResetForm();">Mot de passe oublié ?</a>
+                </div>
+
+                <!-- CTA principal -->
+                <button type="submit" class="auth-btn-primary">Se connecter &rarr;</button>
+
+                <!-- Séparateur -->
+                <div class="auth-separator" aria-hidden="true">
+                    <span class="auth-separator-line"></span>
+                    <span class="auth-separator-text">ou</span>
+                    <span class="auth-separator-line"></span>
+                </div>
+
+                <!-- CTA secondaire -->
+                <p class="auth-switch-text">Pas encore de compte ?</p>
+                <button type="button" class="auth-btn-secondary" id="show-signup" onclick="window.showSignupForm()">Créer un compte</button>
+
             </form>
 
-            <!-- Signup Form -->
+            <!-- ==================== SIGNUP FORM ==================== -->
             <form id="signup-form" class="hidden" onsubmit="event.preventDefault(); if(window.handleSignupSubmit) window.handleSignupSubmit(event);">
-                <h3 style="text-align:center; margin-bottom:1rem;">Créer un compte</h3>
-                <div class="form-group">
-                    <label for="signup-email">Email</label>
-                    <input type="email" id="signup-email" required placeholder="votre@email.com">
+
+                <div class="auth-form-header">
+                    <h2 class="auth-form-title">Créez votre compte gratuitement.</h2>
+                    <p class="auth-form-subtitle">14 jours d'essai offerts.</p>
                 </div>
-                <div class="form-group">
+
+                <!-- Email -->
+                <div class="auth-input-group">
+                    <svg class="auth-input-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                    <input type="email" id="signup-email" name="email" required autocomplete="email" placeholder=" ">
+                    <label for="signup-email">Adresse email</label>
+                </div>
+
+                <!-- Mot de passe -->
+                <div class="auth-input-group">
+                    <svg class="auth-input-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                    <input type="password" id="signup-password" name="password" required minlength="8" autocomplete="new-password" placeholder=" ">
                     <label for="signup-password">Mot de passe</label>
-                    <input type="password" id="signup-password" required minlength="8" placeholder="Min. 8 caractères">
+                    <button type="button" class="auth-eye-btn" aria-label="Afficher le mot de passe" onclick="togglePasswordVisibility('signup-password', this)">
+                        <svg class="eye-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                        <svg class="eye-off-icon hidden" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                    </button>
                 </div>
-                <div class="form-group">
+
+                <!-- Confirmer mot de passe -->
+                <div class="auth-input-group">
+                    <svg class="auth-input-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                    <input type="password" id="signup-confirm" name="confirm" required minlength="8" autocomplete="new-password" placeholder=" ">
                     <label for="signup-confirm">Confirmer le mot de passe</label>
-                    <input type="password" id="signup-confirm" required minlength="8" placeholder="Confirmer">
+                    <button type="button" class="auth-eye-btn" aria-label="Afficher le mot de passe" onclick="togglePasswordVisibility('signup-confirm', this)">
+                        <svg class="eye-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                        <svg class="eye-off-icon hidden" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                    </button>
                 </div>
-                <button type="submit" class="btn btn-primary" style="width:100%; margin-bottom:1rem;">Créer le compte</button>
-                <p style="text-align:center; font-size:0.9rem;">
-                    Déjà un compte ? <a href="#" id="show-login" onclick="event.preventDefault(); window.showLoginForm();" style="color: var(--accent-primary); font-weight:700;">Se connecter</a>
+
+                <!-- Bloc RGPD -->
+                <div class="auth-rgpd-block">
+                    <label class="auth-rgpd-label" for="rgpd-consent">
+                        <span class="auth-rgpd-checkbox-wrap">
+                            <input type="checkbox" id="rgpd-consent" name="rgpd">
+                            <span class="auth-rgpd-custom-checkbox" aria-hidden="true">
+                                <svg class="auth-rgpd-check" width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="2 6 5 9 10 3"/></svg>
+                            </span>
+                        </span>
+                        <span class="auth-rgpd-text">
+                            J'ai lu et j'accepte les <a href="/cgu.html" target="_blank" rel="noopener" class="auth-rgpd-link" onclick="event.stopPropagation()">Conditions Générales d'Utilisation</a> et la <a href="/confidentialite.html" target="_blank" rel="noopener" class="auth-rgpd-link" onclick="event.stopPropagation()">Politique de confidentialité</a>.
+                            <span class="auth-rgpd-note">Obligatoire pour créer votre compte.</span>
+                        </span>
+                    </label>
+                </div>
+
+                <!-- CTA -->
+                <button type="submit" id="signup-submit-btn" class="auth-btn-primary btn-disabled" disabled>Créer mon compte &rarr;</button>
+
+                <!-- Lien connexion -->
+                <p class="auth-switch-text" style="text-align:center; margin-top:16px;">
+                    Déjà un compte ? <a href="#" id="show-login" class="auth-link-inline" onclick="event.preventDefault(); window.showLoginForm();">Me connecter</a>
                 </p>
+
             </form>
 
-            <!-- Reset Form -->
+            <!-- ==================== RESET FORM ==================== -->
             <form id="reset-form" class="hidden" onsubmit="event.preventDefault(); if(window.handleResetSubmit) window.handleResetSubmit(event);">
-                <h3 style="text-align:center; margin-bottom:1rem;">Réinitialiser le mot de passe</h3>
-                <div class="form-group">
-                    <label for="reset-email">Email</label>
-                    <input type="email" id="reset-email" required placeholder="votre@email.com">
+
+                <div class="auth-form-header">
+                    <h2 class="auth-form-title">Mot de passe oublié ?</h2>
+                    <p class="auth-form-subtitle">Entrez votre email et nous vous enverrons un lien de réinitialisation.</p>
                 </div>
-                <button type="submit" class="btn btn-primary" style="width:100%; margin-bottom:1rem;">Envoyer le lien</button>
-                <p style="text-align:center; font-size:0.9rem;">
-                    <a href="#" id="show-login-from-reset" onclick="event.preventDefault(); window.showLoginForm();" style="color: var(--accent-primary); font-weight:700;">Retour à la connexion</a>
-                </p>
+
+                <!-- Email -->
+                <div class="auth-input-group">
+                    <svg class="auth-input-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                    <input type="email" id="reset-email" name="email" required autocomplete="email" placeholder=" ">
+                    <label for="reset-email">Adresse email</label>
+                </div>
+
+                <!-- CTA -->
+                <button type="submit" class="auth-btn-primary">Envoyer le lien &rarr;</button>
+
+                <!-- Bloc succès (caché par défaut) -->
+                <div id="reset-success" class="auth-success-block hidden" role="status">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="9 12 11 14 15 10"/></svg>
+                    <span>Email envoyé ! Vérifiez votre boîte mail. Le lien est valable 15&nbsp;min.</span>
+                </div>
+
+                <!-- Retour connexion -->
+                <div style="text-align:center; margin-top:20px;">
+                    <a href="#" id="show-login-from-reset" class="auth-link-back" onclick="event.preventDefault(); window.showLoginForm();">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+                        Retour à la connexion
+                    </a>
+                </div>
+
             </form>
+
         </div>
     </div>
+
+    <script>
+    /* Toggle visibilité mot de passe */
+    function togglePasswordVisibility(inputId, btn) {
+        var input = document.getElementById(inputId);
+        var eyeOn = btn.querySelector('.eye-icon');
+        var eyeOff = btn.querySelector('.eye-off-icon');
+        if (input.type === 'password') {
+            input.type = 'text';
+            eyeOn.classList.add('hidden');
+            eyeOff.classList.remove('hidden');
+            btn.setAttribute('aria-label', 'Masquer le mot de passe');
+        } else {
+            input.type = 'password';
+            eyeOn.classList.remove('hidden');
+            eyeOff.classList.add('hidden');
+            btn.setAttribute('aria-label', 'Afficher le mot de passe');
+        }
+    }
+
+    /* Activation bouton inscription selon checkbox RGPD */
+    document.addEventListener('DOMContentLoaded', function() {
+        var rgpdCheckbox = document.getElementById('rgpd-consent');
+        var signupBtn = document.getElementById('signup-submit-btn');
+        if (rgpdCheckbox && signupBtn) {
+            function updateSignupBtn() {
+                if (rgpdCheckbox.checked) {
+                    signupBtn.disabled = false;
+                    signupBtn.classList.remove('btn-disabled');
+                } else {
+                    signupBtn.disabled = true;
+                    signupBtn.classList.add('btn-disabled');
+                }
+            }
+            rgpdCheckbox.addEventListener('change', updateSignupBtn);
+            updateSignupBtn();
+        }
+    });
+    </script>
     <div id="app" class="dashboard-layout hidden">
         <!-- Sidebar / Header -->
         <header class="sidebar">
-            <h1 class="logo" style="margin-bottom: 0.5rem;">Nutri<span>Dash</span></h1>
+            <h1 class="logo">Nutri<span>Dash</span></h1>
 
             <nav>
-                <button class="nav-btn active" data-target="dashboard-view">Tableau de bord</button>
-                <button class="nav-btn" data-target="profile-view">Profil</button>
-                <button class="nav-btn" data-target="history-view">Suivi</button>
-                <button class="nav-btn" data-target="advice-view">Conseils</button>
+                <button class="nav-btn active" data-target="dashboard-view">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                    Accueil
+                </button>
+                <button class="nav-btn" data-target="history-view">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+                    Suivi
+                </button>
+                <button class="nav-btn" data-target="advice-view">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                    Conseils
+                </button>
+                <button class="nav-btn" data-target="profile-view">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                    Profil
+                </button>
             </nav>
         </header>
 
         <!-- Main Content -->
         <main class="main-content">
             <!-- Profil View -->
+            <!-- Profile View — E-07 V2 Soft Modern -->
             <section id="profile-view" class="view hidden">
-                <h2>Votre Profil</h2>
-                <div class="card profile-header-card">
-                    <div class="profile-email-container">
-                        <span style="font-weight: 800; color: var(--text-main);">Compte :</span> 
-                        <span id="user-email" style="color: var(--accent-secondary); word-break: break-all;"></span>
+
+                <!-- En-tête compte -->
+                <div class="pv-account-card">
+                    <div class="pv-avatar">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
                     </div>
-                    <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
-                        <button id="logout-btn" class="btn logout-btn">Déconnexion</button>
-                        <button id="btn-fix-profile" onclick="window.forceProfileLink()" class="btn hidden" style="background: var(--accent-warning); color: var(--text-main); font-size: 0.8rem; font-weight: 800; border: 2px solid var(--border-color); box-shadow: 3px 3px 0 var(--border-color); margin-left: 8px;">🚀 Rattacher mon profil</button>
+                    <div class="pv-account-info">
+                        <span class="pv-account-label">Compte connecté</span>
+                        <span class="pv-account-email" id="user-email">—</span>
+                    </div>
+                    <button id="logout-btn" class="pv-logout-btn" aria-label="Déconnexion">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                        <span>Déconnexion</span>
+                    </button>
+                </div>
+
+                <!-- Bouton debug caché -->
+                <button id="btn-fix-profile" onclick="window.forceProfileLink()" class="btn hidden" style="display:none;margin-bottom:12px;font-size:12px;background:var(--color-accent,#E07A5F);color:#fff;border:none;border-radius:10px;padding:8px 14px;">Rattacher mon profil</button>
+
+                <!-- Formulaire profil -->
+                <form id="profile-form" class="pv-form-card">
+                    <h3 class="pv-section-title">Mes informations</h3>
+
+                    <div class="form-group">
+                        <label for="birthDate" class="pv-label">Date de naissance</label>
+                        <input type="date" id="birthDate" class="pv-input" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="gender" class="pv-label">Sexe biologique</label>
+                        <div class="select-wrapper">
+                            <select id="gender" class="pv-select" required>
+                                <option value="Homme">Homme</option>
+                                <option value="Femme">Femme</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="pv-row">
+                        <div class="form-group">
+                            <label for="weight" class="pv-label">Poids actuel</label>
+                            <div class="pv-input-unit">
+                                <input type="number" id="weight" class="pv-input" min="1" step="0.1" placeholder="70" required>
+                                <span class="pv-unit">kg</span>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="height" class="pv-label">Taille</label>
+                            <div class="pv-input-unit">
+                                <input type="number" id="height" class="pv-input" min="1" step="1" placeholder="175" required>
+                                <span class="pv-unit">cm</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="goal" class="pv-label">Objectif</label>
+                        <div class="select-wrapper">
+                            <select id="goal" class="pv-select" required>
+                                <option value="maintenance" selected>Maintien du poids</option>
+                                <option value="loss">Perte de poids / Sèche</option>
+                                <option value="gain">Prise de masse propre</option>
+                            </select>
+                        </div>
+                        <p class="pv-hint">Un ajustement de 10 % est idéal — suffisant pour agir sans fatigue ni risque de perte musculaire.</p>
+                    </div>
+
+                    <div class="form-group hidden" id="target-weight-group">
+                        <label for="targetWeight" class="pv-label">Poids visé</label>
+                        <div class="pv-input-unit">
+                            <input type="number" id="targetWeight" class="pv-input" step="0.1" min="10" placeholder="Ex : 70">
+                            <span class="pv-unit">kg</span>
+                        </div>
+                        <span id="ideal-weight-suggestion" class="pv-suggestion">Suggéré : --</span>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="weighInDay" class="pv-label">Jour de pesée hebdo</label>
+                        <div class="select-wrapper">
+                            <select id="weighInDay" class="pv-select" required>
+                                <option value="1" selected>Lundi</option>
+                                <option value="2">Mardi</option>
+                                <option value="3">Mercredi</option>
+                                <option value="4">Jeudi</option>
+                                <option value="5">Vendredi</option>
+                                <option value="6">Samedi</option>
+                                <option value="0">Dimanche</option>
+                        </select>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary pv-submit-btn">Enregistrer</button>
+                </form>
+
+                <!-- Stats BMR / TDEE -->
+                <div id="profile-stats" class="pv-stats-card hidden">
+                    <div class="pv-stat-row">
+                        <div class="pv-stat-box">
+                            <span class="pv-stat-label">BMR estimé</span>
+                            <span class="pv-stat-value" id="display-bmr">--</span>
+                            <span class="pv-stat-unit">kcal / repos</span>
+                        </div>
+                        <div class="pv-stat-sep"></div>
+                        <div class="pv-stat-box">
+                            <span class="pv-stat-label">TDEE</span>
+                            <span class="pv-stat-value" id="display-tdee">--</span>
+                            <span class="pv-stat-unit">kcal / activité</span>
+                        </div>
+                    </div>
+                    <p class="pv-stats-note">BMR = dépenses au repos total &nbsp;&bull;&nbsp; TDEE = avec activité sédentaire</p>
+                </div>
+
+                <!-- Section RGPD -->
+                <div class="pv-rgpd-card">
+                    <h3 class="pv-section-title">Mes données</h3>
+                    <p class="pv-hint" style="margin-bottom:16px;">Vous avez le droit d'accéder, d'exporter ou de supprimer vos données à tout moment (RGPD).</p>
+
+                    <div class="pv-rgpd-actions">
+                        <button type="button" class="pv-rgpd-btn" id="btn-export-json">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                            Exporter en JSON
+                        </button>
+                        <button type="button" class="pv-rgpd-btn" id="btn-export-csv">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                            Exporter en CSV
+                        </button>
+                    </div>
+
+                    <div class="pv-danger-zone">
+                        <button type="button" class="pv-danger-btn" id="btn-delete-account">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+                            Supprimer mon compte et mes données
+                        </button>
                     </div>
                 </div>
 
-                <form id="profile-form" class="card">
-                    <div class="form-group">
-                        <label for="birthDate">Date de naissance</label>
-                        <input type="date" id="birthDate" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="gender">Sexe</label>
-                        <select id="gender" required>
-                            <option value="Homme">Homme</option>
-                            <option value="Femme">Femme</option>
-                        </select>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="weight">Poids (kg)</label>
-                            <input type="number" id="weight" min="1" step="0.1" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="height">Taille (cm)</label>
-                            <input type="number" id="height" min="1" step="1" required>
+                <!-- Modal confirmation suppression compte -->
+                <div id="modal-delete-account" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-label="Confirmer la suppression du compte">
+                    <div class="modal-box pv-delete-modal">
+                        <h3 class="pv-delete-modal-title">Supprimer mon compte</h3>
+                        <p class="pv-delete-modal-text">Cette action est <strong>irréversible</strong>. Toutes vos données (profil, repas, activités, pesées) seront définitivement effacées.</p>
+                        <p class="pv-delete-modal-text">Saisissez <strong>SUPPRIMER</strong> pour confirmer :</p>
+                        <input type="text" id="delete-confirm-input" class="pv-input" placeholder="SUPPRIMER" autocomplete="off" style="margin-bottom:16px;">
+                        <div class="pv-delete-modal-actions">
+                            <button type="button" class="pv-delete-cancel-btn" id="btn-delete-cancel">Annuler</button>
+                            <button type="button" class="pv-danger-btn" id="btn-delete-confirm" disabled>Supprimer définitivement</button>
                         </div>
                     </div>
-                    <div class="form-group">
-                        <label for="goal">Mon Objectif</label>
-                        <select id="goal" required>
-                            <option value="maintenance" selected>Maintien du poids (par défaut)</option>
-                            <option value="loss">Perte de poids / Sèche (-10% idéal)</option>
-                            <option value="gain">Prise de masse propre (+10% idéal)</option>
-                        </select>
-                        <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.5rem; line-height: 1.4;">Un ajustement journalier de <strong>10%</strong> est l'idéal. Il favorise la perte de poids ciblée sur le gras (sèche) ou une prise de masse sans excès (prise sèche).</p>
-                    </div>
-                    <div class="form-group hidden" id="target-weight-group">
-                        <label for="targetWeight">Poids visé (kg)</label>
-                        <div style="display: flex; gap: 0.5rem; align-items: center;">
-                            <input type="number" id="targetWeight" step="0.1" min="10" placeholder="Ex: 70">
-                            <span id="ideal-weight-suggestion" style="font-size: 0.8rem; color: var(--accent-secondary); cursor: pointer; text-decoration: underline; font-weight: 700; white-space: nowrap;">Suggéré : --</span>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label for="weighInDay">Jour de pesée hebdomadaire</label>
-                        <select id="weighInDay" required>
-                            <option value="1" selected>Lundi</option>
-                            <option value="2">Mardi</option>
-                            <option value="3">Mercredi</option>
-                            <option value="4">Jeudi</option>
-                            <option value="5">Vendredi</option>
-                            <option value="6">Samedi</option>
-                            <option value="0">Dimanche</option>
-                        </select>
-                    </div>
-                    <button type="submit" class="btn btn-primary">Enregistrer le profil</button>
-                </form>
-                <div id="profile-stats" class="stats-card mt-4 hidden">
-                    <div class="stat">
-                        <span class="label">BMR Estimé</span>
-                        <span class="value" id="display-bmr">--</span>
-                    </div>
-                    <div class="stat">
-                        <span class="label">TDEE</span>
-                        <span class="value" id="display-tdee">--</span>
-                    </div>
-                    <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 1rem; text-align: center; border-top: 2px dashed #ffc9c9; padding-top: 1rem;">
-                        <strong>BMR :</strong> Dépenses au repos. &bull; <strong>TDEE :</strong> Dépenses avec activité minimum (sédentaire).
-                    </p>
                 </div>
+
             </section>
             
-            <!-- Advice View -->
+            <!-- Advice View — E-06 V2 Soft Modern -->
             <section id="advice-view" class="view hidden">
-                <h2>Conseils Nutrition & Bien-être</h2>
 
-                <!-- Random Tip Placeholder -->
-                <div id="random-tip-container" class="card did-you-know-card" style="margin-bottom: 2rem;">
-                    <!-- Will be populated by JS -->
-                </div>
-                
-                <div class="advice-grid">
-                    <!-- Nutrition Card -->
-                    <div class="card">
-                        <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1.5rem; border-bottom: 3px dashed var(--border-color); padding-bottom: 0.5rem;">
-                            <span style="font-size: 1.8rem;">🍎</span>
-                            <h3 style="margin: 0; border: none; padding: 0;">Nutrition & Base</h3>
-                        </div>
-                        
-                        <div class="advice-content">
-                            <h4 style="color: var(--accent-primary); margin-bottom: 0.5rem;">Quels aliments privilégier ?</h4>
-                            <ul style="margin-bottom: 1.5rem; padding-left: 1.2rem; line-height: 1.6;">
-                                <li><strong>Protéines :</strong> Poulet, dinde, œufs, tofu, poisson, légumineuses.</li>
-                                <li><strong>Glucides complexes :</strong> Riz complet, quinoa, patate douce, avoine.</li>
-                                <li><strong>Bonnes graisses :</strong> Avocat, oléagineux (noix, amandes), huile d'olive.</li>
-                                <li><strong>Légumes :</strong> À volonté pour les fibres et micronutriments.</li>
-                            </ul>
+                <!-- Header -->
+                <header class="advice-header">
+                    <h2 class="advice-title">Conseils</h2>
+                    <p class="advice-subtitle">Nutrition, bien-être et science du corps</p>
+                </header>
 
-                            <h4 style="color: var(--accent-primary); margin-bottom: 0.5rem;">Exemples de repas</h4>
-                            <div style="background: #f8f9fa; border: 2px solid var(--border-color); border-radius: var(--radius-sm); padding: 1rem; font-size: 0.95rem;">
-                                <p><strong>P'tit déj :</strong> Flocons d'avoine, lait végétal, une poignée de baies.</p>
-                                <p><strong>Déjeuner :</strong> Pavé de saumon, riz basmati et brocolis vapeur.</p>
-                                <p><strong>Dîner :</strong> Omelette aux épinards et salade de lentilles.</p>
-                            </div>
-                        </div>
+                <!-- Tip du jour -->
+                <div id="random-tip-container" class="advice-tip-card">
+                    <div class="advice-tip-icon">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 2a7 7 0 0 1 7 7c0 2.5-1.3 4.7-3.3 6L15 17H9l-.7-2C6.3 13.7 5 11.5 5 9a7 7 0 0 1 7-7z"/><path d="M9 21h6M10 17v4M14 17v4"/></svg>
                     </div>
-
-                    <!-- Hydratation Card -->
-                    <div class="card">
-                        <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1.5rem; border-bottom: 3px dashed var(--border-color); padding-bottom: 0.5rem;">
-                            <span style="font-size: 1.8rem;">💧</span>
-                            <h3 style="margin: 0; border: none; padding: 0;">L'Hydratation</h3>
-                        </div>
-                        <div class="advice-content">
-                            <p style="margin-bottom: 1rem;"><strong>Le Pilier Oublié :</strong> La nutrition ne s'arrête pas à l'assiette.</p>
-                            <ul style="margin-bottom: 1rem; padding-left: 1.2rem; line-height: 1.4;">
-                                <li><strong>Pourquoi ?</strong> Maintient l'énergie, aide à la digestion et améliore la concentration.</li>
-                                <li><strong>Objectif :</strong> Visez 1,5L à 2L d'eau par jour, plus en cas d'activité physique.</li>
-                            </ul>
-                            <p style="font-size: 0.9rem; background: #e7f5ff; padding: 0.75rem; border-radius: var(--radius-sm); border: 2px dashed var(--accent-secondary);">
-                                <strong>Astuce :</strong> Si l'eau plate vous ennuie, essayez les infusions à froid ou un zeste de citron.
-                            </p>
-                        </div>
-                    </div>
-
-                    <!-- Sleep & Recovery -->
-                    <div class="card">
-                        <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1.5rem; border-bottom: 3px dashed var(--border-color); padding-bottom: 0.5rem;">
-                            <span style="font-size: 1.8rem;">😴</span>
-                            <h3 style="margin: 0; border: none; padding: 0;">Sommeil & Récupération</h3>
-                        </div>
-                        <div class="advice-content">
-                            <p style="margin-bottom: 0.5rem; color: var(--accent-primary); font-weight: 800;">Sans repos, même la meilleure diète ne fera pas de miracles.</p>
-                            <p style="margin-bottom: 1rem;"><strong>L'impact :</strong> Un manque de sommeil dérègle les hormones de la faim (ghréline/leptine), poussant vers le sucre.</p>
-                            <ul style="margin-bottom: 1rem; padding-left: 1.2rem; line-height: 1.4;">
-                                <li><strong>La règle d'or :</strong> Dormir entre 7 et 9 heures par nuit.</li>
-                                <li><strong>Rituel :</strong> Coupez les écrans 30 min avant le coucher (mélatonine).</li>
-                            </ul>
-                        </div>
-                    </div>
-
-                    <!-- Micro-nutrients (Moved up to pair with Sleep) -->
-                    <div class="card">
-                        <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1.5rem; border-bottom: 3px dashed var(--border-color); padding-bottom: 0.5rem;">
-                            <span style="font-size: 1.8rem;">🧠</span>
-                            <h3 style="margin: 0; border: none; padding: 0;">Focus Micro-nutriments</h3>
-                        </div>
-                        <div class="advice-content">
-                            <p style="margin-bottom: 1rem;">Parce que les calories ne font pas tout (Vitamines & Minéraux).</p>
-                            <ul style="padding-left: 1.2rem; line-height: 1.6;">
-                                <li><strong>Magnésium :</strong> Stress et muscles (chocolat noir, épinards).</li>
-                                <li><strong>Fer :</strong> Énergie (viande rouge, lentilles, spiruline).</li>
-                                <li><strong>Vitamine C :</strong> Immunité (poivrons, agrumes, kiwi).</li>
-                            </ul>
-                        </div>
-                    </div>
-
-                    <!-- Smart Snacks -->
-                    <div class="card" style="grid-column: 1 / -1;">
-                        <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1.5rem; border-bottom: 3px dashed var(--border-color); padding-bottom: 0.5rem;">
-                            <span style="font-size: 1.8rem;">🍎</span>
-                            <h3 style="margin: 0; border: none; padding: 0;">Les Collations Intelligentes</h3>
-                        </div>
-                        <p style="margin-bottom: 1rem;">Pour éviter le coup de barre de 16h ou le craquage avant le dîner.</p>
-                        <div class="table-container">
-                            <table class="advice-table">
-                                <thead>
-                                    <tr>
-                                        <th>Type de collation</th>
-                                        <th>Exemple</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                        <td><strong>Énergie rapide</strong></td>
-                                        <td>Une banane ou une poignée de fruits secs.</td>
-                                    </tr>
-                                    <tr>
-                                        <td><strong>Satiété (Coupe-faim)</strong></td>
-                                        <td>Un yaourt grec ou du fromage blanc avec quelques amandes.</td>
-                                    </tr>
-                                    <tr>
-                                        <td><strong>Plaisir sain</strong></td>
-                                        <td>Un carré de chocolat noir (85%) et une pomme.</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-
-
-                    <!-- Weighing Food Card -->
-                    <div class="card" style="grid-column: 1 / -1;">
-                        <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1.5rem; border-bottom: 3px dashed var(--border-color); padding-bottom: 0.5rem;">
-                            <span style="font-size: 1.8rem;">⚖️</span>
-                            <h3 style="margin: 0; border: none; padding: 0;">Peser ses aliments : Pourquoi est-ce indispensable ?</h3>
-                        </div>
-                        <div class="advice-content">
-                            <p style="margin-bottom: 1.5rem;">L'œil est souvent un très mauvais juge. Que vous souhaitiez affiner votre silhouette ou construire du muscle, la précision est votre meilleure alliée.</p>
-                            
-                            <div class="advice-grid" style="gap: 1.5rem; margin-bottom: 2rem;">
-                                <div style="background: #fff5f5; padding: 1.25rem; border: 2px solid #feb2b2; border-radius: var(--radius-sm);">
-                                    <h4 style="margin-bottom: 0.5rem; color: #c53030;">📉 En Perte de Poids</h4>
-                                    <p style="font-size: 0.95rem;"><strong>Le piège :</strong> Une cuillère d'huile d'olive "à l'œil" peut vite représenter 150 calories au lieu de 90.<br><strong>La solution :</strong> Peser garantit votre déficit calorique.</p>
-                                </div>
-                                <div style="background: #f0fff4; padding: 1.25rem; border: 2px solid #9ae6b4; border-radius: var(--radius-sm);">
-                                    <h4 style="margin-bottom: 0.5rem; color: #2f855a;">📈 En Prise de Masse</h4>
-                                    <p style="font-size: 0.95rem;"><strong>Précision :</strong> Contrôlez votre surplus pour qu'il soit léger et efficace.<br><strong>Protéines :</strong> Le seul moyen d'être certain d'atteindre votre quota quotidien.</p>
-                                </div>
-                            </div>
-
-                            <div style="margin-bottom: 2rem;">
-                                <h4 style="color: var(--accent-primary); margin-bottom: 0.5rem;">🧠 L'aspect éducatif (Le vrai bonus)</h4>
-                                <p style="line-height: 1.6;">Peser n'est pas une punition à vie. C'est un apprentissage. Après quelques semaines, votre cerveau "enregistre" visuellement les portions. À terme, vous devenez capable de manger à l'œil avec une précision redoutable.</p>
-                            </div>
-
-                            <div class="hide-on-mobile" style="background: #fdfbf6; border: 2px solid var(--border-color); border-radius: var(--radius-sm); padding: 1.25rem; margin-bottom: 2rem;">
-                                <h4 style="margin-bottom: 0.5rem;">Résumé des bénéfices</h4>
-                                <div class="table-container">
-                                    <table class="advice-table" style="margin-top: 0.5rem;">
-                                        <thead>
-                                            <tr>
-                                                <th>Objectif</th>
-                                                <th>Rôle de la balance</th>
-                                                <th>Résultat</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <tr>
-                                                <td><strong>Perte de poids</strong></td>
-                                                <td>Garantit le déficit</td>
-                                                <td>Perte de gras constante</td>
-                                            </tr>
-                                            <tr>
-                                                <td><strong>Prise de masse</strong></td>
-                                                <td>Contrôle le surplus</td>
-                                                <td>Gain de muscle propre</td>
-                                            </tr>
-                                            <tr>
-                                                <td><strong>Maintenance</strong></td>
-                                                <td>Stabilise l'apport</td>
-                                                <td>Poids constant sans stress</td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-
-                            <p style="font-size: 0.95rem; background: var(--accent-secondary); color: white; padding: 1rem; border-radius: var(--radius-sm); font-weight: 700;">
-                                💡 L'astuce NutriDash : Ne pesez que ce qui est dense en calories (féculents, huiles, oléagineux). Pour les légumes verts, laissez libre cours à votre appétit !
-                            </p>
-                        </div>
-                    </div>
-
-                    <!-- Quick Weighing Tips Card -->
-                    <div class="card" style="grid-column: 1 / -1;">
-                        <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1.5rem; border-bottom: 3px dashed var(--border-color); padding-bottom: 0.5rem;">
-                            <span style="font-size: 1.8rem;">⏱️</span>
-                            <h3 style="margin: 0; border: none; padding: 0;">Peser ses aliments sans y passer 3 heures</h3>
-                        </div>
-                        <div class="advice-content">
-                            <p style="margin-bottom: 1.5rem;">En réalité, avec la bonne méthode, cela ne vous prendra pas plus de <strong>2 minutes par jour</strong>. Voici comment optimiser votre routine.</p>
-                            
-                            <div class="advice-grid" style="gap: 1.5rem;">
-                                <!-- Tare Function -->
-                                <div style="padding: 1rem; border: 2px solid var(--border-color); border-radius: var(--radius-sm); background: #fdfbf6;">
-                                    <h4 style="margin-bottom: 0.75rem;"><span style="font-size: 1.2rem;">⚖️</span> 1. La règle d'or : La Tare</h4>
-                                    <p style="font-size: 0.9rem; line-height: 1.4;">Posez votre assiette, appuyez sur <strong>Tare</strong>, ajoutez un ingrédient, notez, et recommencez. Résultat : Zéro vaisselle supplémentaire.</p>
-                                </div>
-
-                                <!-- Critical Foods -->
-                                <div style="padding: 1rem; border: 2px solid var(--border-color); border-radius: var(--radius-sm); background: #fdfbf6;">
-                                    <h4 style="margin-bottom: 0.75rem;"><span style="font-size: 1.2rem;">🥩</span> 2. Priorisez le "Critique"</h4>
-                                    <p style="font-size: 0.9rem; line-height: 1.4;"><strong>À peser :</strong> Huiles, beurre, oléagineux, féculents crus, viandes.<br><strong>À l'œil :</strong> Légumes verts, épices, café et thé.</p>
-                                </div>
-
-                                <!-- Raw vs Cooked -->
-                                <div style="padding: 1rem; border: 2px solid var(--border-color); border-radius: var(--radius-sm); background: #fdfbf6;">
-                                    <h4 style="margin-bottom: 0.75rem;"><span style="font-size: 1.2rem;">🔥</span> 3. Pesez "Cru"</h4>
-                                    <p style="font-size: 0.9rem; line-height: 1.4;">Le poids change à la cuisson. Peser avant de cuire est plus précis et évite les calculs mentaux fastidieux.</p>
-                                </div>
-
-                                <!-- Batch Cooking -->
-                                <div style="padding: 1rem; border: 2px solid var(--border-color); border-radius: var(--radius-sm); background: #fdfbf6;">
-                                    <h4 style="margin-bottom: 0.75rem;"><span style="font-size: 1.2rem;">🥗</span> 4. Le Batch Cooking</h4>
-                                    <p style="font-size: 0.9rem; line-height: 1.4;">Pesez la quantité totale pour 3-4 repas, puis divisez visuellement une fois cuit. L'erreur d'un repas se compensera sur le suivant.</p>
-                                </div>
-
-                                <!-- Standardize -->
-                                <div style="padding: 1rem; border: 2px solid var(--border-color); border-radius: var(--radius-sm); background: #fdfbf6;">
-                                    <h4 style="margin-bottom: 0.75rem;"><span style="font-size: 1.2rem;">🥛</span> 5. Les contenants</h4>
-                                    <p style="font-size: 0.9rem; line-height: 1.4;">Notez une fois pour toutes le poids d'un bol habituel rempli. Vous pourrez vous passer de balance quand vous êtes pressé.</p>
-                                </div>
-                            </div>
-
-                            <p style="margin-top: 1.5rem; font-style: italic; color: #666; border-left: 4px solid var(--accent-primary); padding-left: 1rem;">
-                                <strong>Le conseil NutriDash :</strong> La précision bat la perfection. La régularité sur le long terme est plus importante que l'exactitude d'un seul repas.
-                            </p>
-                        </div>
-                    </div>
-
-                    <!-- Explanations Card (Full width to avoid holes) -->
-                    <div class="card" style="grid-column: 1 / -1;">
-                        <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1.5rem; border-bottom: 3px dashed var(--border-color); padding-bottom: 0.5rem;">
-                            <span style="font-size: 1.8rem;">🧠</span>
-                            <h3 style="margin: 0; border: none; padding: 0;">Explications Techniques</h3>
-                        </div>
-
-                        <div class="advice-content">
-                            <details style="margin-bottom: 1rem; border: 2px solid var(--border-color); border-radius: var(--radius-sm); padding: 0.75rem;">
-                                <summary style="font-weight: 800; cursor: pointer;">Le Métabolisme (BMR & TDEE)</summary>
-                                <p style="margin-top: 0.5rem; font-size: 0.9rem;">Le <strong>BMR</strong> est ce que votre corps brûle au repos total. Le <strong>TDEE</strong> inclut votre activité. Pour stabiliser votre poids, vous devez manger l'équivalent de votre TDEE.</p>
-                            </details>
-
-                            <details style="margin-bottom: 1rem; border: 2px solid var(--border-color); border-radius: var(--radius-sm); padding: 0.75rem;">
-                                <summary style="font-weight: 800; cursor: pointer;">La Perte de Poids (Sèche)</summary>
-                                <p style="margin-top: 0.5rem; font-size: 0.9rem;">Créez un <strong>déficit calorique</strong> (environ -10% de votre TDEE). Priorisez les protéines pour conserver votre muscle tout en brûlant du gras.</p>
-                            </details>
-
-                            <details style="margin-bottom: 1rem; border: 2px solid var(--border-color); border-radius: var(--radius-sm); padding: 0.75rem;">
-                                <summary style="font-weight: 800; cursor: pointer;">La Prise de Masse</summary>
-                                <p style="margin-top: 0.5rem; font-size: 0.9rem;">Consommez un <strong>surplus calorique</strong> (+10% de votre TDEE). Accompagnez cela d'un entraînement en résistance pour transformer ce surplus en muscle.</p>
-                            </details>
-
-                            <details style="margin-bottom: 1rem; border: 2px solid var(--border-color); border-radius: var(--radius-sm); padding: 0.75rem;">
-                                <summary style="font-weight: 800; cursor: pointer;">L'Indice Glycémique (IG)</summary>
-                                <p style="margin-top: 0.5rem; font-size: 0.9rem;">Comprendre pourquoi tous les glucides ne se valent pas. Les IG bas évitent les pics d'insuline et les fringales.</p>
-                            </details>
-
-                            <details style="margin-bottom: 1rem; border: 2px solid var(--border-color); border-radius: var(--radius-sm); padding: 0.75rem;">
-                                <summary style="font-weight: 800; cursor: pointer;">La Fenêtre Métabolique</summary>
-                                <p style="margin-top: 0.5rem; font-size: 0.9rem;">Faut-il manger tout de suite après le sport ? Spoiler : c'est moins urgent qu'on ne le pense, le total journalier prime.</p>
-                            </details>
-
-                            <details style="margin-bottom: 1rem; border: 2px solid var(--border-color); border-radius: var(--radius-sm); padding: 0.75rem;">
-                                <summary style="font-weight: 800; cursor: pointer;">Clean Eating vs Flexible Dieting</summary>
-                                <p style="margin-top: 0.5rem; font-size: 0.9rem;">Comment trouver l'équilibre sans frustration entre manger "sain" et s'autoriser des plaisirs modérés.</p>
-                            </details>
-                        </div>
+                    <div class="advice-tip-body">
+                        <span class="advice-tip-label">Le saviez-vous ?</span>
+                        <p class="advice-tip-text" id="advice-tip-text">Chargement...</p>
                     </div>
                 </div>
+
+                <!-- Grille de cartes -->
+                <div class="advice-cards-grid">
+
+                    <!-- Nutrition de base -->
+                    <div class="advice-card">
+                        <div class="advice-card-icon advice-card-icon--green">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                        </div>
+                        <h3 class="advice-card-title">Nutrition de base</h3>
+                        <ul class="advice-list">
+                            <li><strong>Protéines</strong> — Poulet, œufs, tofu, poisson, légumineuses</li>
+                            <li><strong>Glucides complexes</strong> — Riz complet, quinoa, patate douce</li>
+                            <li><strong>Bonnes graisses</strong> — Avocat, amandes, huile d'olive</li>
+                            <li><strong>Légumes</strong> — À volonté pour fibres et micronutriments</li>
+                        </ul>
+                        <div class="advice-example-block">
+                            <span class="advice-example-label">Exemple de journée</span>
+                            <p>P'tit déj : avoine + lait végétal + baies</p>
+                            <p>Déjeuner : saumon + riz basmati + brocolis</p>
+                            <p>Dîner : omelette aux épinards + salade lentilles</p>
+                        </div>
+                    </div>
+
+                    <!-- Hydratation -->
+                    <div class="advice-card">
+                        <div class="advice-card-icon advice-card-icon--blue">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
+                        </div>
+                        <h3 class="advice-card-title">Hydratation</h3>
+                        <p class="advice-card-text">Le pilier oublié — la nutrition ne s'arrête pas à l'assiette.</p>
+                        <ul class="advice-list">
+                            <li><strong>Objectif</strong> — 1,5 à 2 L d'eau par jour, plus en cas de sport</li>
+                            <li><strong>Énergie</strong> — L'eau maintient la concentration et la digestion</li>
+                        </ul>
+                        <div class="advice-tip-inline">
+                            Infusions à froid ou un zeste de citron si l'eau plate vous ennuie.
+                        </div>
+                    </div>
+
+                    <!-- Sommeil -->
+                    <div class="advice-card">
+                        <div class="advice-card-icon advice-card-icon--purple">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+                        </div>
+                        <h3 class="advice-card-title">Sommeil & récupération</h3>
+                        <p class="advice-card-text">Sans repos, même la meilleure diète ne fait pas de miracles.</p>
+                        <ul class="advice-list">
+                            <li><strong>7 à 9 heures</strong> — La règle d'or pour la récupération</li>
+                            <li><strong>Hormones</strong> — Le manque de sommeil booste la ghréline (faim)</li>
+                            <li><strong>Rituel</strong> — Coupez les écrans 30 min avant le coucher</li>
+                        </ul>
+                    </div>
+
+                    <!-- Micro-nutriments -->
+                    <div class="advice-card">
+                        <div class="advice-card-icon advice-card-icon--orange">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>
+                        </div>
+                        <h3 class="advice-card-title">Micro-nutriments</h3>
+                        <p class="advice-card-text">Les calories ne font pas tout — vitamines et minéraux comptent.</p>
+                        <ul class="advice-list">
+                            <li><strong>Magnésium</strong> — Stress et muscles (chocolat noir, épinards)</li>
+                            <li><strong>Fer</strong> — Énergie (viande rouge, lentilles, spiruline)</li>
+                            <li><strong>Vitamine C</strong> — Immunité (poivrons, agrumes, kiwi)</li>
+                        </ul>
+                    </div>
+
+                </div>
+
+                <!-- Section Peser ses aliments -->
+                <div class="advice-section-block">
+                    <h3 class="advice-section-title">Pourquoi peser ses aliments ?</h3>
+                    <p class="advice-section-intro">L'œil est souvent un mauvais juge. La précision est votre meilleure alliée, que vous visiez la perte de poids ou la prise de masse.</p>
+
+                    <div class="advice-duo-grid">
+                        <div class="advice-duo-card advice-duo-card--red">
+                            <span class="advice-duo-label">Perte de poids</span>
+                            <p>Une cuillère d'huile "à l'œil" peut vite faire 150 kcal au lieu de 90. Peser garantit votre déficit.</p>
+                        </div>
+                        <div class="advice-duo-card advice-duo-card--green">
+                            <span class="advice-duo-label">Prise de masse</span>
+                            <p>Contrôlez votre surplus pour qu'il soit léger et propre. Seul moyen d'atteindre votre quota protéines.</p>
+                        </div>
+                    </div>
+
+                    <div class="advice-steps">
+                        <div class="advice-step">
+                            <span class="advice-step-num">1</span>
+                            <div>
+                                <strong>La tare</strong>
+                                <p>Posez l'assiette, tare, ajoutez l'ingrédient, notez, répétez. Zéro vaisselle supplémentaire.</p>
+                            </div>
+                        </div>
+                        <div class="advice-step">
+                            <span class="advice-step-num">2</span>
+                            <div>
+                                <strong>Priorisez le critique</strong>
+                                <p>Pesez : huiles, beurre, oléagineux, féculents, viandes. À l'œil : légumes verts et épices.</p>
+                            </div>
+                        </div>
+                        <div class="advice-step">
+                            <span class="advice-step-num">3</span>
+                            <div>
+                                <strong>Pesez cru</strong>
+                                <p>Le poids change à la cuisson. Peser avant est plus précis et évite les calculs.</p>
+                            </div>
+                        </div>
+                        <div class="advice-step">
+                            <span class="advice-step-num">4</span>
+                            <div>
+                                <strong>Batch cooking</strong>
+                                <p>Pesez la quantité totale pour 3-4 repas, divisez visuellement après cuisson.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="advice-quote">
+                        La précision bat la perfection. La régularité sur le long terme est plus importante que l'exactitude d'un seul repas.
+                    </div>
+                </div>
+
+                <!-- Accordéons Explications techniques -->
+                <div class="advice-section-block">
+                    <h3 class="advice-section-title">Comprendre les bases</h3>
+
+                    <details class="advice-accordion">
+                        <summary class="advice-accordion-summary">Le métabolisme — BMR et TDEE</summary>
+                        <div class="advice-accordion-body">
+                            <p>Le <strong>BMR</strong> est ce que votre corps brûle au repos total. Le <strong>TDEE</strong> inclut votre activité quotidienne. Pour maintenir votre poids, mangez l'équivalent de votre TDEE.</p>
+                        </div>
+                    </details>
+
+                    <details class="advice-accordion">
+                        <summary class="advice-accordion-summary">La perte de poids (sèche)</summary>
+                        <div class="advice-accordion-body">
+                            <p>Créez un <strong>déficit calorique</strong> d'environ -10 à -15 % de votre TDEE. Priorisez les protéines pour conserver le muscle tout en brûlant du gras.</p>
+                        </div>
+                    </details>
+
+                    <details class="advice-accordion">
+                        <summary class="advice-accordion-summary">La prise de masse</summary>
+                        <div class="advice-accordion-body">
+                            <p>Consommez un <strong>surplus calorique</strong> de +10 % de votre TDEE. Accompagnez d'un entraînement en résistance pour transformer ce surplus en muscle, pas en gras.</p>
+                        </div>
+                    </details>
+
+                    <details class="advice-accordion">
+                        <summary class="advice-accordion-summary">L'indice glycémique (IG)</summary>
+                        <div class="advice-accordion-body">
+                            <p>Tous les glucides ne se valent pas. Les IG bas (céréales complètes, légumineuses) évitent les pics d'insuline et les fringales qui suivent.</p>
+                        </div>
+                    </details>
+
+                    <details class="advice-accordion">
+                        <summary class="advice-accordion-summary">La fenêtre métabolique post-sport</summary>
+                        <div class="advice-accordion-body">
+                            <p>Manger immédiatement après le sport est moins urgent qu'on ne le pense. Le total calorique et protéique sur la journée prime sur le timing précis.</p>
+                        </div>
+                    </details>
+
+                    <details class="advice-accordion">
+                        <summary class="advice-accordion-summary">Clean Eating vs Flexible Dieting</summary>
+                        <div class="advice-accordion-body">
+                            <p>Le flexible dieting (si ça rentre dans vos macros) est plus soutenable sur le long terme que le clean eating strict. L'équilibre sans frustration produit de meilleurs résultats durables.</p>
+                        </div>
+                    </details>
+                </div>
+
             </section>
 
             <!-- Dashboard View -->
             <section id="dashboard-view" class="view">
-                <header class="dashboard-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
-                    <h2 style="margin-bottom: 0;">Tableau de bord <span id="current-date" class="subtitle"></span></h2>
-                    <div style="display: flex; gap: 0.5rem; align-items: center;">
-                        <button type="button" class="btn" style="padding: 0; width: 45px; height: 45px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem;" onclick="changeDate(-1)">&larr;</button>
-                        <button type="button" class="btn" style="padding: 0; width: 45px; height: 45px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem;" onclick="changeDate(1)">&rarr;</button>
+                <!-- Header dashboard V2 -->
+                <header class="db-header">
+                    <div class="db-header-left">
+                        <p class="db-date-label" id="current-date"></p>
+                        <h2 class="db-title">Tableau de bord</h2>
+                    </div>
+                    <div class="db-nav-days">
+                        <button type="button" class="db-day-btn" onclick="changeDate(-1)" aria-label="Jour précédent">&#8592;</button>
+                        <button type="button" class="db-day-btn" onclick="changeDate(1)" aria-label="Jour suivant">&#8594;</button>
                     </div>
                 </header>
 
                 <!-- Goal Reminder -->
-                <div id="dashboard-goal-reminder" class="card" style="margin-bottom: 2rem; background: var(--accent-secondary); color: white; display: none; padding: 1rem;">
-                    <div style="display: flex; align-items: center; gap: 1rem; font-weight: 700;">
-                        <span style="font-size: 1.5rem;">🎯</span>
-                        <div>
-                            <div style="font-size: 0.8rem; opacity: 0.85; text-transform: uppercase; letter-spacing: 0.5px;">Objectif du jour</div>
-                            <div id="dashboard-goal-text" style="font-size: 1.1rem;">--</div>
-                        </div>
-                    </div>
+                <div id="dashboard-goal-reminder" style="display: none; padding: 0 4px 12px;">
+                    <p id="dashboard-goal-text" class="db-goal-text"></p>
                 </div>
 
                 <div class="dashboard-grid">
 
                     <!-- Daily Process Progress -->
-                    <div id="daily-progress-container" class="card daily-progress-container">
-                        <div class="daily-progress-header">
-                            <span class="daily-progress-title">📈 Ma Progression Journalière</span>
-                            <span id="daily-progress-percentage" class="daily-progress-percentage">0%</span>
+                    <div id="daily-progress-container" class="card db-progress-card">
+                        <div class="db-progress-header">
+                            <span class="db-progress-title">Ma progression</span>
+                            <span id="daily-progress-percentage" class="db-progress-pct">0%</span>
                         </div>
-                        <div class="daily-progress-track">
-                            <div id="daily-progress-fill" class="daily-progress-fill" style="width: 0%;"></div>
+                        <div class="db-progress-track">
+                            <div id="daily-progress-fill" class="db-progress-fill" style="width: 0%;"></div>
                         </div>
-                        <p id="daily-progress-status" style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.5rem; font-weight: 600;">Commencez à saisir vos repas pour remplir la barre !</p>
+                        <p id="daily-progress-status" class="db-progress-status">Commencez à saisir vos repas pour remplir la barre !</p>
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="card add-actions-card">
+                        <button type="button" class="btn btn-primary" onclick="openMealModal()">+ Ajouter un repas</button>
+                        <button type="button" class="btn btn-secondary" onclick="openActivityModal()">+ Ajouter une activité</button>
                     </div>
 
                     <!-- Weigh-In Prompt Card -->
-                    <div id="weigh-in-card" class="card weigh-in-card">
+                    <div id="weigh-in-card" class="weigh-in-card">
                         <div>
-                            <h3 style="border:none; margin:0; font-size:1.5rem;">C'est l'heure de votre pesée ! ⚖️</h3>
+                            <h3>C'est l'heure de votre pesée !</h3>
                         </div>
-                        <div style="display:flex; gap:1rem; align-items:center;">
-                            <input type="number" id="weigh-input" step="0.1" min="10" max="300" placeholder="Ex: 75.5" style="width: 150px;">
-                            <button type="button" class="btn btn-primary" style="width:auto;" onclick="saveWeighIn()">Valider</button>
+                        <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
+                            <input type="number" id="weigh-input" step="0.1" min="10" max="300" placeholder="Ex: 75.5">
+                            <button type="button" class="btn btn-primary" style="width: auto;" onclick="saveWeighIn()">Valider</button>
                         </div>
                     </div>
 
-                    <!-- Progress Card -->
+                    <!-- Progress Card — Calories -->
                     <div class="card progress-card">
-                        <h3>Calories Restantes</h3>
+                        <h3>Calories</h3>
                         <div class="progress-circle" id="calorie-progress">
                             <div class="circle-inner">
                                 <span class="remaining-value" id="cals-remaining">--</span>
@@ -641,14 +807,14 @@
                             </div>
                         </div>
                         <div class="progress-stats">
-                            <div><span>Objectif: </span><strong id="cals-goal">--</strong></div>
-                            <div><span>Consommé: </span><strong id="cals-consumed">0</strong></div>
+                            <div><span>Objectif : </span><strong id="cals-goal">--</strong></div>
+                            <div><span>Consommé : </span><strong id="cals-consumed">0</strong></div>
                         </div>
                     </div>
 
-                    <!-- Macro Card (Proteins) -->
+                    <!-- Macro Card — Protéines -->
                     <div class="card progress-card macro-card">
-                        <h3>Protéines Restantes</h3>
+                        <h3>Protéines</h3>
                         <div class="progress-circle" id="protein-progress">
                             <div class="circle-inner">
                                 <span class="remaining-value" id="protein-remaining">--</span>
@@ -656,20 +822,14 @@
                             </div>
                         </div>
                         <div class="progress-stats">
-                            <div><span>Objectif: </span><strong id="protein-goal">--</strong></div>
-                            <div><span>Consommé: </span><strong id="protein-consumed">0</strong></div>
+                            <div><span>Objectif : </span><strong id="protein-goal">--</strong></div>
+                            <div><span>Consommé : </span><strong id="protein-consumed">0</strong></div>
                         </div>
                     </div>
 
-                    <!-- Actions -->
-                    <div class="card add-actions-card" style="display: flex; flex-direction: column; gap: 1rem; justify-content: center;">
-                        <button type="button" class="btn btn-primary" onclick="openMealModal()">🍳 Ajouter un repas</button>
-                        <button type="button" class="btn btn-secondary" onclick="openActivityModal()">🏃‍♂️ Ajouter une activité</button>
-                    </div>
-
                     <!-- History List -->
-                    <div class="card history-card" style="grid-column: 1 / -1;">
-                        <h3>Journal d'aujourd'hui</h3>
+                    <div class="card history-card">
+                        <h3>Journal du jour</h3>
                         <ul id="history-list" class="history-list">
                             <li class="empty-state">Aucun repas saisi aujourd'hui.</li>
                         </ul>
@@ -677,227 +837,980 @@
                 </div>
             </section>
 
-            <!-- History (Suivi) View -->
-            <section id="history-view" class="view hidden" style="max-width:900px; margin: 0 auto; width:100%;">
-                <header class="dashboard-header" style="margin-bottom: 1.5rem;">
-                    <h2>Suivi</h2>
-                </header>
+            <!-- History (Suivi) View — V2 Soft Modern -->
+            <section id="history-view" class="view hidden">
 
-                <div class="card" style="margin-bottom: 2rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap;">
-                    <div style="font-weight: 700; color: var(--text-main);">
-                        Période d'analyse : <span id="suivi-period-dates" style="font-weight: 400; color: var(--text-muted); font-size: 0.9rem; margin-left: 5px;"></span>
+                <!-- Éléments masqués pour compatibilité renderSuivi() de app.js -->
+                <span id="suivi-period-dates" style="display:none;"></span>
+                <select id="suivi-filter" style="display:none;" aria-hidden="true">
+                    <option value="week" selected>7j</option>
+                    <option value="30">30j</option>
+                    <option value="90">90j</option>
+                    <option value="180">180j</option>
+                    <option value="365">365j</option>
+                </select>
+                <span id="suivi-bilan-inner" style="display:none;"></span>
+                <span id="suivi-weight-start-val" style="display:none;"></span>
+                <span id="suivi-weight-start-date" style="display:none;"></span>
+                <span id="suivi-weight-end-val" style="display:none;"></span>
+                <span id="suivi-weight-end-date" style="display:none;"></span>
+                <span id="suivi-weight-diff" style="display:none;"></span>
+                <span id="suivi-cals-consumed" style="display:none;"></span>
+                <span id="suivi-cals-goal" style="display:none;"></span>
+                <span id="suivi-cals-diff" style="display:none;"></span>
+                <span id="suivi-prot-consumed" style="display:none;"></span>
+                <span id="suivi-prot-goal" style="display:none;"></span>
+                <span id="suivi-prot-diff" style="display:none;"></span>
+                <span id="suivi-bilan-card" style="display:none;"></span>
+                <span id="suivi-objectifs-inner" style="display:none;"></span>
+
+                <div class="history-content">
+
+                    <!-- Header -->
+                    <div class="history-view-header">
+                        <h2>Suivi</h2>
                     </div>
-                    <select id="suivi-filter" style="flex: 1; min-width: 200px; max-width: 300px; padding: 0.5rem; border-radius: var(--radius-sm); border: 2px solid var(--border-color); font-size: 1rem; font-family: 'Nunito', sans-serif;">
-                        <option value="week" selected>Semaine en cours (Lun-Dim)</option>
-                        <option value="30">30 derniers jours</option>
-                        <option value="90">3 derniers mois (90 jours)</option>
-                        <option value="180">6 derniers mois (180 jours)</option>
-                        <option value="365">Année (365 jours)</option>
-                    </select>
-                </div>
 
-                <!-- Bilan Objectifs -->
-                <div id="suivi-bilan-card" class="card suivi-bilan-card hidden" style="margin-bottom: 2rem;">
-                    <div id="suivi-bilan-inner"></div>
-                </div>
+                    <!-- Chips de période -->
+                    <div class="history-period-chips" role="group" aria-label="Période d'analyse">
+                        <button class="history-period-chip history-period-chip--active" data-period="7" type="button">7j</button>
+                        <button class="history-period-chip" data-period="30" type="button">30j</button>
+                        <button class="history-period-chip" data-period="90" type="button">90j</button>
+                        <button class="history-period-chip" data-period="180" type="button">180j</button>
+                        <button class="history-period-chip" data-period="365" type="button">365j</button>
+                    </div>
 
-                <div class="dashboard-grid">
+                    <!-- Carte Bilan Score -->
+                    <div class="history-score-card" aria-label="Score de la période">
+                        <div class="history-score-title">Score de la période</div>
+                        <div class="history-score-value" id="history-score-val">— / 3</div>
+                        <div class="history-score-msg" id="history-score-msg">Chargement…</div>
+                    </div>
+
+                    <!-- Label section Détails -->
+                    <div class="history-section-label">Détails</div>
+
                     <!-- Carte Calories -->
-                    <div class="card progress-card" id="card-suivi-cals">
-                        <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem; border-bottom: 2px dashed var(--border-color); padding-bottom: 0.5rem;">
-                            <span style="font-size: 1.5rem;">🔥</span>
-                            <h3 style="margin: 0; border: none; padding: 0;">Calories</h3>
+                    <div class="history-detail-card" aria-label="Calories">
+                        <div class="history-detail-header">
+                            <span class="history-detail-icon" aria-hidden="true">🔥</span>
+                            <span class="history-detail-title">Calories</span>
                         </div>
-                        <div class="progress-stats" style="margin-top: 0; padding-top: 0; border: none; grid-template-columns: 1fr 1fr; text-align: center; gap: 0.5rem;">
-                            <div><span style="color: var(--text-muted); font-size: 0.85rem;">Total Consommé</span><br><strong id="suivi-cals-consumed" style="font-size: 1.2rem; color: var(--text-main);">--</strong></div>
-                            <div><span style="color: var(--text-muted); font-size: 0.85rem;">Total Objectif</span><br><strong id="suivi-cals-goal" style="font-size: 1.2rem; color: var(--text-main);">--</strong></div>
+                        <div class="history-stats-row">
+                            <div class="history-stat-box">
+                                <div class="history-stat-label">Consommé</div>
+                                <div class="history-stat-value" id="history-cals-consumed">—</div>
+                                <span class="history-stat-unit">kcal</span>
+                            </div>
+                            <div class="history-stat-box">
+                                <div class="history-stat-label">Objectif</div>
+                                <div class="history-stat-value" id="history-cals-goal">—</div>
+                                <span class="history-stat-unit">kcal</span>
+                            </div>
                         </div>
-                        <div style="margin-top: 1rem; text-align: center; padding: 0.75rem; background: #f8f9fa; border-radius: var(--radius-sm);">
-                            <span style="font-size: 0.85rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Écart Total</span><br>
-                            <div id="suivi-cals-diff" style="font-size: 1.5rem; font-weight: 800; margin-top: 0.25rem; color: var(--text-main);">--</div>
-                        </div>
+                        <div class="history-diff" id="history-cals-diff">Écart : —</div>
+                        <span class="history-badge" id="history-cals-badge">—</span>
                     </div>
 
                     <!-- Carte Protéines -->
-                    <div class="card progress-card macro-card" id="card-suivi-prot">
-                        <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem; border-bottom: 2px dashed var(--border-color); padding-bottom: 0.5rem;">
-                            <span style="font-size: 1.5rem;">🥩</span>
-                            <h3 style="margin: 0; border: none; padding: 0;">Protéines</h3>
+                    <div class="history-detail-card" aria-label="Protéines">
+                        <div class="history-detail-header">
+                            <span class="history-detail-icon" aria-hidden="true">🥩</span>
+                            <span class="history-detail-title">Protéines</span>
                         </div>
-                        <div class="progress-stats" style="margin-top: 0; padding-top: 0; border: none; grid-template-columns: 1fr 1fr; text-align: center; gap: 0.5rem;">
-                            <div><span style="color: var(--text-muted); font-size: 0.85rem;">Total Consommé</span><br><strong id="suivi-prot-consumed" style="font-size: 1.2rem; color: var(--text-main);">--</strong></div>
-                            <div><span style="color: var(--text-muted); font-size: 0.85rem;">Total Objectif</span><br><strong id="suivi-prot-goal" style="font-size: 1.2rem; color: var(--text-main);">--</strong></div>
+                        <div class="history-stats-row">
+                            <div class="history-stat-box">
+                                <div class="history-stat-label">Consommé</div>
+                                <div class="history-stat-value" id="history-prot-consumed">—</div>
+                                <span class="history-stat-unit">g</span>
+                            </div>
+                            <div class="history-stat-box">
+                                <div class="history-stat-label">Objectif</div>
+                                <div class="history-stat-value" id="history-prot-goal">—</div>
+                                <span class="history-stat-unit">g</span>
+                            </div>
                         </div>
-                        <div style="margin-top: 1rem; text-align: center; padding: 0.75rem; background: #f8f9fa; border-radius: var(--radius-sm);">
-                            <span style="font-size: 0.85rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Écart Total</span><br>
-                            <div id="suivi-prot-diff" style="font-size: 1.5rem; font-weight: 800; margin-top: 0.25rem; color: var(--text-main);">--</div>
+                        <div class="history-diff" id="history-prot-diff">Écart : —</div>
+                        <span class="history-badge" id="history-prot-badge">—</span>
+                    </div>
+
+                    <!-- Carte Poids -->
+                    <div class="history-weight-card history-detail-card" aria-label="Poids">
+                        <div class="history-detail-header">
+                            <span class="history-detail-icon" aria-hidden="true">⚖️</span>
+                            <span class="history-detail-title">Poids</span>
+                        </div>
+                        <div class="history-weight-extremes">
+                            <div class="history-weight-point">
+                                <div class="history-weight-point-label">Début</div>
+                                <div class="history-weight-point-val" id="history-weight-start">—</div>
+                            </div>
+                            <div class="history-weight-arrow" aria-hidden="true">→</div>
+                            <div class="history-weight-point">
+                                <div class="history-weight-point-label">Fin</div>
+                                <div class="history-weight-point-val" id="history-weight-end">—</div>
+                            </div>
+                        </div>
+                        <span class="history-weight-delta" id="history-weight-delta">Pas assez de pesées</span>
+
+                        <div class="history-chart-title">Évolution du poids</div>
+
+                        <div id="history-weight-empty" class="history-weight-empty">
+                            <div style="font-size:32px;margin-bottom:8px;" aria-hidden="true">⚖️</div>
+                            <div>Ajoutez au moins 2 pesées pour voir l'évolution</div>
+                        </div>
+
+                        <div class="history-chart-wrap">
+                            <canvas id="weight-chart" aria-label="Graphique d'évolution du poids" role="img" style="display:none;"></canvas>
+                        </div>
+
+                        <div class="history-chart-legend" aria-hidden="true">
+                            <span><span class="history-legend-dot" style="background:#52B788;"></span>Mon poids</span>
+                            <span><span class="history-legend-dot" style="background:#E07A5F;border-radius:2px;width:14px;height:3px;display:inline-block;vertical-align:middle;margin-right:4px;"></span>Objectif</span>
                         </div>
                     </div>
 
-                    <!-- Carte Poids (réduite) -->
-                    <div class="card progress-card" id="card-suivi-weight">
-                        <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem; border-bottom: 2px dashed var(--border-color); padding-bottom: 0.5rem;">
-                            <span style="font-size: 1.5rem;">⚖️</span>
-                            <h3 style="margin: 0; border: none; padding: 0;">Poids</h3>
+                    <!-- Carte Objectifs historique -->
+                    <div class="history-detail-card history-goals-card" aria-label="Historique des objectifs">
+                        <div class="history-detail-header">
+                            <span class="history-detail-icon" aria-hidden="true">🎯</span>
+                            <span class="history-detail-title">Objectifs</span>
                         </div>
-                        <div style="display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
-                            <div style="text-align: center; flex:1;">
-                                <div style="font-size: 0.8rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase;" id="suivi-weight-start-date">Début</div>
-                                <div id="suivi-weight-start-val" style="font-size: 1.4rem; font-weight: 800; color: var(--text-main); margin-top: 0.2rem;">--</div>
-                            </div>
-                            <div style="font-size: 1.5rem; color: var(--text-muted);">→</div>
-                            <div style="text-align: center; flex:1;">
-                                <div style="font-size: 0.8rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase;" id="suivi-weight-end-date">Fin</div>
-                                <div id="suivi-weight-end-val" style="font-size: 1.4rem; font-weight: 800; color: var(--text-main); margin-top: 0.2rem;">--</div>
-                            </div>
-                        </div>
-                        <div style="margin-top: 1rem; text-align: center; padding: 0.6rem; background: #f8f9fa; border-radius: var(--radius-sm); border: 2px solid var(--border-color);">
-                            <div style="font-size: 0.78rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">Bilan</div>
-                            <div id="suivi-weight-diff" style="font-size: 1.5rem; font-weight: 800; margin-top: 0.15rem; color: var(--text-main);">--</div>
+                        <div id="history-goals-list">
+                            <p style="font-family:'Inter',sans-serif;font-size:13px;color:var(--color-text-3);margin:0;">Chargement…</p>
                         </div>
                     </div>
 
-                    <!-- Carte Objectifs -->
-                    <div class="card progress-card" id="card-suivi-objectifs">
-                        <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem; border-bottom: 2px dashed var(--border-color); padding-bottom: 0.5rem;">
-                            <span style="font-size: 1.5rem;">🎯</span>
-                            <h3 style="margin: 0; border: none; padding: 0;">Objectifs</h3>
-                        </div>
-                        <div id="suivi-objectifs-inner" style="display: flex; flex-direction: column; gap: 0.5rem;">
-                            <span style="color: var(--text-muted); font-size: 0.9rem;">Chargement…</span>
-                        </div>
-                    </div>
                 </div>
             </section>
         </main>
     </div>
 
-    <!-- Modals -->
-    <div id="meal-modal" class="modal-overlay hidden">
-        <div class="modal-content card">
-            <button type="button" class="close-btn" onclick="closeMealModal()">&times;</button>
-            <h3>Saisie Journalière</h3>
-            <form id="meal-form">
-                <div class="form-group">
-                    <label for="meal-type">Repas</label>
-                    <select id="meal-type" required>
-                        <option value="breakfast">Petit-déjeuner</option>
-                        <option value="lunch">Déjeuner</option>
-                        <option value="snack">Collation</option>
-                        <option value="dinner">Dîner</option>
-                    </select>
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="meal-cals">Calories (kcal)</label>
-                        <input type="number" id="meal-cals" min="0" step="1" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="meal-protein">Protéines (g)</label>
-                        <input type="number" id="meal-protein" min="0" step="0.1" required>
-                    </div>
-                </div>
+    <!-- Modals V2 — Soft Modern -->
 
-                <div class="ai-hint" style="margin-bottom: 1rem; padding: 0.75rem; background: #e7f5ff; border-radius: var(--radius-sm); border: 2px dashed var(--accent-secondary); font-size: 0.85rem;">
-                    <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;">
-                        <span style="font-size: 1.2rem;">🤖</span>
-                        <strong style="color: var(--text-main);">Astuce IA</strong>
-                    </div>
-                    <p style="margin-bottom: 0.5rem; color: var(--text-muted); line-height: 1.4;">Pour être précis sans chercher, demandez à une IA (ex: ChatGPT) d'estimer vos macros :</p>
-                    <details>
-                        <summary style="color: var(--accent-secondary); font-weight: 800; cursor: pointer; outline: none;">Voir un exemple de prompt (à copier)</summary>
-                        <div style="margin-top: 0.5rem; padding: 0.75rem; background: #ffffff; border-radius: 4px; border: 1px solid var(--accent-secondary); font-style: italic; color: var(--text-main);">
-                            « J'ai mangé un steak haché 5% (100g), 150g de pâtes cuites et un peu de sauce tomate. Donne-moi uniquement le total estimé en Calories et en Protéines (g). »
+    <!-- M-01 : Modal Repas -->
+    <div id="meal-modal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <div class="modal-drag-handle"></div>
+            <div class="modal-header">
+                <h3 class="modal-title">Saisie Journalière</h3>
+                <button type="button" class="modal-close-btn" onclick="closeMealModal()" aria-label="Fermer">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="meal-form">
+                    <div class="form-group">
+                        <label for="meal-type">Type de repas</label>
+                        <div class="select-wrapper">
+                            <select id="meal-type" required>
+                                <option value="breakfast">Petit-déjeuner</option>
+                                <option value="lunch">Déjeuner</option>
+                                <option value="snack">Collation</option>
+                                <option value="dinner">Dîner</option>
+                            </select>
                         </div>
-                    </details>
-                </div>
-                <button type="submit" class="btn btn-primary" style="margin-top:1rem;">Ajouter le repas</button>
-            </form>
+                    </div>
+
+                    <div class="ai-hint">
+                        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+                            <span style="font-size:18px;" aria-hidden="true">🤖</span>
+                            <strong>Besoin d'estimer ?</strong>
+                        </div>
+                        <p style="margin:0 0 6px;color:var(--color-text-3);font-size:13px;">Demandez à une IA (ChatGPT, etc.) :</p>
+                        <details>
+                            <summary>Voir un exemple de prompt</summary>
+                            <div>« J'ai mangé 100g de poulet, 150g de riz cuit et des légumes vapeur. Donne-moi uniquement le total en Calories et en Protéines (g). »</div>
+                        </details>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="meal-cals">Calories (kcal)</label>
+                            <input type="number" id="meal-cals" min="0" step="1" required placeholder="450">
+                        </div>
+                        <div class="form-group">
+                            <label for="meal-protein">Protéines (g)</label>
+                            <input type="number" id="meal-protein" min="0" step="0.1" required placeholder="35">
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">Ajouter le repas</button>
+                </form>
+            </div>
         </div>
     </div>
 
+    <!-- M-02 : Modal Activité -->
     <div id="activity-modal" class="modal-overlay hidden">
-        <div class="modal-content card">
-            <button type="button" class="close-btn" onclick="closeActivityModal()">&times;</button>
-            <h3>Activité Supplémentaire</h3>
-            <form id="activity-form">
-                <div class="form-group">
-                    <label for="activity-select">Activité</label>
-                    <select id="activity-select" required>
-                        <option value="" disabled selected>Chargement des activités...</option>
-                    </select>
-                    <!-- Lien gestion activités custom (visible si custom existent) -->
-                    <div id="manage-custom-activities-link" style="display:none; margin-top: 0.5rem; text-align: right;">
-                        <button type="button" onclick="openManageActivitiesModal()" style="background:none; border:none; color: var(--accent-secondary); font-size: 0.85rem; font-weight: 700; cursor: pointer; padding: 0; text-decoration: underline;">
-                            ✏️ Gérer mes activités personnalisées
-                        </button>
+        <div class="modal-content">
+            <div class="modal-drag-handle"></div>
+            <div class="modal-header">
+                <h3 class="modal-title">Activité supplémentaire</h3>
+                <button type="button" class="modal-close-btn" onclick="closeActivityModal()" aria-label="Fermer">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="activity-form">
+                    <div class="form-group">
+                        <label for="activity-select">Activité</label>
+                        <div class="select-wrapper">
+                            <select id="activity-select" required>
+                                <option value="" disabled selected>Chargement des activités...</option>
+                            </select>
+                        </div>
+                        <div id="manage-custom-activities-link" style="display:none;margin-top:8px;text-align:right;">
+                            <button type="button" onclick="openManageActivitiesModal()"
+                                style="background:none;border:none;color:var(--color-primary);font-family:'Inter',sans-serif;font-size:13px;font-weight:600;cursor:pointer;padding:0;text-decoration:underline;">
+                                Gérer mes activités personnalisées
+                            </button>
+                        </div>
                     </div>
-                </div>
-                <div class="form-group" id="custom-activity-group" style="display: none;">
-                    <label for="activity-desc">Description de l'activité</label>
-                    <input type="text" id="activity-desc" placeholder="ex: Yoga 45min">
-                    <div style="margin-top: 10px;">
-                        <label style="display: flex; align-items: flex-start; gap: 8px; font-weight: normal; cursor: pointer; word-break: break-word; overflow-wrap: break-word;">
-                            <input type="checkbox" id="activity-save" style="margin-top: 4px; flex-shrink: 0;"> Enregistrer dans ma liste d'activités
+                    <div class="form-group" id="custom-activity-group" style="display:none">
+                        <label for="activity-desc">Description</label>
+                        <input type="text" id="activity-desc" placeholder="ex: Yoga 45min">
+                        <label style="display:flex;align-items:center;gap:8px;margin-top:10px;font-family:'Inter',sans-serif;font-size:14px;font-weight:400;text-transform:none;letter-spacing:0;color:var(--color-text-2);cursor:pointer;">
+                            <input type="checkbox" id="activity-save" style="width:16px;height:16px;margin:0;box-shadow:none;">
+                            Enregistrer dans ma liste
                         </label>
                     </div>
-                </div>
-                <div class="form-group">
-                    <label for="activity-burn">Calories brûlées (augmente le TDEE)</label>
-                    <input type="number" id="activity-burn" min="0" step="1" required>
-                </div>
-                <button type="submit" class="btn btn-primary" style="margin-top:1rem;">Ajouter l'activité</button>
-            </form>
+                    <div class="form-group">
+                        <label for="activity-burn">Calories brûlées</label>
+                        <input type="number" id="activity-burn" min="0" step="1" required placeholder="300">
+                    </div>
+                    <button type="submit" class="btn btn-primary">Ajouter l'activité</button>
+                </form>
+            </div>
         </div>
     </div>
 
     <!-- Modal Gestion Activités Personnalisées -->
     <div id="manage-activities-modal" class="modal-overlay hidden">
-        <div class="modal-content card" style="max-width: 480px;">
-            <button type="button" class="close-btn" onclick="closeManageActivitiesModal()">&times;</button>
-            <h3>Mes activités personnalisées</h3>
-            <div id="manage-activities-list" style="display: flex; flex-direction: column; gap: 0.75rem; margin-bottom: 1.5rem; max-height: 400px; overflow-y: auto;">
-                <!-- Généré par JS -->
+        <div class="modal-content">
+            <div class="modal-drag-handle"></div>
+            <div class="modal-header">
+                <h3 class="modal-title">Mes activités personnalisées</h3>
+                <button type="button" class="modal-close-btn" onclick="closeManageActivitiesModal()" aria-label="Fermer">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
             </div>
-            <!-- Formulaire d'édition inline -->
-            <div id="edit-custom-activity-form" class="hidden" style="background: #f8f9fa; border: 2px dashed var(--border-color); border-radius: var(--radius-sm); padding: 1rem; margin-bottom: 1rem;">
-                <p style="font-weight: 800; margin-bottom: 0.75rem; font-size: 0.95rem;">✏️ Modifier l'activité</p>
-                <div class="form-group" style="margin-bottom: 0.75rem;">
-                    <label for="edit-act-name" style="font-size: 0.85rem;">Nom</label>
-                    <input type="text" id="edit-act-name" placeholder="ex: Yoga 45min">
+            <div class="modal-body">
+                <div id="manage-activities-list">
+                    <!-- Généré par JS -->
                 </div>
-                <div class="form-group" style="margin-bottom: 0.75rem;">
-                    <label for="edit-act-cals" style="font-size: 0.85rem;">Calories brûlées (kcal)</label>
-                    <input type="number" id="edit-act-cals" min="0" step="1">
+                <div id="edit-custom-activity-form" class="hidden">
+                    <p>Modifier l'activité</p>
+                    <div class="form-group">
+                        <label for="edit-act-name">Nom</label>
+                        <input type="text" id="edit-act-name" placeholder="ex: Yoga 45min">
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-act-cals">Calories brûlées (kcal)</label>
+                        <input type="number" id="edit-act-cals" min="0" step="1">
+                    </div>
+                    <div style="display:flex;gap:8px;margin-top:4px;">
+                        <button type="button" class="btn btn-primary" style="flex:1;" onclick="saveEditCustomActivity()">Enregistrer</button>
+                        <button type="button" onclick="cancelEditCustomActivity()"
+                            style="flex:1;height:52px;background:transparent;border:1px solid var(--color-border);color:var(--color-text-2);border-radius:var(--lp-radius-full);font-family:'Inter',sans-serif;font-size:15px;font-weight:500;cursor:pointer;transition:background 0.15s;">
+                            Annuler
+                        </button>
+                    </div>
                 </div>
-                <div style="display: flex; gap: 0.5rem;">
-                    <button type="button" class="btn btn-primary" style="flex:1;" onclick="saveEditCustomActivity()">✓ Enregistrer</button>
-                    <button type="button" class="btn" style="flex:1; background: transparent; border: 2px solid var(--border-color);" onclick="cancelEditCustomActivity()">Annuler</button>
-                </div>
+                <button type="button" class="btn" onclick="closeManageActivitiesModal()">Fermer</button>
             </div>
-            <button type="button" class="btn" style="width: 100%; background: transparent; border: 2px solid var(--border-color); color: var(--text-muted);" onclick="closeManageActivitiesModal()">Fermer</button>
         </div>
     </div>
 
-
-    <!-- Modale de félicitations -->
+    <!-- M-03 : Modal Objectif Atteint (centré, pas de bottom sheet) -->
     <div id="goal-reached-modal" class="modal-overlay hidden">
-        <div class="modal-content card" style="text-align: center; max-width: 450px;">
-            <div style="font-size: 4rem; margin-bottom: 1rem;">🎉</div>
-            <h2 style="color: var(--accent-primary); margin-bottom: 1rem;">Objectif Atteint !</h2>
-            <p id="goal-reached-text" style="font-size: 1.1rem; line-height: 1.5; margin-bottom: 2rem;">
+        <div class="modal-content" style="padding: 40px 28px; text-align: center;">
+            <div style="font-size: 56px; margin-bottom: 16px; line-height:1;" aria-hidden="true">🎉</div>
+            <h2 style="font-family:'DM Sans',sans-serif;font-size:24px;font-weight:700;color:var(--color-primary);margin-bottom:12px;text-shadow:none;">Objectif Atteint !</h2>
+            <p id="goal-reached-text" style="font-family:'Inter',sans-serif;font-size:15px;color:var(--color-text-2);line-height:1.6;margin-bottom:28px;">
                 Félicitations ! Tu as atteint ton objectif de poids. Quel est ton prochain défi ?
             </p>
-            <div style="display: flex; flex-direction: column; gap: 1rem;">
-                <button type="button" class="btn btn-primary" onclick="redirectToProfile()">Fixer un nouvel objectif</button>
-                <button type="button" class="btn" style="background: transparent; color: var(--text-muted); border: 2px solid var(--border-color);" onclick="closeGoalReachedModal()">Continuer ainsi (Maintien)</button>
+            <div style="display:flex;flex-direction:column;gap:10px;">
+                <button type="button" onclick="redirectToProfile()"
+                    style="height:52px;background:var(--color-primary);color:white;border:none;border-radius:var(--lp-radius-full);font-family:'DM Sans',sans-serif;font-size:16px;font-weight:600;cursor:pointer;transition:background 0.18s;">
+                    Fixer un nouvel objectif
+                </button>
+                <button type="button" onclick="closeGoalReachedModal()"
+                    style="height:44px;background:transparent;color:var(--color-text-2);border:1px solid var(--color-border);border-radius:var(--lp-radius-full);font-family:'Inter',sans-serif;font-size:15px;font-weight:500;cursor:pointer;">
+                    Continuer en maintien
+                </button>
             </div>
         </div>
     </div>
+
+        <!-- Bottom Navigation — mobile uniquement -->
+        <nav class="bottom-nav" id="bottom-nav" aria-label="Navigation principale">
+            <button class="bottom-nav-item active" data-target="dashboard-view" aria-label="Accueil">
+                <svg class="bottom-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                <span class="bottom-nav-label">Accueil</span>
+            </button>
+            <button class="bottom-nav-item" data-target="history-view" aria-label="Suivi">
+                <svg class="bottom-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+                <span class="bottom-nav-label">Suivi</span>
+            </button>
+            <button class="bottom-nav-item" data-target="advice-view" aria-label="Conseils">
+                <svg class="bottom-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                <span class="bottom-nav-label">Conseils</span>
+            </button>
+            <button class="bottom-nav-item" data-target="profile-view" aria-label="Profil">
+                <svg class="bottom-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                <span class="bottom-nav-label">Profil</span>
+            </button>
+        </nav>
+
+    <script>
+    /* Synchronisation bottom nav — active state uniquement (avant app.js) */
+    (function() {
+        window._syncBottomNav = function(targetId) {
+            document.querySelectorAll('.bottom-nav-item').forEach(function(btn) {
+                btn.classList.toggle('active', btn.dataset.target === targetId);
+            });
+        };
+        document.addEventListener('click', function(e) {
+            var btn = e.target.closest('.bottom-nav-item, .nav-btn');
+            if (btn && btn.dataset.target) {
+                window._syncBottomNav(btn.dataset.target);
+            }
+        });
+    })();
+    </script>
 
     <script src="pb-config.js"></script>
     <script src="utils.js"></script>
     <script src="app.js"></script>
     <script src="auth-pb.js"></script>
+
+    <script>
+    /* ============================================================
+       PATCH 1 — deleteEntry / editEntry
+       Fixes :
+       - Coercion d'ID (number local vs string PocketBase)
+       - Rafraîchissement du dashboard après remplacement async de l'ID
+         par PocketBase (pb_saveActivity/.then remplace newEntry.id)
+       - Suppression sans confirm() (bloqué sur iOS PWA)
+    ============================================================ */
+    (function() {
+        function waitForApp(cb) {
+            if (typeof window.deleteEntry === 'function' && typeof window.editEntry === 'function') {
+                cb();
+            } else {
+                setTimeout(function() { waitForApp(cb); }, 50);
+            }
+        }
+
+        waitForApp(function() {
+            var _origEdit = window.editEntry;
+
+            /* deleteEntry : sans confirm(), résolution d'ID par String() */
+            window.deleteEntry = function(id) {
+                if (typeof getActiveLog !== 'function') return;
+                var actLog = getActiveLog();
+                var idx = actLog.entries.findIndex(function(e) {
+                    return String(e.id) === String(id);
+                });
+                if (idx === -1) return;
+                var entry = actLog.entries[idx];
+                if (entry.type === 'Repas') {
+                    actLog.consumedCals -= entry.cals;
+                    actLog.consumedProtein -= entry.prot;
+                } else if (entry.type === 'Activité') {
+                    actLog.bonusTDEE -= entry.cals;
+                }
+                actLog.entries.splice(idx, 1);
+                if (typeof currentUser !== 'undefined' && currentUser &&
+                    typeof pb_deleteEntry === 'function' &&
+                    typeof entry.id === 'string' && entry.id.length > 5) {
+                    pb_deleteEntry(entry.id, entry.type);
+                }
+                if (typeof saveState === 'function') saveState();
+                if (typeof updateDashboard === 'function') updateDashboard();
+            };
+
+            /* editEntry : résolution d'ID par String() */
+            window.editEntry = function(id) {
+                if (typeof getActiveLog === 'function') {
+                    var actLog = getActiveLog();
+                    var entry = actLog.entries.find(function(e) {
+                        return String(e.id) === String(id);
+                    });
+                    if (entry) { _origEdit(entry.id); return; }
+                }
+                _origEdit(id);
+            };
+        });
+
+        /* Patch pb_saveActivity + pb_saveMeal : après sauvegarde PB,
+           re-render le dashboard pour que les boutons onclick portent
+           le nouvel ID PocketBase (remplacé de façon async dans app.js) */
+        function patchPbSaves() {
+            var ready = typeof window.pb_saveActivity === 'function'
+                     && typeof window.pb_saveMeal === 'function';
+            if (!ready) { setTimeout(patchPbSaves, 100); return; }
+
+            function wrapWithRefresh(fn) {
+                return function() {
+                    var result = fn.apply(this, arguments);
+                    if (result && typeof result.then === 'function') {
+                        result.then(function() {
+                            setTimeout(function() {
+                                if (typeof updateDashboard === 'function') updateDashboard();
+                            }, 100);
+                        });
+                    }
+                    return result;
+                };
+            }
+
+            window.pb_saveActivity = wrapWithRefresh(window.pb_saveActivity);
+            window.pb_saveMeal     = wrapWithRefresh(window.pb_saveMeal);
+        }
+        patchPbSaves();
+    })();
+
+    /* ============================================================
+       E-05 — Chart.js graphique poids
+    ============================================================ */
+    window.initWeightChart = function(weighIns, targetWeight) {
+        var canvas = document.getElementById('weight-chart');
+        if (!canvas) return;
+        if (window._weightChart) { window._weightChart.destroy(); window._weightChart = null; }
+
+        var datasets = [{
+            label: 'Mon poids',
+            data: weighIns,
+            borderColor: '#52B788',
+            backgroundColor: 'rgba(82,183,136,0.08)',
+            fill: true,
+            tension: 0.3,
+            borderWidth: 2.5,
+            pointRadius: 5,
+            pointBackgroundColor: '#ffffff',
+            pointBorderColor: '#52B788',
+            pointBorderWidth: 2,
+            pointHoverRadius: 7,
+            pointHoverBackgroundColor: '#52B788',
+            pointHoverBorderColor: '#ffffff',
+            pointHoverBorderWidth: 2
+        }];
+
+        if (targetWeight && weighIns.length >= 2) {
+            datasets.push({
+                label: 'Objectif',
+                data: weighIns.map(function(w) { return { x: w.x, y: targetWeight }; }),
+                borderColor: '#E07A5F',
+                backgroundColor: 'transparent',
+                fill: false,
+                borderDash: [5, 3],
+                borderWidth: 2,
+                pointRadius: 0,
+                tension: 0
+            });
+        }
+
+        window._weightChart = new Chart(canvas, {
+            type: 'line',
+            data: { datasets: datasets },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: { intersect: false, mode: 'index' },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: '#1A2E22',
+                        titleFont: { family: 'DM Sans', size: 13, weight: '600' },
+                        bodyFont: { family: 'Inter', size: 12 },
+                        padding: 12,
+                        cornerRadius: 8,
+                        callbacks: {
+                            title: function(items) {
+                                return new Date(items[0].raw.x).toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'long' });
+                            },
+                            label: function(ctx) { return ' ' + Number(ctx.raw.y).toFixed(1) + ' kg'; }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        type: 'time',
+                        time: { unit: 'day', displayFormats: { day: 'dd/MM' } },
+                        grid: { display: false },
+                        ticks: { color: '#8BA898', font: { family: 'Inter', size: 11 } }
+                    },
+                    y: {
+                        grid: { color: 'rgba(45,106,79,0.06)' },
+                        ticks: {
+                            color: '#8BA898',
+                            font: { family: 'Inter', size: 11 },
+                            callback: function(v) { return v + ' kg'; }
+                        }
+                    }
+                }
+            }
+        });
+    };
+
+    /* ============================================================
+       E-05 — Mise à jour de la vue Suivi
+    ============================================================ */
+    window.updateHistoryView = function(periodDays) {
+        periodDays = periodDays || 7;
+        if (!state || !state.logs) return;
+
+        var today = new Date();
+        var startDate = new Date(today);
+        startDate.setDate(today.getDate() - (periodDays - 1));
+        var startStr = startDate.toISOString().split('T')[0];
+        var todayStr = today.toISOString().split('T')[0];
+
+        var logsInPeriod = (state.logs || []).filter(function(log) {
+            return log.date >= startStr && log.date <= todayStr;
+        });
+
+        var totalCals = 0, totalProt = 0, totalGoalCals = 0, totalGoalProt = 0;
+        logsInPeriod.forEach(function(log) {
+            (log.entries || []).forEach(function(e) {
+                if (e.type === 'Repas') { totalCals += (e.cals || 0); totalProt += (e.prot || 0); }
+            });
+            if (state.profile) {
+                totalGoalCals += (state.profile.goalCals || 0);
+                totalGoalProt += (state.profile.goalProtein || 0);
+            }
+        });
+
+        /* --- Calories --- */
+        var el = function(id) { return document.getElementById(id); };
+        if (el('history-cals-consumed')) el('history-cals-consumed').textContent = Math.round(totalCals).toLocaleString('fr-FR');
+        if (el('history-cals-goal')) el('history-cals-goal').textContent = Math.round(totalGoalCals).toLocaleString('fr-FR');
+        var diffCals = totalCals - totalGoalCals;
+        if (el('history-cals-diff')) el('history-cals-diff').textContent = 'Écart : ' + (diffCals >= 0 ? '+' : '') + Math.round(diffCals).toLocaleString('fr-FR') + ' kcal';
+        if (el('history-cals-badge')) {
+            var okCals = totalGoalCals === 0 || Math.abs(diffCals / totalGoalCals) <= 0.15;
+            el('history-cals-badge').className = 'history-badge ' + (okCals ? 'history-badge--ok' : 'history-badge--warn');
+            el('history-cals-badge').textContent = okCals ? '✓  Dans les objectifs' : (diffCals > 0 ? '↑  Au-dessus de l\'objectif' : '↓  En dessous de l\'objectif');
+        }
+
+        /* --- Protéines --- */
+        if (el('history-prot-consumed')) el('history-prot-consumed').textContent = Math.round(totalProt) + ' g';
+        if (el('history-prot-goal')) el('history-prot-goal').textContent = Math.round(totalGoalProt) + ' g';
+        var diffProt = totalProt - totalGoalProt;
+        if (el('history-prot-diff')) el('history-prot-diff').textContent = 'Écart : ' + (diffProt >= 0 ? '+' : '') + Math.round(diffProt) + ' g';
+        if (el('history-prot-badge')) {
+            el('history-prot-badge').className = 'history-badge ' + (diffProt >= 0 ? 'history-badge--ok' : 'history-badge--warn');
+            el('history-prot-badge').textContent = diffProt >= 0 ? '✓  Objectif atteint' : '⚠  En dessous de l\'objectif';
+        }
+
+        /* --- Poids --- */
+        var weighIns = ((state.weighIns || []).filter(function(w) {
+            return w.date >= startStr && w.date <= todayStr;
+        })).sort(function(a, b) { return a.date.localeCompare(b.date); });
+
+        if (weighIns.length >= 2) {
+            var wStart = weighIns[0].weight, wEnd = weighIns[weighIns.length - 1].weight;
+            var delta = wEnd - wStart;
+            if (el('history-weight-start')) el('history-weight-start').textContent = wStart.toFixed(1) + ' kg';
+            if (el('history-weight-end')) el('history-weight-end').textContent = wEnd.toFixed(1) + ' kg';
+            if (el('history-weight-delta')) {
+                el('history-weight-delta').textContent = (delta <= 0 ? '' : '+') + delta.toFixed(1) + ' kg ' + (delta < 0 ? '↓' : '↑');
+                el('history-weight-delta').className = 'history-weight-delta ' + (delta <= 0 ? 'history-weight-delta--good' : 'history-weight-delta--warn');
+            }
+            if (el('history-weight-empty')) el('history-weight-empty').style.display = 'none';
+            var chartWrap = document.querySelector('.history-chart-wrap');
+            if (chartWrap) chartWrap.style.display = 'block';
+            var canvas = document.getElementById('weight-chart');
+            if (canvas) canvas.style.display = 'block';
+            var chartData = weighIns.map(function(w) { return { x: w.date, y: w.weight }; });
+            var targetW = state.profile && state.profile.targetWeight ? state.profile.targetWeight : null;
+            if (typeof window.initWeightChart === 'function') window.initWeightChart(chartData, targetW);
+        } else if (weighIns.length === 1) {
+            if (el('history-weight-start')) el('history-weight-start').textContent = weighIns[0].weight.toFixed(1) + ' kg';
+            if (el('history-weight-end')) el('history-weight-end').textContent = '—';
+            if (el('history-weight-delta')) { el('history-weight-delta').textContent = 'Une seule pesée — continuez !'; el('history-weight-delta').className = 'history-weight-delta'; }
+            if (el('history-weight-empty')) el('history-weight-empty').style.display = 'block';
+            var chartWrap2 = document.querySelector('.history-chart-wrap');
+            if (chartWrap2) chartWrap2.style.display = 'none';
+        } else {
+            if (el('history-weight-start')) el('history-weight-start').textContent = '—';
+            if (el('history-weight-end')) el('history-weight-end').textContent = '—';
+            if (el('history-weight-delta')) { el('history-weight-delta').textContent = 'Pas assez de pesées'; el('history-weight-delta').className = 'history-weight-delta'; }
+            if (el('history-weight-empty')) el('history-weight-empty').style.display = 'block';
+            var chartWrap3 = document.querySelector('.history-chart-wrap');
+            if (chartWrap3) chartWrap3.style.display = 'none';
+        }
+
+        /* --- Score --- */
+        var score = 0;
+        if (logsInPeriod.length > 0) {
+            if (totalGoalCals === 0 || Math.abs(diffCals / totalGoalCals) <= 0.15) score++;
+            if (diffProt >= 0) score++;
+            if (weighIns.length >= 1) score++;
+        }
+        if (el('history-score-val')) el('history-score-val').textContent = score + ' / 3';
+        if (el('history-score-msg')) {
+            var msgs = ['Commencez à saisir vos données !', 'Bon début, continuez vos efforts !', 'Bon travail, presque parfait !', 'Excellent, tous vos objectifs sont atteints !'];
+            el('history-score-msg').textContent = msgs[Math.min(score, 3)];
+        }
+
+        /* --- Objectifs historique --- */
+        var goalsList = el('history-goals-list');
+        if (goalsList) {
+            var goals = state.goalHistory || [];
+            if (goals.length === 0) {
+                goalsList.innerHTML = '<p style="font-family:\'Inter\',sans-serif;font-size:13px;color:var(--color-text-3);margin:0;">Aucun historique d\'objectif disponible.</p>';
+            } else {
+                goalsList.innerHTML = '';
+                goals.slice().reverse().forEach(function(g) {
+                    var chip = document.createElement('div');
+                    chip.className = 'history-goal-chip';
+                    chip.innerHTML = '<span class="history-goal-date">' + (g.date || '') + '</span><span class="history-goal-label">' + (g.label || g.type || '') + '</span>';
+                    goalsList.appendChild(chip);
+                });
+            }
+        }
+
+        /* --- Sync chips actives --- */
+        document.querySelectorAll('.history-period-chip').forEach(function(chip) {
+            chip.classList.toggle('history-period-chip--active', parseInt(chip.dataset.period) === periodDays);
+        });
+    };
+
+    /* ============================================================
+       Navigation bottom nav — couvre TOUS les .bottom-nav-item
+       app.js écoute seulement .nav-btn ; ce listener comble le manque
+       en résolvant le slug via window.routes (même logique qu'app.js)
+    ============================================================ */
+    (function() {
+        document.addEventListener('click', function(e) {
+            /* Navigation bottom nav générique */
+            var bottomBtn = e.target.closest('.bottom-nav-item');
+            if (bottomBtn && bottomBtn.dataset.target) {
+                var targetView = bottomBtn.dataset.target;
+                if (typeof window.routes === 'object' && typeof navigateTo === 'function') {
+                    var slug = Object.keys(window.routes).find(function(s) {
+                        return window.routes[s].view === targetView;
+                    });
+                    if (slug) {
+                        navigateTo(slug);
+                        /* Initialisation spécifique à la vue Suivi */
+                        if (targetView === 'history-view') {
+                            setTimeout(function() {
+                                if (typeof window.updateHistoryView === 'function') window.updateHistoryView(7);
+                            }, 60);
+                        }
+                    }
+                }
+                return;
+            }
+
+            /* Listener chips période */
+            var chip = e.target.closest('.history-period-chip');
+            if (chip && chip.dataset.period) {
+                window.updateHistoryView(parseInt(chip.dataset.period));
+            }
+        });
+    })();
+
+    /* ============================================================
+       PATCH 2 — Custom select dropdown (remplace le picker natif mobile)
+       Transforme les <select> dans .select-wrapper en dropdown CSS/JS
+       identique visuellement sur desktop et mobile.
+    ============================================================ */
+    (function() {
+        function buildCustomSelect(wrapper) {
+            var select = wrapper.querySelector('select');
+            if (!select || wrapper.querySelector('.cs-trigger')) return;
+
+            /* Cacher le select natif tout en gardant sa valeur accessible */
+            select.style.cssText = 'position:absolute;opacity:0;pointer-events:none;width:1px;height:1px;';
+
+            /* Bouton déclencheur */
+            var trigger = document.createElement('button');
+            trigger.type = 'button';
+            trigger.className = 'cs-trigger';
+            trigger.setAttribute('aria-haspopup', 'listbox');
+            trigger.setAttribute('aria-expanded', 'false');
+
+            var triggerText = document.createElement('span');
+            triggerText.className = 'cs-trigger-text';
+
+            var triggerArrow = document.createElement('span');
+            triggerArrow.className = 'cs-trigger-arrow';
+            triggerArrow.innerHTML = '<svg width="18" height="18" viewBox="0 0 20 20" fill="none"><path d="M5 7.5L10 12.5L15 7.5" stroke="#2D6A4F" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+
+            trigger.appendChild(triggerText);
+            trigger.appendChild(triggerArrow);
+            wrapper.appendChild(trigger);
+
+            /* Liste dropdown */
+            var dropdown = document.createElement('ul');
+            dropdown.className = 'cs-dropdown';
+            dropdown.setAttribute('role', 'listbox');
+            wrapper.appendChild(dropdown);
+
+            function syncLabel() {
+                var opt = select.options[select.selectedIndex];
+                triggerText.textContent = (opt && opt.value !== '') ? opt.text : (select.options[0] ? select.options[0].text : '');
+            }
+
+            function buildOptions() {
+                dropdown.innerHTML = '';
+                /* Parcourt les enfants directs du select : optgroup ou option */
+                Array.from(select.children).forEach(function(child) {
+                    if (child.tagName === 'OPTGROUP') {
+                        /* Label de groupe */
+                        var groupLabel = document.createElement('li');
+                        groupLabel.className = 'cs-optgroup-label';
+                        groupLabel.textContent = child.label;
+                        dropdown.appendChild(groupLabel);
+                        /* Options du groupe */
+                        Array.from(child.children).forEach(function(opt) {
+                            if (opt.disabled) return;
+                            dropdown.appendChild(makeOption(opt));
+                        });
+                    } else if (child.tagName === 'OPTION') {
+                        if (!child.disabled) dropdown.appendChild(makeOption(child));
+                    }
+                });
+            }
+
+            function makeOption(opt) {
+                var li = document.createElement('li');
+                li.className = 'cs-option' + (opt.value === select.value ? ' cs-selected' : '');
+                li.setAttribute('role', 'option');
+                li.setAttribute('data-value', opt.value);
+                li.textContent = opt.text;
+                li.addEventListener('click', function() {
+                    select.value = opt.value;
+                    select.dispatchEvent(new Event('change', { bubbles: true }));
+                    closeDropdown();
+                    syncLabel();
+                    buildOptions();
+                });
+                return li;
+            }
+
+            function openDropdown() {
+                /* Ferme tous les autres dropdowns ouverts */
+                document.querySelectorAll('.cs-trigger[aria-expanded="true"]').forEach(function(t) {
+                    if (t !== trigger) t.click();
+                });
+                /* Détecte si on ouvre vers le haut ou le bas */
+                var rect = wrapper.getBoundingClientRect();
+                var spaceBelow = window.innerHeight - rect.bottom;
+                var dropdownH = Math.min(220, dropdown.scrollHeight || 220);
+                if (spaceBelow < dropdownH + 8) {
+                    wrapper.classList.add('cs-dropup');
+                } else {
+                    wrapper.classList.remove('cs-dropup');
+                }
+                wrapper.classList.add('cs-open');
+                trigger.setAttribute('aria-expanded', 'true');
+                buildOptions();
+            }
+
+            function closeDropdown() {
+                wrapper.classList.remove('cs-open');
+                trigger.setAttribute('aria-expanded', 'false');
+            }
+
+            trigger.addEventListener('click', function(e) {
+                e.stopPropagation();
+                wrapper.classList.contains('cs-open') ? closeDropdown() : openDropdown();
+            });
+
+            /* Ferme si clic hors du dropdown */
+            document.addEventListener('click', function(e) {
+                if (!wrapper.contains(e.target)) closeDropdown();
+            });
+
+            /* Observe les mutations du select (renderActivityOptions recharge les options) */
+            var mo = new MutationObserver(function() {
+                syncLabel();
+                if (wrapper.classList.contains('cs-open')) buildOptions();
+            });
+            mo.observe(select, { childList: true, subtree: true });
+
+            /* Sync quand le select change depuis le JS (editEntry pré-sélectionne) */
+            select.addEventListener('change', syncLabel);
+
+            syncLabel();
+        }
+
+        function initCustomSelects() {
+            document.querySelectorAll('.select-wrapper').forEach(buildCustomSelect);
+        }
+
+        /* Lance après chargement DOM + scripts */
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initCustomSelects);
+        } else {
+            initCustomSelects();
+        }
+
+        /* Re-init quand une modale s'ouvre (au cas où les options ont changé) */
+        document.addEventListener('click', function(e) {
+            var btn = e.target.closest('[onclick*="openMealModal"], [onclick*="openActivityModal"]');
+            if (btn) setTimeout(initCustomSelects, 50);
+        });
+    })();
+
+    /* ============================================================
+       PATCH E-06 — showRandomTip : redirection vers #advice-tip-text
+       app.js écrit dans #random-tip-container (div masquée),
+       on surcharge pour écrire dans le nouveau container V2
+    ============================================================ */
+    (function() {
+        function patchShowRandomTip() {
+            if (typeof window.showRandomTip !== 'function') return;
+            var _orig = window.showRandomTip;
+            window.showRandomTip = function() {
+                _orig();
+                /* Récupère le texte injecté par app.js et le transfère */
+                var src = document.getElementById('random-tip-container');
+                var dst = document.getElementById('advice-tip-text');
+                if (src && dst) {
+                    var p = src.querySelector('.tip-content, p');
+                    if (p) dst.textContent = p.textContent;
+                    /* Cache la div originale (inutile en V2) */
+                    src.style.display = 'none';
+                }
+            };
+        }
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', patchShowRandomTip);
+        } else {
+            setTimeout(patchShowRandomTip, 0);
+        }
+    })();
+
+    /* ============================================================
+       E-07 — RGPD : Export JSON, Export CSV, Suppression de compte
+    ============================================================ */
+    (function() {
+        function downloadBlob(content, filename, type) {
+            var blob = new Blob([content], { type: type });
+            var url = URL.createObjectURL(blob);
+            var a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            setTimeout(function() { document.body.removeChild(a); URL.revokeObjectURL(url); }, 100);
+        }
+
+        function exportJSON() {
+            if (typeof state === 'undefined') { alert('Données non disponibles.'); return; }
+            var data = JSON.stringify(state, null, 2);
+            var now = new Date().toISOString().slice(0,10);
+            downloadBlob(data, 'nutridash-export-' + now + '.json', 'application/json');
+        }
+
+        function exportCSV() {
+            if (typeof state === 'undefined') { alert('Données non disponibles.'); return; }
+            var rows = [['Date','Type','Nom','Calories','Protéines']];
+            (state.logs || []).forEach(function(log) {
+                (log.entries || []).forEach(function(entry) {
+                    rows.push([
+                        log.date || '',
+                        entry.type || '',
+                        (entry.name || entry.food || '').replace(/"/g, '""'),
+                        entry.cals || 0,
+                        entry.prot || 0
+                    ]);
+                });
+            });
+            var csv = rows.map(function(r) {
+                return r.map(function(c) { return '"' + c + '"'; }).join(',');
+            }).join('\r\n');
+            var now = new Date().toISOString().slice(0,10);
+            downloadBlob(csv, 'nutridash-export-' + now + '.csv', 'text/csv');
+        }
+
+        function openDeleteModal() {
+            var modal = document.getElementById('modal-delete-account');
+            var input = document.getElementById('delete-confirm-input');
+            if (modal) {
+                input.value = '';
+                document.getElementById('btn-delete-confirm').disabled = true;
+                modal.classList.remove('hidden');
+            }
+        }
+
+        function closeDeleteModal() {
+            var modal = document.getElementById('modal-delete-account');
+            if (modal) modal.classList.add('hidden');
+        }
+
+        async function deleteAccount() {
+            /* Efface localStorage */
+            var STORAGE_KEY = 'nutridash_state';
+            try { localStorage.removeItem(STORAGE_KEY); } catch(e) {}
+            /* Supprime le compte PocketBase si connecté */
+            if (typeof pb !== 'undefined' && pb.authStore && pb.authStore.isValid) {
+                try {
+                    var userId = pb.authStore.model.id;
+                    /* Supprimer l'enregistrement user_data lié */
+                    try {
+                        var records = await pb.collection('user_data').getList(1, 1, { filter: 'user="' + userId + '"' });
+                        if (records.items.length > 0) await pb.collection('user_data').delete(records.items[0].id);
+                    } catch(e) {}
+                    /* Supprimer le compte */
+                    await pb.collection('users').delete(userId);
+                } catch(e) { console.warn('Erreur suppression PB:', e); }
+                pb.authStore.clear();
+            }
+            /* Redirige vers landing */
+            closeDeleteModal();
+            if (typeof navigateTo === 'function') navigateTo('landingpage');
+        }
+
+        function initRGPD() {
+            var btnJSON = document.getElementById('btn-export-json');
+            var btnCSV = document.getElementById('btn-export-csv');
+            var btnDelete = document.getElementById('btn-delete-account');
+            var btnCancel = document.getElementById('btn-delete-cancel');
+            var btnConfirm = document.getElementById('btn-delete-confirm');
+            var confirmInput = document.getElementById('delete-confirm-input');
+            var overlay = document.getElementById('modal-delete-account');
+
+            if (btnJSON) btnJSON.addEventListener('click', exportJSON);
+            if (btnCSV) btnCSV.addEventListener('click', exportCSV);
+            if (btnDelete) btnDelete.addEventListener('click', openDeleteModal);
+            if (btnCancel) btnCancel.addEventListener('click', closeDeleteModal);
+
+            if (overlay) overlay.addEventListener('click', function(e) {
+                if (e.target === overlay) closeDeleteModal();
+            });
+
+            if (confirmInput) confirmInput.addEventListener('input', function() {
+                if (btnConfirm) btnConfirm.disabled = (confirmInput.value.trim() !== 'SUPPRIMER');
+            });
+
+            if (btnConfirm) btnConfirm.addEventListener('click', function() {
+                if (confirmInput && confirmInput.value.trim() === 'SUPPRIMER') deleteAccount();
+            });
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initRGPD);
+        } else {
+            initRGPD();
+        }
+    })();
+    </script>
 </body>
 </html>
