@@ -2816,6 +2816,16 @@ input:focus, select:focus {
     border-left: 3px solid var(--color-primary);
     border-radius: var(--lp-radius-sm);
     padding: 20px 24px;
+    display: flex;
+    align-items: center;
+    gap: 24px;
+}
+
+.lp-process-illus {
+    width: 140px;
+    height: 140px;
+    object-fit: contain;
+    flex-shrink: 0;
 }
 
 .lp-process-highlight p {
@@ -2825,6 +2835,37 @@ input:focus, select:focus {
     color: var(--color-text-2);
     margin: 0;
     line-height: 1.6;
+}
+
+/* Photo band */
+.lp-photo-band {
+    width: 100%;
+    height: 320px;
+    overflow: hidden;
+}
+
+.lp-photo-band img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center 60%;
+    display: block;
+}
+
+@media (max-width: 600px) {
+    .lp-photo-band {
+        height: 220px;
+    }
+
+    .lp-process-highlight {
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .lp-process-illus {
+        width: 110px;
+        height: 110px;
+    }
 }
 
 /* ============================================================

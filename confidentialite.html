@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Politique de Confidentialité — NutriDash</title>
+    <meta name="robots" content="noindex">
+    <link rel="icon" type="image/png" href="Images/icon-192.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --green:       #2D6A4F;
+            --green-light: #D8F3DC;
+            --terracotta:  #E07A5F;
+            --terra-light: #FAE8E4;
+            --bg:          #F8F6F0;
+            --surface:     #FFFFFF;
+            --border:      #E4E0D8;
+            --text-1:      #1A1A1A;
+            --text-2:      #4A4A4A;
+            --text-3:      #888880;
+            --radius:      14px;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text-1);
+            line-height: 1.7;
+            min-height: 100vh;
+        }
+
+        .legal-header {
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            padding: 0 24px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .legal-logo {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--text-1);
+            text-decoration: none;
+        }
+
+        .legal-logo span { color: var(--green); }
+
+        .legal-back {
+            font-family: 'Inter', sans-serif;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--green);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .legal-back:hover { opacity: 0.75; }
+
+        .legal-container {
+            max-width: 760px;
+            margin: 0 auto;
+            padding: 48px 24px 80px;
+        }
+
+        .legal-hero {
+            margin-bottom: 48px;
+        }
+
+        .legal-badge {
+            display: inline-block;
+            background: var(--terra-light);
+            color: var(--terracotta);
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 4px 12px;
+            border-radius: 99px;
+            margin-bottom: 16px;
+        }
+
+        .legal-hero h1 {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--text-1);
+            margin-bottom: 12px;
+            line-height: 1.2;
+        }
+
+        .legal-hero .legal-date {
+            font-size: 13px;
+            color: var(--text-3);
+        }
+
+        /* Summary chips */
+        .legal-summary {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 40px;
+        }
+
+        .legal-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 99px;
+            padding: 6px 14px;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-2);
+        }
+
+        .legal-chip .dot {
+            width: 7px;
+            height: 7px;
+            background: var(--green);
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .legal-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 32px;
+            margin-bottom: 16px;
+        }
+
+        .legal-card h2 {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: var(--green);
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .legal-card h3 {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--text-1);
+            margin: 20px 0 8px;
+        }
+
+        .legal-card h3:first-child { margin-top: 0; }
+
+        .legal-card p {
+            font-size: 0.9rem;
+            color: var(--text-2);
+            margin-bottom: 12px;
+        }
+
+        .legal-card p:last-child { margin-bottom: 0; }
+
+        .legal-card ul {
+            padding-left: 20px;
+            margin-bottom: 12px;
+        }
+
+        .legal-card ul li {
+            font-size: 0.9rem;
+            color: var(--text-2);
+            margin-bottom: 6px;
+        }
+
+        .legal-card strong { color: var(--text-1); }
+
+        .legal-highlight {
+            background: var(--green-light);
+            border-left: 3px solid var(--green);
+            border-radius: 0 8px 8px 0;
+            padding: 14px 16px;
+            margin: 16px 0;
+            font-size: 0.875rem;
+            color: var(--green);
+            font-weight: 500;
+        }
+
+        /* Rights grid */
+        .rights-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin: 16px 0;
+        }
+
+        .right-item {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 14px;
+        }
+
+        .right-item .right-title {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--text-1);
+            margin-bottom: 4px;
+        }
+
+        .right-item .right-desc {
+            font-size: 0.8rem;
+            color: var(--text-3);
+            line-height: 1.4;
+        }
+
+        /* Data table */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 16px 0;
+            font-size: 0.85rem;
+        }
+
+        .data-table th {
+            text-align: left;
+            padding: 10px 12px;
+            background: var(--bg);
+            color: var(--text-3);
+            font-weight: 600;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .data-table td {
+            padding: 10px 12px;
+            color: var(--text-2);
+            border-bottom: 1px solid var(--border);
+            vertical-align: top;
+        }
+
+        .data-table tr:last-child td { border-bottom: none; }
+
+        .legal-contact {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 24px 32px;
+            margin-top: 32px;
+            text-align: center;
+        }
+
+        .legal-contact p {
+            font-size: 0.875rem;
+            color: var(--text-2);
+            margin-bottom: 8px;
+        }
+
+        .legal-contact a {
+            color: var(--green);
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+        .legal-contact a:hover { text-decoration: underline; }
+
+        .legal-footer {
+            text-align: center;
+            padding: 32px 24px;
+            border-top: 1px solid var(--border);
+            font-size: 12px;
+            color: var(--text-3);
+        }
+
+        @media (max-width: 600px) {
+            .legal-hero h1 { font-size: 1.5rem; }
+            .legal-card { padding: 20px; }
+            .legal-container { padding: 32px 16px 64px; }
+            .rights-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<header class="legal-header">
+    <a href="index.html" class="legal-logo">Nutri<span>Dash</span></a>
+    <a href="javascript:history.back()" class="legal-back">← Retour</a>
+</header>
+
+<div class="legal-container">
+
+    <div class="legal-hero">
+        <span class="legal-badge">RGPD &amp; Confidentialité</span>
+        <h1>Politique de Confidentialité</h1>
+        <p class="legal-date">Dernière mise à jour : juin 2026</p>
+    </div>
+
+    <div class="legal-summary">
+        <span class="legal-chip"><span class="dot"></span>Données hébergées en Europe</span>
+        <span class="legal-chip"><span class="dot"></span>Aucune revente à des tiers</span>
+        <span class="legal-chip"><span class="dot"></span>Suppression sur demande immédiate</span>
+        <span class="legal-chip"><span class="dot"></span>Conforme RGPD</span>
+    </div>
+
+    <div class="legal-card">
+        <h2>1. Responsable du traitement</h2>
+        <p>Le responsable du traitement des données personnelles collectées via NutriDash est :</p>
+        <p><strong>NutriDash</strong><br>
+        Contact : <a href="mailto:baudouinjeremy@gmail.com" style="color:var(--green);">baudouinjeremy@gmail.com</a></p>
+    </div>
+
+    <div class="legal-card">
+        <h2>2. Données collectées</h2>
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Catégorie</th>
+                    <th>Données</th>
+                    <th>Finalité</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>Compte</strong></td>
+                    <td>Adresse email, mot de passe (chiffré)</td>
+                    <td>Authentification</td>
+                </tr>
+                <tr>
+                    <td><strong>Profil</strong></td>
+                    <td>Nom, âge, poids, taille, sexe, objectif</td>
+                    <td>Calcul des besoins nutritionnels</td>
+                </tr>
+                <tr>
+                    <td><strong>Suivi</strong></td>
+                    <td>Repas saisis, calories, protéines, activités, pesées</td>
+                    <td>Affichage du tableau de bord et statistiques</td>
+                </tr>
+                <tr>
+                    <td><strong>Technique</strong></td>
+                    <td>Logs de connexion, erreurs applicatives</td>
+                    <td>Sécurité et maintenance</td>
+                </tr>
+            </tbody>
+        </table>
+        <div class="legal-highlight">
+            NutriDash ne collecte aucune donnée de paiement. Les transactions sont gérées par un prestataire tiers certifié PCI-DSS.
+        </div>
+    </div>
+
+    <div class="legal-card">
+        <h2>3. Base légale du traitement</h2>
+        <p>Les traitements reposent sur les bases légales suivantes :</p>
+        <ul>
+            <li><strong>Exécution du contrat</strong> — données de compte et de profil nécessaires au fonctionnement du service</li>
+            <li><strong>Consentement</strong> — données de santé (poids, objectif corporel), recueilli lors de l'inscription</li>
+            <li><strong>Intérêt légitime</strong> — logs techniques pour la sécurité et la stabilité du service</li>
+        </ul>
+    </div>
+
+    <div class="legal-card">
+        <h2>4. Hébergement et transferts</h2>
+        <h3>Infrastructure</h3>
+        <p>Les données sont hébergées sur <strong>Fly.io</strong> avec des serveurs localisés dans la région <strong>Europe (Paris, CDG)</strong>, garantissant une conformité au RGPD sans transfert hors UE.</p>
+        <h3>Sous-traitants</h3>
+        <p>NutriDash utilise les services tiers suivants, tous conformes RGPD :</p>
+        <ul>
+            <li><strong>PocketBase</strong> — base de données et authentification</li>
+            <li><strong>Fly.io</strong> — hébergement des serveurs</li>
+            <li><strong>GitHub Pages</strong> — hébergement du frontend</li>
+        </ul>
+    </div>
+
+    <div class="legal-card">
+        <h2>5. Durée de conservation</h2>
+        <ul>
+            <li><strong>Données de compte actif</strong> — conservées pendant toute la durée de l'abonnement</li>
+            <li><strong>Données après résiliation</strong> — supprimées dans un délai de 30 jours</li>
+            <li><strong>Suppression immédiate</strong> — possible à tout moment via la fonction "Supprimer mon compte" dans l'application</li>
+            <li><strong>Logs techniques</strong> — conservés 90 jours maximum</li>
+        </ul>
+    </div>
+
+    <div class="legal-card">
+        <h2>6. Vos droits (RGPD)</h2>
+        <p>Conformément au Règlement Général sur la Protection des Données (RGPD), vous disposez des droits suivants :</p>
+        <div class="rights-grid">
+            <div class="right-item">
+                <div class="right-title">Droit d'accès</div>
+                <div class="right-desc">Obtenir une copie de vos données personnelles</div>
+            </div>
+            <div class="right-item">
+                <div class="right-title">Droit de rectification</div>
+                <div class="right-desc">Corriger des données inexactes depuis votre profil</div>
+            </div>
+            <div class="right-item">
+                <div class="right-title">Droit à l'effacement</div>
+                <div class="right-desc">Supprimer votre compte et toutes vos données</div>
+            </div>
+            <div class="right-item">
+                <div class="right-title">Droit à la portabilité</div>
+                <div class="right-desc">Recevoir vos données dans un format structuré</div>
+            </div>
+            <div class="right-item">
+                <div class="right-title">Droit d'opposition</div>
+                <div class="right-desc">Vous opposer à certains traitements</div>
+            </div>
+            <div class="right-item">
+                <div class="right-title">Droit de limitation</div>
+                <div class="right-desc">Demander la suspension d'un traitement</div>
+            </div>
+        </div>
+        <p>Pour exercer ces droits, contactez-nous à <a href="mailto:baudouinjeremy@gmail.com" style="color:var(--green);font-weight:600;">baudouinjeremy@gmail.com</a>. Vous pouvez également introduire une réclamation auprès de la <strong>CNIL</strong> (cnil.fr).</p>
+    </div>
+
+    <div class="legal-card">
+        <h2>7. Cookies et stockage local</h2>
+        <p>NutriDash utilise le <strong>localStorage</strong> de votre navigateur pour stocker localement vos données de session et préférences. Aucun cookie publicitaire ou de tracking tiers n'est utilisé.</p>
+        <div class="legal-highlight">
+            NutriDash ne fait aucun suivi comportemental et ne revend aucune donnée à des annonceurs ou partenaires commerciaux.
+        </div>
+    </div>
+
+    <div class="legal-card">
+        <h2>8. Sécurité</h2>
+        <p>NutriDash met en œuvre les mesures de sécurité suivantes :</p>
+        <ul>
+            <li>Chiffrement des mots de passe avec <strong>bcrypt</strong></li>
+            <li>Connexions chiffrées via <strong>HTTPS/TLS</strong></li>
+            <li>Authentification par <strong>JWT</strong> à durée limitée</li>
+            <li>Accès aux données strictement limité à l'utilisateur propriétaire</li>
+        </ul>
+    </div>
+
+    <div class="legal-card">
+        <h2>9. Modifications</h2>
+        <p>NutriDash se réserve le droit de mettre à jour cette politique de confidentialité. Toute modification substantielle sera notifiée par email au moins 30 jours avant son entrée en vigueur.</p>
+    </div>
+
+    <div class="legal-contact">
+        <p>Questions relatives à la protection de vos données :</p>
+        <a href="mailto:baudouinjeremy@gmail.com">baudouinjeremy@gmail.com</a>
+        <p style="margin-top:12px;font-size:12px;">Autorité de contrôle : <a href="https://www.cnil.fr" target="_blank" rel="noopener">CNIL — cnil.fr</a></p>
+    </div>
+
+</div>
+
+<footer class="legal-footer">
+    &copy; 2026 NutriDash &nbsp;·&nbsp; <a href="cgu.html" style="color:inherit;">CGU</a> &nbsp;·&nbsp; <a href="confidentialite.html" style="color:inherit;">Confidentialité</a>
+</footer>
+
+</body>
+</html>

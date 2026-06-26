@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Conditions Générales d'Utilisation — NutriDash</title>
+    <meta name="robots" content="noindex">
+    <link rel="icon" type="image/png" href="Images/icon-192.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --green:       #2D6A4F;
+            --green-light: #D8F3DC;
+            --terracotta:  #E07A5F;
+            --bg:          #F8F6F0;
+            --surface:     #FFFFFF;
+            --border:      #E4E0D8;
+            --text-1:      #1A1A1A;
+            --text-2:      #4A4A4A;
+            --text-3:      #888880;
+            --radius:      14px;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text-1);
+            line-height: 1.7;
+            min-height: 100vh;
+        }
+
+        /* Header */
+        .legal-header {
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            padding: 0 24px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .legal-logo {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--text-1);
+            text-decoration: none;
+        }
+
+        .legal-logo span { color: var(--green); }
+
+        .legal-back {
+            font-family: 'Inter', sans-serif;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--green);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .legal-back:hover { opacity: 0.75; }
+
+        /* Container */
+        .legal-container {
+            max-width: 760px;
+            margin: 0 auto;
+            padding: 48px 24px 80px;
+        }
+
+        /* Hero */
+        .legal-hero {
+            margin-bottom: 48px;
+        }
+
+        .legal-badge {
+            display: inline-block;
+            background: var(--green-light);
+            color: var(--green);
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 4px 12px;
+            border-radius: 99px;
+            margin-bottom: 16px;
+        }
+
+        .legal-hero h1 {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--text-1);
+            margin-bottom: 12px;
+            line-height: 1.2;
+        }
+
+        .legal-hero .legal-date {
+            font-size: 13px;
+            color: var(--text-3);
+        }
+
+        /* Card */
+        .legal-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 32px;
+            margin-bottom: 16px;
+        }
+
+        .legal-card h2 {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: var(--green);
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .legal-card h3 {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--text-1);
+            margin: 20px 0 8px;
+        }
+
+        .legal-card p {
+            font-size: 0.9rem;
+            color: var(--text-2);
+            margin-bottom: 12px;
+        }
+
+        .legal-card p:last-child { margin-bottom: 0; }
+
+        .legal-card ul {
+            padding-left: 20px;
+            margin-bottom: 12px;
+        }
+
+        .legal-card ul li {
+            font-size: 0.9rem;
+            color: var(--text-2);
+            margin-bottom: 6px;
+        }
+
+        .legal-card strong { color: var(--text-1); }
+
+        /* Highlight box */
+        .legal-highlight {
+            background: var(--green-light);
+            border-left: 3px solid var(--green);
+            border-radius: 0 8px 8px 0;
+            padding: 14px 16px;
+            margin: 16px 0;
+            font-size: 0.875rem;
+            color: var(--green);
+            font-weight: 500;
+        }
+
+        /* Price tag */
+        .legal-price {
+            display: inline-flex;
+            align-items: baseline;
+            gap: 4px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 8px 16px;
+            margin: 12px 0;
+        }
+
+        .legal-price .amount {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--text-1);
+        }
+
+        .legal-price .period {
+            font-size: 0.875rem;
+            color: var(--text-3);
+        }
+
+        /* Contact card */
+        .legal-contact {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 24px 32px;
+            margin-top: 32px;
+            text-align: center;
+        }
+
+        .legal-contact p {
+            font-size: 0.875rem;
+            color: var(--text-2);
+            margin-bottom: 8px;
+        }
+
+        .legal-contact a {
+            color: var(--green);
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+        .legal-contact a:hover { text-decoration: underline; }
+
+        /* FAQ accordion */
+        .legal-faq {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 28px 32px;
+            margin-bottom: 32px;
+        }
+
+        .legal-faq-title {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: var(--text-1);
+            margin-bottom: 20px;
+        }
+
+        .faq-item {
+            border-bottom: 1px solid var(--border);
+        }
+
+        .faq-item:last-child { border-bottom: none; }
+
+        .faq-q {
+            width: 100%;
+            background: none;
+            border: none;
+            padding: 16px 0;
+            text-align: left;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text-1);
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .faq-q::after {
+            content: '+';
+            font-size: 1.2rem;
+            font-weight: 400;
+            color: var(--green);
+            flex-shrink: 0;
+            transition: transform 0.2s;
+        }
+
+        .faq-q[aria-expanded="true"]::after {
+            transform: rotate(45deg);
+        }
+
+        .faq-a {
+            display: none;
+            padding: 0 0 16px;
+        }
+
+        .faq-a.open { display: block; }
+
+        .faq-a p {
+            font-size: 0.875rem;
+            color: var(--text-2);
+            line-height: 1.65;
+        }
+
+        /* Footer */
+        .legal-footer {
+            text-align: center;
+            padding: 32px 24px;
+            border-top: 1px solid var(--border);
+            font-size: 12px;
+            color: var(--text-3);
+        }
+
+        @media (max-width: 600px) {
+            .legal-hero h1 { font-size: 1.5rem; }
+            .legal-card { padding: 20px; }
+            .legal-container { padding: 32px 16px 64px; }
+        }
+    </style>
+</head>
+<body>
+
+<header class="legal-header">
+    <a href="index.html" class="legal-logo">Nutri<span>Dash</span></a>
+    <a href="javascript:history.back()" class="legal-back">← Retour</a>
+</header>
+
+<div class="legal-container">
+
+    <div class="legal-hero">
+        <span class="legal-badge">Document légal</span>
+        <h1>Conditions Générales d'Utilisation</h1>
+        <p class="legal-date">Dernière mise à jour : juin 2026</p>
+    </div>
+
+    <!-- FAQ -->
+    <div class="legal-faq">
+        <h2 class="legal-faq-title">Questions fréquentes</h2>
+        <div class="faq-item">
+            <button class="faq-q" aria-expanded="false">Combien coûte NutriDash après l'essai ?</button>
+            <div class="faq-a"><p>NutriDash coûte <strong>5&nbsp;€ par mois TTC</strong>. Aucune surprise, aucun frais caché.</p></div>
+        </div>
+        <div class="faq-item">
+            <button class="faq-q" aria-expanded="false">Que se passe-t-il à la fin de la période d'essai ?</button>
+            <div class="faq-a"><p>À l'issue des <strong>7 jours d'essai gratuit</strong>, la facturation démarre automatiquement à 5&nbsp;€/mois via PayPal. Vous recevrez un email de rappel 24&nbsp;h avant. Vous pouvez annuler à tout moment avant ce délai pour ne rien payer.</p></div>
+        </div>
+        <div class="faq-item">
+            <button class="faq-q" aria-expanded="false">Comment résilier mon abonnement ?</button>
+            <div class="faq-a"><p>Depuis votre <strong>page Profil</strong> dans l'application, rubrique "Abonnement", ou directement depuis votre compte PayPal. La résiliation est immédiate et sans frais. Vos données restent accessibles jusqu'à la fin de la période payée.</p></div>
+        </div>
+        <div class="faq-item">
+            <button class="faq-q" aria-expanded="false">Puis-je obtenir un remboursement ?</button>
+            <div class="faq-a"><p>Les mois entamés ne sont pas remboursés. En revanche, l'abonnement étant sans engagement, vous pouvez résilier à tout moment et ne plus être prélevé le mois suivant.</p></div>
+        </div>
+        <div class="faq-item">
+            <button class="faq-q" aria-expanded="false">Mes données sont-elles sécurisées ?</button>
+            <div class="faq-a"><p>Oui. Vos données sont hébergées en Europe (Paris), chiffrées en transit (HTTPS) et au repos. Elles ne sont jamais revendues à des tiers. Consultez notre <a href="confidentialite.html" style="color:var(--green);font-weight:600;">Politique de Confidentialité</a> pour tous les détails.</p></div>
+        </div>
+        <div class="faq-item">
+            <button class="faq-q" aria-expanded="false">NutriDash remplace-t-il un nutritionniste ?</button>
+            <div class="faq-a"><p>Non. NutriDash est un outil de suivi personnel. Il ne constitue pas un avis médical ou nutritionnel professionnel. Consultez un professionnel de santé pour tout besoin spécifique.</p></div>
+        </div>
+    </div>
+
+    <div class="legal-card">
+        <h2>1. Présentation du service</h2>
+        <p>NutriDash est une application web de suivi nutritionnel accessible à l'adresse <strong>buddzybuddz.github.io/nutrition-app</strong>. Elle permet à ses utilisateurs de calculer leurs besoins caloriques, de suivre leurs apports alimentaires et d'analyser leur progression vers leurs objectifs santé.</p>
+        <p>L'utilisation de NutriDash implique l'acceptation pleine et entière des présentes Conditions Générales d'Utilisation (CGU). Si vous n'acceptez pas ces conditions, vous ne devez pas utiliser le service.</p>
+    </div>
+
+    <div class="legal-card">
+        <h2>2. Accès au service</h2>
+        <h3>Inscription</h3>
+        <p>L'accès aux fonctionnalités de NutriDash nécessite la création d'un compte via une adresse email et un mot de passe. L'utilisateur s'engage à fournir des informations exactes et à maintenir la confidentialité de ses identifiants.</p>
+        <h3>Période d'essai</h3>
+        <div class="legal-highlight">
+            NutriDash offre une période d'essai gratuite de <strong>7 jours</strong>. À l'issue de cette période, la facturation démarre automatiquement à 5&nbsp;€/mois via PayPal, sauf résiliation avant échéance.
+        </div>
+        <h3>Disponibilité</h3>
+        <p>NutriDash s'efforce d'assurer la disponibilité du service 24h/24 et 7j/7. Toutefois, des interruptions pour maintenance ou en cas de force majeure peuvent survenir sans préavis.</p>
+    </div>
+
+    <div class="legal-card">
+        <h2>3. Abonnement et tarification</h2>
+        <p>Après les 7 jours d'essai, la poursuite de l'utilisation de NutriDash est soumise à un abonnement mensuel :</p>
+        <div class="legal-price">
+            <span class="amount">5 €</span>
+            <span class="period">/ mois TTC</span>
+        </div>
+        <ul>
+            <li><strong>Facturation automatique</strong> via PayPal à l'issue de la période d'essai</li>
+            <li>Sans engagement — résiliable à tout moment depuis la page Profil ou depuis votre compte PayPal</li>
+            <li>Le renouvellement est automatique chaque mois jusqu'à résiliation</li>
+            <li>Aucun remboursement partiel n'est effectué en cas de résiliation en cours de mois</li>
+            <li>Les tarifs peuvent être modifiés avec un préavis de 30 jours par email</li>
+        </ul>
+    </div>
+
+    <div class="legal-card">
+        <h2>4. Utilisation acceptable</h2>
+        <p>L'utilisateur s'engage à utiliser NutriDash uniquement à des fins personnelles et licites. Sont notamment interdits :</p>
+        <ul>
+            <li>Toute tentative d'accès non autorisé aux systèmes ou données d'autres utilisateurs</li>
+            <li>La revente ou redistribution du service</li>
+            <li>L'utilisation automatisée ou par scripts non autorisés</li>
+            <li>La publication de contenus illicites, offensants ou trompeurs</li>
+        </ul>
+    </div>
+
+    <div class="legal-card">
+        <h2>5. Données de santé et avertissement médical</h2>
+        <div class="legal-highlight">
+            NutriDash est un outil de suivi personnel. Il ne constitue en aucun cas un avis médical ou nutritionnel professionnel. Consultez un professionnel de santé avant d'entreprendre tout changement alimentaire significatif.
+        </div>
+        <p>Les données nutritionnelles (calories, protéines) sont fournies à titre indicatif. NutriDash décline toute responsabilité quant aux conséquences de l'utilisation de ces informations.</p>
+    </div>
+
+    <div class="legal-card">
+        <h2>6. Propriété intellectuelle</h2>
+        <p>L'ensemble des éléments constituant NutriDash (logo, design, code, contenus) sont la propriété exclusive de NutriDash et sont protégés par les lois sur la propriété intellectuelle. Toute reproduction ou utilisation sans autorisation écrite préalable est interdite.</p>
+        <p>Les données saisies par l'utilisateur (repas, poids, objectifs) restent sa propriété. NutriDash ne les exploite pas à des fins commerciales.</p>
+    </div>
+
+    <div class="legal-card">
+        <h2>7. Résiliation et suppression du compte</h2>
+        <p>L'utilisateur peut supprimer son compte à tout moment depuis la page Profil de l'application. Cette action entraîne la suppression définitive et immédiate de toutes ses données personnelles.</p>
+        <p>NutriDash se réserve le droit de suspendre ou supprimer un compte en cas de violation des présentes CGU, sans préavis ni remboursement.</p>
+    </div>
+
+    <div class="legal-card">
+        <h2>8. Limitation de responsabilité</h2>
+        <p>NutriDash est fourni "tel quel". Dans les limites permises par la loi, NutriDash ne saurait être tenu responsable de dommages directs ou indirects résultant de l'utilisation ou de l'impossibilité d'utiliser le service.</p>
+    </div>
+
+    <div class="legal-card">
+        <h2>9. Droit applicable</h2>
+        <p>Les présentes CGU sont soumises au droit français. Tout litige relatif à leur interprétation ou exécution relève de la compétence exclusive des tribunaux français.</p>
+        <p>Conformément à l'article L.612-1 du Code de la consommation, en cas de litige, vous pouvez recourir gratuitement à un médiateur de la consommation.</p>
+    </div>
+
+    <div class="legal-card">
+        <h2>10. Modifications des CGU</h2>
+        <p>NutriDash se réserve le droit de modifier les présentes CGU à tout moment. Les utilisateurs seront informés par email au moins 30 jours avant l'entrée en vigueur de toute modification substantielle. La poursuite de l'utilisation du service vaut acceptation des nouvelles conditions.</p>
+    </div>
+
+    <div class="legal-contact">
+        <p>Pour toute question relative aux présentes CGU :</p>
+        <a href="mailto:baudouinjeremy@gmail.com">baudouinjeremy@gmail.com</a>
+    </div>
+
+</div>
+
+<footer class="legal-footer">
+    &copy; 2026 NutriDash &nbsp;·&nbsp; <a href="cgu.html" style="color:inherit;">CGU</a> &nbsp;·&nbsp; <a href="confidentialite.html" style="color:inherit;">Confidentialité</a>
+</footer>
+
+<script>
+document.querySelectorAll('.faq-q').forEach(btn => {
+    btn.addEventListener('click', () => {
+        const answer = btn.nextElementSibling;
+        const isOpen = btn.getAttribute('aria-expanded') === 'true';
+        btn.setAttribute('aria-expanded', !isOpen);
+        answer.classList.toggle('open', !isOpen);
+    });
+});
+</script>
+</body>
+</html>
