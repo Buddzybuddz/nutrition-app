@@ -16,6 +16,22 @@ function escapeHtml(str) {
         .replace(/'/g, '&#039;');
 }
 
+function showToast(message, duration) {
+    duration = duration || 3000;
+    var existing = document.getElementById('nd-toast');
+    if (existing) existing.remove();
+    var toast = document.createElement('div');
+    toast.id = 'nd-toast';
+    toast.textContent = message;
+    toast.style.cssText = 'position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:var(--color-text-1);color:#fff;padding:12px 20px;border-radius:10px;font-family:\'Inter\',sans-serif;font-size:14px;font-weight:500;z-index:9999;box-shadow:0 4px 16px rgba(0,0,0,0.2);opacity:0;transition:opacity 0.2s ease;white-space:nowrap;pointer-events:none;';
+    document.body.appendChild(toast);
+    requestAnimationFrame(function() { toast.style.opacity = '1'; });
+    setTimeout(function() {
+        toast.style.opacity = '0';
+        setTimeout(function() { if (toast.parentNode) toast.remove(); }, 220);
+    }, duration);
+}
+
 let STORAGE_KEY = 'nutridash_state_none';
 
 /**
@@ -316,7 +332,7 @@ window.saveEditCustomActivity = function() {
     const newCals = parseInt(document.getElementById('edit-act-cals').value) || 0;
 
     if (!newName) {
-        alert('Veuillez saisir un nom pour l\'activité.');
+        showToast('Veuillez saisir un nom pour l\'activité.');
         return;
     }
 
@@ -473,7 +489,7 @@ document.getElementById('profile-form').addEventListener('submit', (e) => {
     if (checkGoalReached(state.profile.weight)) {
         showGoalReachedMessage();
     } else {
-        alert('Profil sauvegardé!');
+        showToast('Profil sauvegardé ✓');
     }
     
     document.querySelector('[data-target="dashboard-view"]').click();
@@ -924,11 +940,11 @@ function updateDashboard() {
         } else {
             let status = "";
             if (completedItems.length > 0) {
-                const boldCompleted = completedItems.map(item => `<b>${item}</b>`);
+                const boldCompleted = completedItems.map(item => `<b>${escapeHtml(item)}</b>`);
                 status = boldCompleted.join(", ") + " validé(s). ";
             }
             if (nextStep) {
-                status += `Prochaine étape : <b>${nextStep}</b>`;
+                status += `Prochaine étape : <b>${escapeHtml(nextStep)}</b>`;
             }
             progressStatus.innerHTML = status;
         }
@@ -943,11 +959,11 @@ function updateDashboard() {
             if (existingWeigh) {
                 weighCard.innerHTML = `
                     <div class="weigh-in-text">
-                        <h3 style="border:none; margin:0; font-size:1.5rem; color: var(--accent-success);">✅ Pesée : <strong>${existingWeigh.weight} kg</strong></h3>
+                        <h3 style="border:none; margin:0; font-size:1rem; font-family:'DM Sans',sans-serif; font-weight:600; color:var(--color-text-1);">Pesée enregistrée : <strong style="color:var(--color-primary);">${escapeHtml(existingWeigh.weight)} kg ✓</strong></h3>
                     </div>
                     <div class="weigh-in-actions">
-                        <button type="button" class="btn" onclick="window.editWeighIn()">✎ Modifier</button>
-                        <button type="button" class="btn btn-danger" onclick="window.deleteWeighIn()">✕ Effacer</button>
+                        <button type="button" onclick="window.editWeighIn()" style="height:40px;padding:0 16px;background:transparent;border:1.5px solid var(--color-primary);color:var(--color-primary);border-radius:10px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;cursor:pointer;transition:background 0.15s;">✎ Modifier</button>
+                        <button type="button" onclick="window.deleteWeighIn()" style="height:40px;padding:0 16px;background:transparent;border:1.5px solid #e05555;color:#e05555;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;cursor:pointer;transition:background 0.15s;">✕ Effacer</button>
                     </div>`;
             } else {
                 weighCard.innerHTML = `
@@ -956,7 +972,7 @@ function updateDashboard() {
                     </div>
                     <div class="weigh-in-actions">
                         <input type="number" id="weigh-input" step="0.1" min="10" max="300" placeholder="Ex: 75.5">
-                        <button type="button" class="btn btn-primary" onclick="window.saveWeighIn()">Valider</button>
+                        <button type="button" class="weigh-in-btn" onclick="window.saveWeighIn()">Valider</button>
                     </div>`;
             }
         } else {
@@ -1053,10 +1069,10 @@ function updateDashboard() {
         
         if (remainingProtein <= 0) {
             proteinRemainingEl.textContent = "0";
-            proteinCircle.style.background = `conic-gradient(var(--accent-primary) 360deg, #ffffff 0deg)`;
+            proteinCircle.style.background = `conic-gradient(var(--color-primary) 360deg, var(--color-surface) 0deg)`;
         } else {
             proteinRemainingEl.textContent = Math.round(Math.abs(remainingProtein));
-            proteinCircle.style.background = `conic-gradient(var(--accent-primary) ${degProtein}deg, #ffffff ${degProtein}deg)`;
+            proteinCircle.style.background = `conic-gradient(var(--color-primary) ${degProtein}deg, var(--color-surface) ${degProtein}deg)`;
         }
     }
 
@@ -1069,12 +1085,12 @@ function updateDashboard() {
         progressCircle.classList.add('danger');
         calsRemaining.textContent = Math.round(Math.abs(remaining));
         document.querySelector('.remaining-label').innerHTML = 'dépassement<br>kcal';
-        progressCircle.style.background = `conic-gradient(var(--accent-danger) 360deg, var(--bg-main) 0deg)`;
+        progressCircle.style.background = `conic-gradient(#C0392B 360deg, var(--color-surface) 0deg)`;
     } else {
         progressCircle.classList.remove('danger');
         calsRemaining.textContent = Math.round(remaining);
         document.querySelector('.remaining-label').innerHTML = 'kcal';
-        progressCircle.style.background = `conic-gradient(var(--accent-secondary) ${degrees}deg, var(--bg-main) ${degrees}deg)`;
+        progressCircle.style.background = `conic-gradient(var(--color-accent) ${degrees}deg, var(--color-surface) ${degrees}deg)`;
     }
 
     // Render history
@@ -1090,11 +1106,11 @@ function updateDashboard() {
             
             let details = '';
             if (entry.type === 'Repas') {
-                details = `<strong>${entry.cals} kcal</strong> | ${entry.prot}g prot`;
+                details = `<strong>${escapeHtml(entry.cals)} kcal</strong> | ${escapeHtml(entry.prot)}g prot`;
             } else if (entry.type === 'Activité') {
-                details = `<strong>+${entry.cals} kcal</strong> brulées`;
+                details = `<strong>+${escapeHtml(entry.cals)} kcal</strong> brulées`;
             } else if (entry.type === 'Objectif') {
-                details = `Ajustement de <strong>${entry.calsText}</strong> du TDEE affiché`;
+                details = `Ajustement de <strong>${escapeHtml(entry.calsText)}</strong> du TDEE affiché`;
             }
 
             li.innerHTML = `
@@ -1188,7 +1204,7 @@ window.editWeighIn = function() {
         </div>
         <div class="weigh-in-actions">
             <input type="number" id="weigh-input" step="0.1" min="10" max="300" value="${existing ? existing.weight : ''}">
-            <button type="button" class="btn btn-primary" onclick="window.saveWeighIn()">Valider</button>
+            <button type="button" class="weigh-in-btn" onclick="window.saveWeighIn()">Valider</button>
         </div>`;
 };
 
@@ -1200,38 +1216,29 @@ window.deleteWeighIn = function() {
         state.weighIns.splice(idx, 1);
         saveState();
         updateDashboard();
-        alert("Pesée effacée.");
+        showToast("Pesée effacée.");
     }
 };
 
-// Suivi filter listener
-const suiviFilter = document.getElementById('suivi-filter');
-if (suiviFilter) {
-    suiviFilter.addEventListener('change', () => {
+// Suivi period chip listeners
+document.querySelectorAll('.history-period-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+        document.querySelectorAll('.history-period-chip').forEach(c => c.classList.remove('history-period-chip--active'));
+        chip.classList.add('history-period-chip--active');
         if (window.renderSuivi) window.renderSuivi();
     });
-}
+});
 
 
 window.renderSuivi = function() {
-    const filterEl = document.getElementById('suivi-filter');
-    if (!filterEl) return;
-    const activeFilter = filterEl.value;
-    
+    const activeChip = document.querySelector('.history-period-chip--active');
+    if (!activeChip) return;
+    const periodDays = parseInt(activeChip.dataset.period) || 7;
+
     const now = new Date();
     let cutoffDate = new Date(now);
-    
-    if (activeFilter === 'week') {
-        const day = now.getDay() || 7;
-        cutoffDate = new Date(now);
-        cutoffDate.setDate(now.getDate() - (day - 1));
-        cutoffDate.setHours(0,0,0,0);
-    } else {
-        const days = parseInt(activeFilter); 
-        cutoffDate = new Date(now);
-        cutoffDate.setDate(now.getDate() - days + 1);
-        cutoffDate.setHours(0,0,0,0);
-    }
+    cutoffDate.setDate(now.getDate() - periodDays + 1);
+    cutoffDate.setHours(0, 0, 0, 0);
     
     const endDate = new Date(now);
     endDate.setHours(23, 59, 59, 999);
@@ -1247,22 +1254,29 @@ window.renderSuivi = function() {
     const weightAtEnd = findClosestWeight(endDate);
     const wDiffVal = weightAtEnd - weightAtStart;
 
-    // UI Update Weight Card (Compact)
-    const wStartValEl = document.getElementById('suivi-weight-start-val');
-    const wStartDateEl = document.getElementById('suivi-weight-start-date');
-    const wEndValEl = document.getElementById('suivi-weight-end-val');
-    const wEndDateEl = document.getElementById('suivi-weight-end-date');
-    const wDiffEl = document.getElementById('suivi-weight-diff');
+    // UI Update Weight Card
+    const wStartEl = document.getElementById('history-weight-start');
+    const wEndEl = document.getElementById('history-weight-end');
+    const wDeltaEl = document.getElementById('history-weight-delta');
+    const wEmptyEl = document.getElementById('history-weight-empty');
+    const wChartWrapEl = document.querySelector('.history-chart-wrap');
 
-    if (wStartValEl) {
-        wStartValEl.textContent = weightAtStart + ' kg';
-        wStartDateEl.textContent = 'Début période';
-        wEndValEl.textContent = weightAtEnd + ' kg';
-        wEndDateEl.textContent = 'Fin période';
-        
-        const sign = wDiffVal > 0 ? '+' : '';
-        wDiffEl.textContent = sign + wDiffVal.toFixed(1) + ' kg';
-        wDiffEl.style.color = wDiffVal > 0 ? 'var(--accent-warning)' : (wDiffVal < 0 ? 'var(--accent-success)' : 'var(--text-main)');
+    if (weightAtStart && weightAtEnd && weightAtStart !== 0 && weightAtEnd !== 0) {
+        if (wStartEl) wStartEl.textContent = weightAtStart + ' kg';
+        if (wEndEl) wEndEl.textContent = weightAtEnd + ' kg';
+        if (wDeltaEl) {
+            const sign = wDiffVal > 0 ? '+' : '';
+            wDeltaEl.textContent = sign + wDiffVal.toFixed(1) + ' kg';
+            wDeltaEl.style.color = wDiffVal > 0 ? 'var(--color-accent)' : (wDiffVal < 0 ? 'var(--color-primary)' : 'var(--color-text-2)');
+        }
+        if (wEmptyEl) wEmptyEl.style.display = 'none';
+        if (wChartWrapEl) wChartWrapEl.style.display = '';
+    } else {
+        if (wStartEl) wStartEl.textContent = '—';
+        if (wEndEl) wEndEl.textContent = '—';
+        if (wDeltaEl) { wDeltaEl.textContent = 'Pas assez de pesées'; wDeltaEl.style.color = ''; }
+        if (wEmptyEl) wEmptyEl.style.display = '';
+        if (wChartWrapEl) wChartWrapEl.style.display = 'none';
     }
 
     // 2. Process Calories & Proteins with Majority Objective
@@ -1377,40 +1391,38 @@ window.renderSuivi = function() {
     });
 
     // 3. UI Update: Consumption Totals
-    const cConsEl = document.getElementById('suivi-cals-consumed');
-    const cGoalEl = document.getElementById('suivi-cals-goal');
-    const cDiffEl = document.getElementById('suivi-cals-diff');
-    const pConsEl = document.getElementById('suivi-prot-consumed');
-    const pGoalEl = document.getElementById('suivi-prot-goal');
-    const pDiffEl = document.getElementById('suivi-prot-diff');
+    const cConsEl = document.getElementById('history-cals-consumed');
+    const cGoalEl = document.getElementById('history-cals-goal');
+    const cDiffEl = document.getElementById('history-cals-diff');
+    const cBadgeEl = document.getElementById('history-cals-badge');
+    const pConsEl = document.getElementById('history-prot-consumed');
+    const pGoalEl = document.getElementById('history-prot-goal');
+    const pDiffEl = document.getElementById('history-prot-diff');
+    const pBadgeEl = document.getElementById('history-prot-badge');
+
+    const totalTolerance = activeDaysCount * 10;
+    const cDiff = Math.round(sumCalsConsumed - sumCalsGoal);
+    let calsMatch = majorityGoal === 'loss' ? cDiff <= 0 : Math.abs(cDiff) <= totalTolerance;
+    const pDiff = Math.round(sumProtConsumed - sumProtGoal);
+    const protMatch = pDiff >= -10;
 
     if (cConsEl) {
-        cConsEl.textContent = Math.round(sumCalsConsumed) + ' kcal';
-        cGoalEl.textContent = Math.round(sumCalsGoal) + ' kcal';
-        const cDiff = Math.round(sumCalsConsumed - sumCalsGoal);
-        cDiffEl.textContent = (cDiff > 0 ? '+' : '') + cDiff + ' kcal';
-        
-        // Calcul de la tolérance dynamique basée sur les JOURS ACTIFS : 10 kcal par jour pour maintenance/gain
-        const totalTolerance = activeDaysCount * 10;
-        
-        let calsMatch = false;
-        if (majorityGoal === 'loss') {
-            calsMatch = cDiff <= 0;
-        } else {
-            calsMatch = Math.abs(cDiff) <= totalTolerance;
-        }
-        
-        cDiffEl.style.color = calsMatch ? 'var(--accent-success)' : 'var(--accent-danger)';
-
-        pConsEl.textContent = Math.round(sumProtConsumed) + ' g';
-        pGoalEl.textContent = Math.round(sumProtGoal) + ' g';
-        const pDiff = Math.round(sumProtConsumed - sumProtGoal);
-        pDiffEl.textContent = (pDiff > 0 ? '+' : '') + pDiff + ' g';
-        pDiffEl.style.color = pDiff >= -10 ? 'var(--accent-success)' : 'var(--accent-danger)';
+        cConsEl.textContent = Math.round(sumCalsConsumed);
+        cGoalEl.textContent = Math.round(sumCalsGoal);
+        cDiffEl.textContent = 'Écart : ' + (cDiff > 0 ? '+' : '') + cDiff + ' kcal';
+        cDiffEl.style.color = calsMatch ? 'var(--color-primary)' : 'var(--color-accent)';
+        if (cBadgeEl) { cBadgeEl.textContent = calsMatch ? '✓ Objectif atteint' : 'Hors objectif'; cBadgeEl.style.background = calsMatch ? 'var(--color-accent-light)' : '#fae8e4'; cBadgeEl.style.color = calsMatch ? 'var(--color-primary)' : 'var(--color-accent)'; }
+    }
+    if (pConsEl) {
+        pConsEl.textContent = Math.round(sumProtConsumed);
+        pGoalEl.textContent = Math.round(sumProtGoal);
+        pDiffEl.textContent = 'Écart : ' + (pDiff > 0 ? '+' : '') + pDiff + ' g';
+        pDiffEl.style.color = protMatch ? 'var(--color-primary)' : 'var(--color-accent)';
+        if (pBadgeEl) { pBadgeEl.textContent = protMatch ? '✓ Objectif atteint' : 'Hors objectif'; pBadgeEl.style.background = protMatch ? 'var(--color-accent-light)' : '#fae8e4'; pBadgeEl.style.color = protMatch ? 'var(--color-primary)' : 'var(--color-accent)'; }
     }
 
     // 4. UI Update: Objectifs Details
-    const objCard = document.getElementById('card-suivi-objectifs');
+    const objCard = document.getElementById('history-goals-list');
     if (objCard) {
         const history = state.goalHistory || [];
         const displayItems = [];
@@ -1488,139 +1500,50 @@ window.renderSuivi = function() {
         }
 
         const goalNames = { 'loss': 'Sèche', 'gain': 'Prise de masse', 'maintenance': 'Maintien' };
-        
-        document.getElementById('suivi-objectifs-inner').innerHTML = filteredItems.map(item => {
-            // Estimation des calories/protéines pour cet objectif spécifiquement
-            // On utilise les valeurs du profil actuel comme base de calcul simplifiée
+        const goalColors = { 'loss': 'var(--color-accent)', 'gain': 'var(--color-primary)', 'maintenance': 'var(--color-primary)' };
+        const goalIcons = { 'loss': '📉', 'gain': '📈', 'maintenance': '⚖️' };
+
+        objCard.innerHTML = filteredItems.map(item => {
             const multiplier = item.goal === 'loss' ? 0.9 : (item.goal === 'gain' ? 1.1 : 1.0);
             const estCals = Math.round((state.profile ? state.profile.bmr * 1.2 : 2000) * multiplier);
             const estProt = Math.round(getLatestWeight() * 2);
+            const accentColor = goalColors[item.goal] || 'var(--color-primary)';
 
             return `
-                <div class="obj-period-item">
-                    <div class="obj-period-date">
-                        <span style="opacity: 0.8; font-weight: 700;">${escapeHtml(item.label)}</span> ${escapeHtml(item.date)}
-                        ${item.isCurrent ? `
-                            <span class="status-badge">
-                                <span class="pulse-dot"></span>
-                                Toujours en cours
-                            </span>
-                        ` : ''}
-                    </div>
-                    <div class="obj-period-details">
-                        ${escapeHtml(goalNames[item.goal] || item.goal)}
-                        — ${estCals} kcal | ${estProt}g prot
+                <div class="goal-entry">
+                    <div class="goal-entry-bar" style="background:${accentColor};"></div>
+                    <div class="goal-entry-body">
+                        <div class="goal-entry-header">
+                            <span class="goal-entry-icon" aria-hidden="true">${goalIcons[item.goal] || '🎯'}</span>
+                            <span class="goal-entry-name">${escapeHtml(goalNames[item.goal] || item.goal)}</span>
+                            ${item.isCurrent ? `<span class="goal-entry-badge"><span class="goal-entry-dot"></span>En cours</span>` : ''}
+                        </div>
+                        <div class="goal-entry-meta">
+                            <span class="goal-entry-date">${escapeHtml(item.label)} ${escapeHtml(item.date)}</span>
+                        </div>
+                        <div class="goal-entry-targets">
+                            <span class="goal-entry-target-chip">${estCals} kcal</span>
+                            <span class="goal-entry-target-chip">${estProt} g prot</span>
+                        </div>
                     </div>
                 </div>
             `;
         }).join('');
-        
-        objCard.classList.remove('hidden');
     }
 
-    // 5. UI Update: Bilan Card
-    const bilanCard = document.getElementById('suivi-bilan-card');
-    const bilanInner = document.getElementById('suivi-bilan-inner');
-    if (bilanCard && bilanInner) {
-        bilanCard.classList.remove('hidden');
-
-        // --- Icônes SVG (Style Lucide) ---
-        const ICON_TARGET = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="bilan-stat-icon"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>`;
-        const ICON_PROTEIN = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="bilan-stat-icon"><path d="M6 18h8"/><path d="M3 22h18"/><path d="M9 10c1.5-1 3.5-1 5 0"/><path d="M19 10c-1.5-1-3.5-1-5 0"/><path d="M12 2v6"/><path d="M12 18v4"/><path d="M12 10c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></svg>`;
-        const ICON_SCALE = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="bilan-footer-icon"><path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="M7 21h10"/><path d="M12 3v18"/><path d="M3 7h18"/></svg>`;
-        const ICON_CHECK = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px;color:#2b8a3e"><polyline points="20 6 9 17 4 12"/></svg>`;
-        const ICON_ALERT = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px;color:#f59f00"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>`;
-        const ICON_HANDSHAKE = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:24px;height:24px;margin-right:8px;color:var(--accent-secondary)"><path d="m11 17 2 2 6-6"/><path d="m18 14 1.5 1.5"/><path d="M20 18v2"/><path d="M12 11h.01"/><path d="M16 11h.01"/><path d="M20 11h.01"/><path d="M12 15h.01"/><path d="M16 15h.01"/><path d="M20 15h.01"/><path d="M12 19h.01"/><path d="M16 19h.01"/><path d="M20 19h.01"/><path d="M12 7h.01"/><path d="M16 7h.01"/><path d="M20 7h.01"/><path d="M12 3h.01"/><path d="M16 3h.01"/><path d="M20 3h.01"/><path d="M3 3v18h18"/></svg>`;
-
-        const calsDiff = sumCalsConsumed - sumCalsGoal;
-        const protDiff = sumProtConsumed - sumProtGoal;
-        
-        const totalTolerance = activeDaysCount * 10;
-        
-        let calsOk = false;
-        if (activeDaysCount === 0) {
-            calsOk = true; 
-        } else if (majorityGoal === 'loss') {
-            calsOk = calsDiff <= 0;
-        } else {
-            calsOk = Math.abs(calsDiff) <= totalTolerance;
-        }
-        
-        const protOk = protDiff >= -10;
-        let weightOk = (majorityGoal === 'loss' && wDiffVal < 0) || (majorityGoal === 'gain' && wDiffVal > 0) || (majorityGoal === 'maintenance' && Math.abs(wDiffVal) < 0.3);
-
-        const score = (calsOk ? 1 : 0) + (protOk ? 1 : 0) + (weightOk ? 1 : 0);
-        const motivationMsg = score === 3 ? "Parfait, tu es sur la trajectoire idéale !" : 
-                               score === 2 ? "Très bien, quelques ajustements et ce sera parfait." :
-                               "Continue tes efforts, la constance est ton meilleur allié.";
-        
-        const daysAnalyzed = dailyLogs.length;
-        const periodBadgeLabel = daysAnalyzed <= 1 ? "Aujourd'hui" : `Analyse : ${daysAnalyzed} jours`;
-
-        // Détection intelligente d'un REEL changement d'objectif (pas juste une variation de calories)
-        const distinctGoals = new Set(periods.map(p => p.goal));
-        const hasRealGoalChange = distinctGoals.size > 1;
-
-        bilanInner.innerHTML = `
-            <div class="bilan-period-badge">${periodBadgeLabel}</div>
-
-            ${hasRealGoalChange ? `
-                <div class="bilan-warning-bar">
-                    ${ICON_ALERT} 
-                    <span>Changement d'objectif détecté — Analyse basée sur : <strong>${majorityGoalName}</strong></span>
-                </div>` : ''}
-            
-            <div class="bilan-grid">
-                <!-- Carte Calories -->
-                <div class="bilan-stat-card calories">
-                    <div class="bilan-stat-header">
-                        <span>Calories</span>
-                        <div class="bilan-stat-icon">${ICON_TARGET}</div>
-                    </div>
-                    <div class="bilan-stat-body">
-                        <div class="bilan-stat-value">
-                            ${Math.round(sumCalsConsumed)} <span class="bilan-stat-unit">kcal</span>
-                        </div>
-                        <div class="bilan-stat-target">
-                            ${calsOk ? ICON_CHECK : ICON_ALERT} 
-                            Objectif : <strong>${Math.round(sumCalsGoal)}</strong>
-                        </div>
-                        <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 2px;">
-                            (${calsDiff <= 0 ? Math.abs(Math.round(calsDiff)) + ' kcal de déficit' : Math.round(calsDiff) + ' kcal de surplus'})
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Carte Protéines -->
-                <div class="bilan-stat-card proteins">
-                    <div class="bilan-stat-header">
-                        <span>Protéines</span>
-                        <div class="bilan-stat-icon">${ICON_PROTEIN}</div>
-                    </div>
-                    <div class="bilan-stat-body">
-                        <div class="bilan-stat-value">
-                            ${Math.round(sumProtConsumed)} <span class="bilan-stat-unit">g</span>
-                        </div>
-                        <div class="bilan-stat-target">
-                            ${protOk ? ICON_CHECK : ICON_ALERT}
-                            Objectif : <strong>${Math.round(sumProtGoal)}g</strong>
-                        </div>
-                        <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 2px;">
-                            (${protDiff >= 0 ? Math.abs(Math.round(protDiff)) + 'g bonus' : Math.abs(Math.round(protDiff)) + 'g manquants'})
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Pied de page Poids & Score -->
-            <div class="bilan-footer-premium">
-                <div class="bilan-stat-icon" style="color:var(--accent-primary)">${ICON_SCALE}</div>
-                <div style="text-align: left; flex: 1;">
-                    <div style="font-size: 0.9rem;">Tendance Poids : <strong>${Math.abs(wDiffVal.toFixed(1))} kg ${wDiffVal >= 0 ? 'pris' : 'perdus'}</strong></div>
-                    <div style="font-size: 0.75rem; color: var(--text-muted); font-weight: 700;">Score final : ${score}/3 — ${motivationMsg}</div>
-                </div>
-            </div>
-        `;
+    // 5. UI Update: Score Card
+    {
+        const calsDiff2 = sumCalsConsumed - sumCalsGoal;
+        const protDiff2 = sumProtConsumed - sumProtGoal;
+        const totalTol2 = activeDaysCount * 10;
+        let calsOk2 = activeDaysCount === 0 ? true : (majorityGoal === 'loss' ? calsDiff2 <= 0 : Math.abs(calsDiff2) <= totalTol2);
+        const protOk2 = protDiff2 >= -10;
+        const weightOk2 = (majorityGoal === 'loss' && wDiffVal < 0) || (majorityGoal === 'gain' && wDiffVal > 0) || (majorityGoal === 'maintenance' && Math.abs(wDiffVal) < 0.3);
+        const score = (calsOk2 ? 1 : 0) + (protOk2 ? 1 : 0) + (weightOk2 ? 1 : 0);
+        const scoreValEl = document.getElementById('history-score-val');
+        const scoreMsgEl = document.getElementById('history-score-msg');
+        if (scoreValEl) scoreValEl.textContent = score + ' / 3';
+        if (scoreMsgEl) scoreMsgEl.textContent = score === 3 ? 'Parfait, tu es sur la trajectoire idéale !' : score === 2 ? 'Très bien, quelques ajustements et ce sera parfait.' : 'Continue tes efforts, la constance est ton meilleur allié.';
     }
 }
 

@@ -179,8 +179,9 @@ window.handleResetSubmit = async function(e) {
         btn.disabled = true;
         btn.textContent = "Envoi...";
         await pb.collection('users').requestPasswordReset(email);
-        alert("Si un compte correspond à cet email, un lien de réinitialisation a été envoyé.");
-        window.showLoginForm();
+        var successEl = document.getElementById('reset-success');
+        if (successEl) successEl.classList.remove('hidden');
+        btn.textContent = "Email envoyé ✓";
     } catch (err) {
         devErr("Erreur Reset:", err);
         showAuthError("Erreur lors de l'envoi de l'email.");

@@ -8,7 +8,7 @@
     <title>Dashboard Nutrition</title>
     <meta name="description" content="Application de suivi nutritionnel précis et moderne.">
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=2">
+    <link rel="stylesheet" href="style.css?v=10">
     <link rel="icon" type="image/png" href="favicon.png">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3"></script>
@@ -19,24 +19,60 @@
     <div id="landing-page" class="landing-page">
 
         <!-- Header sticky -->
-        <header class="lp-header">
-            <span class="lp-logo">Nutri<span>Dash</span></span>
-            <nav class="lp-nav">
+        <header class="lp-header" id="lp-header">
+            <span class="lp-logo" onclick="window.scrollTo({top:0,behavior:'smooth'})" style="cursor:pointer">Nutri<span>Dash</span></span>
+            <div class="lp-nav">
                 <button class="lp-btn-ghost" onclick="showAuthPage(false)">Connexion</button>
-            </nav>
+            </div>
         </header>
+
+        <!-- Script scroll header -->
+        <script>
+            (function() {
+                var header = document.getElementById('lp-header');
+                if (header) {
+                    window.addEventListener('scroll', function() {
+                        header.classList.toggle('lp-header--scrolled', window.scrollY > 50);
+                    }, { passive: true });
+                }
+            })();
+        </script>
 
         <!-- Hero -->
         <section class="lp-hero">
             <div class="lp-hero-inner">
                 <div class="lp-hero-content">
-                    <h1 class="lp-hero-title">Maîtrisez votre nutrition.</h1>
-                    <p class="lp-hero-subtitle">Calculez vos besoins réels, suivez vos calories et atteignez vos objectifs avec précision.</p>
+                    <h1 class="lp-hero-title">Vos objectifs ont un plan.<br>Votre alimentation aussi.</h1>
+                    <p class="lp-hero-subtitle">Calculez vos besoins caloriques réels, suivez vos repas et atteignez vos objectifs sans approximation.</p>
                     <button class="lp-btn-primary" onclick="showAuthPage(true)">Démarrer gratuitement &rarr;</button>
-                    <p class="lp-hero-meta">&#10003; 14 jours gratuits &nbsp;&nbsp;&#10003; Sans engagement</p>
+                    <p class="lp-hero-meta"><span class="lp-meta-check">&#10003;</span> 14 jours gratuits &nbsp;&middot;&nbsp; <span class="lp-meta-check">&#10003;</span> Sans engagement &nbsp;&middot;&nbsp; <span class="lp-meta-check">&#10003;</span> Annulation immédiate</p>
                 </div>
-                <div class="lp-hero-image">
-                    <img src="hero.png" alt="Aperçu de l'application NutriDash">
+                <!-- Mock-UI CSS pur — aucune image -->
+                <div class="lp-hero-graphic" aria-hidden="true">
+                    <div class="lp-mock-header">
+                        <span class="lp-mock-label">Aujourd'hui</span>
+                    </div>
+                    <div class="lp-mock-bar-track">
+                        <div class="lp-mock-bar-fill"></div>
+                    </div>
+                    <div class="lp-mock-macros">
+                        <span class="lp-mock-pill">Protéines 142g</span>
+                        <span class="lp-mock-pill">Calories 1410</span>
+                    </div>
+                    <div class="lp-mock-meals">
+                        <div class="lp-mock-meal-row">
+                            <span class="lp-mock-meal-name">Petit déjeuner</span>
+                            <span class="lp-mock-meal-kcal">520 kcal</span>
+                        </div>
+                        <div class="lp-mock-meal-row">
+                            <span class="lp-mock-meal-name">Déjeuner</span>
+                            <span class="lp-mock-meal-kcal">680 kcal</span>
+                        </div>
+                        <div class="lp-mock-meal-row lp-mock-meal-last">
+                            <span class="lp-mock-meal-name">Collation</span>
+                            <span class="lp-mock-meal-kcal">210 kcal</span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </section>
@@ -44,25 +80,45 @@
         <!-- Features -->
         <section class="lp-features">
             <div class="lp-section-inner">
-                <h2 class="lp-section-title">Votre corps mérite mieux que des approximations.</h2>
+                <h2 class="lp-section-title lp-reveal">Votre corps mérite mieux que des approximations.</h2>
                 <div class="lp-features-grid">
-                    <div class="lp-feature-card">
-                        <img src="icon_tdee.png" alt="TDEE" class="lp-feature-icon">
+                    <!-- Card TDEE -->
+                    <div class="lp-feature-card lp-reveal lp-reveal-d1">
+                        <div class="lp-feature-icon-wrap">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"
+                                 stroke-linecap="round" stroke-linejoin="round" width="24" height="24"
+                                 aria-hidden="true">
+                                <path d="M12 2C12 2 7 8 7 13a5 5 0 0 0 10 0c0-2.5-1.5-5-2-6.5C14 8 14.5 10 14 11.5c-.5-1-2-3-2-9.5z"/>
+                                <circle cx="12" cy="13" r="1.5" fill="currentColor" stroke="none"/>
+                            </svg>
+                        </div>
                         <h3 class="lp-feature-title">Calculateur TDEE Intelligent</h3>
-                        <p class="lp-feature-text">Découvrez instantanément combien de calories vous devez consommer pour atteindre votre objectif.</p>
-                        <img src="tdee.png" alt="Calcul TDEE" class="lp-feature-mockup">
+                        <p class="lp-feature-text">Découvrez instantanément combien de calories vous devez consommer pour atteindre votre objectif réel.</p>
                     </div>
-                    <div class="lp-feature-card">
-                        <img src="icon_dashboard.png" alt="Dashboard" class="lp-feature-icon">
+                    <!-- Card Journal -->
+                    <div class="lp-feature-card lp-reveal lp-reveal-d2">
+                        <div class="lp-feature-icon-wrap">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"
+                                 stroke-linecap="round" stroke-linejoin="round" width="24" height="24"
+                                 aria-hidden="true">
+                                <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
+                                <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
+                            </svg>
+                        </div>
                         <h3 class="lp-feature-title">Journal de bord intuitif</h3>
-                        <p class="lp-feature-text">Ajoutez vos repas et vos activités puis suivez vos calories et vos protéines.</p>
-                        <img src="dashboard.png" alt="Dashboard" class="lp-feature-mockup">
+                        <p class="lp-feature-text">Ajoutez vos repas en moins de 20 secondes. Suivez vos calories et vos protéines sans effort.</p>
                     </div>
-                    <div class="lp-feature-card">
-                        <img src="icon_history.png" alt="Historique" class="lp-feature-icon">
+                    <!-- Card Historique -->
+                    <div class="lp-feature-card lp-reveal lp-reveal-d3">
+                        <div class="lp-feature-icon-wrap">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"
+                                 stroke-linecap="round" stroke-linejoin="round" width="24" height="24"
+                                 aria-hidden="true">
+                                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+                            </svg>
+                        </div>
                         <h3 class="lp-feature-title">Analyse de l'évolution</h3>
-                        <p class="lp-feature-text">Surveillez votre évolution grâce au suivi détaillé. Fiez-vous aux données.</p>
-                        <img src="history.png" alt="Historique" class="lp-feature-mockup">
+                        <p class="lp-feature-text">Surveillez vos progrès semaine après semaine. Pilotez vos résultats par les données, pas les émotions.</p>
                     </div>
                 </div>
             </div>
@@ -71,11 +127,11 @@
         <!-- Process -->
         <section class="lp-process">
             <div class="lp-section-inner">
-                <h2 class="lp-section-title">Le Process NutriDash</h2>
-                <p class="lp-process-intro">Pour obtenir des résultats visibles et durables, la clé n'est pas la restriction, mais la précision.</p>
+                <h2 class="lp-section-title lp-reveal">Le Process NutriDash</h2>
+                <p class="lp-process-intro lp-reveal lp-reveal-d1">Pour obtenir des résultats visibles et durables, la clé n'est pas la restriction — c'est la précision.</p>
                 <div class="lp-process-grid">
-                    <div class="lp-process-step">
-                        <div class="lp-step-number" aria-hidden="true">1</div>
+                    <div class="lp-process-step lp-reveal lp-reveal-d1">
+                        <div class="lp-step-number" aria-hidden="true">01</div>
                         <div class="lp-step-body">
                             <h3 class="lp-step-title">Fixer le cap</h3>
                             <ul class="lp-step-list">
@@ -85,8 +141,8 @@
                             </ul>
                         </div>
                     </div>
-                    <div class="lp-process-step">
-                        <div class="lp-step-number" aria-hidden="true">2</div>
+                    <div class="lp-process-step lp-reveal lp-reveal-d2">
+                        <div class="lp-step-number" aria-hidden="true">02</div>
                         <div class="lp-step-body">
                             <h3 class="lp-step-title">Piloter au quotidien</h3>
                             <ul class="lp-step-list">
@@ -95,8 +151,8 @@
                             </ul>
                         </div>
                     </div>
-                    <div class="lp-process-step">
-                        <div class="lp-step-number" aria-hidden="true">3</div>
+                    <div class="lp-process-step lp-reveal lp-reveal-d3">
+                        <div class="lp-step-number" aria-hidden="true">03</div>
                         <div class="lp-step-body">
                             <h3 class="lp-step-title">Analyser &amp; Ajuster</h3>
                             <ul class="lp-step-list">
@@ -107,8 +163,8 @@
                         </div>
                     </div>
                 </div>
-                <div class="lp-process-highlight">
-                    <p>L'avantage NutriDash : ce process élimine l'incertitude. Vous ne "testez" pas un régime, vous pilotez vos résultats.</p>
+                <div class="lp-process-highlight lp-reveal lp-reveal-d4">
+                    <p>L'avantage NutriDash : ce process élimine l'incertitude. Vous ne testez pas un régime — vous pilotez vos résultats.</p>
                 </div>
             </div>
         </section>
@@ -116,62 +172,84 @@
         <!-- Tarif -->
         <section class="lp-pricing">
             <div class="lp-section-inner">
-                <h2 class="lp-section-title">Tarif Simple &amp; Transparent</h2>
-                <div class="lp-pricing-card">
+                <h2 class="lp-section-title lp-reveal">Tarif Simple &amp; Transparent</h2>
+                <div class="lp-pricing-card lp-reveal lp-reveal-d1">
                     <div class="lp-pricing-badge">14 jours gratuits</div>
                     <div class="lp-pricing-price">
                         <span class="lp-price-amount">10€</span>
                         <span class="lp-price-period">/ mois</span>
                     </div>
+                    <div class="lp-pricing-divider"></div>
                     <ul class="lp-pricing-list">
                         <li>
-                            <svg class="lp-check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+                            <svg class="lp-check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
                             Accès complet à toutes les fonctionnalités
                         </li>
                         <li>
-                            <svg class="lp-check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+                            <svg class="lp-check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
                             Synchronisation cloud illimitée
                         </li>
                         <li>
-                            <svg class="lp-check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+                            <svg class="lp-check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
                             Historique illimité
                         </li>
                         <li>
-                            <svg class="lp-check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+                            <svg class="lp-check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
                             Sans engagement, résiliation à tout moment
                         </li>
                     </ul>
-                    <button class="lp-btn-white" onclick="showAuthPage(true)">Commencer l'essai &rarr;</button>
+                    <div class="lp-pricing-divider"></div>
+                    <button class="lp-btn-primary lp-btn-full" onclick="showAuthPage(true)">Commencer l'essai &rarr;</button>
+                    <p class="lp-pricing-note">Pas de carte bancaire requise pour démarrer l'essai.</p>
                 </div>
             </div>
         </section>
 
-        <!-- Goals -->
-        <section class="lp-goals">
-            <div class="lp-goals-inner">
-                <div class="lp-goals-image">
-                    <img src="targets.png" alt="Sèche vs Masse">
-                </div>
-                <div class="lp-goals-content">
-                    <h2 class="lp-goals-title">Choisissez votre chemin : Sèche ou Masse.</h2>
-                    <p class="lp-goals-text">Construire du muscle ou fondre à vue d'œil ? NutriDash adapte votre objectif journalier instantanément avec des cibles caloriques ajustées (-10% à +10%).</p>
-                    <button class="lp-btn-secondary" onclick="showAuthPage(true)">Créer mon compte gratuit</button>
-                </div>
+        <!-- CTA Final -->
+        <section class="lp-cta-final">
+            <div class="lp-cta-final-inner lp-reveal">
+                <h2 class="lp-cta-final-title">Prêt à reprendre le contrôle&nbsp;?</h2>
+                <p class="lp-cta-final-subtitle">Rejoignez les utilisateurs qui pilotent leur alimentation avec précision.</p>
+                <button class="lp-btn-white" onclick="showAuthPage(true)">Démarrer gratuitement &rarr;</button>
+                <p class="lp-cta-final-meta"><span class="lp-meta-check-white">&#10003;</span> 14 jours gratuits &nbsp;&middot;&nbsp; <span class="lp-meta-check-white">&#10003;</span> Sans engagement &nbsp;&middot;&nbsp; <span class="lp-meta-check-white">&#10003;</span> Annulation immédiate</p>
             </div>
         </section>
 
         <!-- Footer -->
         <footer class="lp-footer">
             <div class="lp-footer-inner">
-                <span class="lp-logo lp-logo-white">NutriDash</span>
+                <span class="lp-logo lp-logo-footer">Nutri<span>Dash</span></span>
                 <p class="lp-footer-copy">&copy; 2026 NutriDash</p>
-                <nav class="lp-footer-links">
+                <div class="lp-footer-links" role="navigation" aria-label="Liens légaux">
                     <a href="/cgu.html" target="_blank" rel="noopener">CGU</a>
                     <span aria-hidden="true">&middot;</span>
                     <a href="/confidentialite.html" target="_blank" rel="noopener">Confidentialité</a>
-                </nav>
+                </div>
             </div>
         </footer>
+
+        <!-- Script animations au scroll — placé après tous les éléments .lp-reveal -->
+        <script>
+            (function() {
+                if (!('IntersectionObserver' in window)) {
+                    document.querySelectorAll('.lp-reveal').forEach(function(el) {
+                        el.classList.add('lp-revealed');
+                    });
+                    return;
+                }
+                var io = new IntersectionObserver(function(entries) {
+                    entries.forEach(function(e) {
+                        if (e.isIntersecting) {
+                            e.target.classList.add('lp-revealed');
+                            io.unobserve(e.target);
+                        }
+                    });
+                }, { threshold: 0.10 });
+                document.querySelectorAll('.lp-reveal').forEach(function(el) {
+                    io.observe(el);
+                });
+            })();
+        </script>
 
     </div>
 
@@ -780,12 +858,6 @@
                         <p id="daily-progress-status" class="db-progress-status">Commencez à saisir vos repas pour remplir la barre !</p>
                     </div>
 
-                    <!-- Actions -->
-                    <div class="card add-actions-card">
-                        <button type="button" class="btn btn-primary" onclick="openMealModal()">+ Ajouter un repas</button>
-                        <button type="button" class="btn btn-secondary" onclick="openActivityModal()">+ Ajouter une activité</button>
-                    </div>
-
                     <!-- Weigh-In Prompt Card -->
                     <div id="weigh-in-card" class="weigh-in-card">
                         <div>
@@ -793,8 +865,14 @@
                         </div>
                         <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
                             <input type="number" id="weigh-input" step="0.1" min="10" max="300" placeholder="Ex: 75.5">
-                            <button type="button" class="btn btn-primary" style="width: auto;" onclick="saveWeighIn()">Valider</button>
+                            <button type="button" class="weigh-in-btn" onclick="saveWeighIn()">Valider</button>
                         </div>
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="card add-actions-card">
+                        <button type="button" class="btn btn-primary" onclick="openMealModal()">+ Ajouter un repas</button>
+                        <button type="button" class="btn btn-secondary" onclick="openActivityModal()">+ Ajouter une activité</button>
                     </div>
 
                     <!-- Progress Card — Calories -->
@@ -1141,7 +1219,7 @@
             </p>
             <div style="display:flex;flex-direction:column;gap:10px;">
                 <button type="button" onclick="redirectToProfile()"
-                    style="height:52px;background:var(--color-primary);color:white;border:none;border-radius:var(--lp-radius-full);font-family:'DM Sans',sans-serif;font-size:16px;font-weight:600;cursor:pointer;transition:background 0.18s;">
+                    style="height:52px;background:var(--color-accent);color:white;border:none;border-radius:var(--lp-radius-full);font-family:'DM Sans',sans-serif;font-size:16px;font-weight:600;cursor:pointer;transition:background 0.18s;">
                     Fixer un nouvel objectif
                 </button>
                 <button type="button" onclick="closeGoalReachedModal()"
@@ -1759,16 +1837,20 @@
             /* Efface localStorage */
             var STORAGE_KEY = 'nutridash_state';
             try { localStorage.removeItem(STORAGE_KEY); } catch(e) {}
-            /* Supprime le compte PocketBase si connecté */
             if (typeof pb !== 'undefined' && pb.authStore && pb.authStore.isValid) {
                 try {
                     var userId = pb.authStore.model.id;
-                    /* Supprimer l'enregistrement user_data lié */
-                    try {
-                        var records = await pb.collection('user_data').getList(1, 1, { filter: 'user="' + userId + '"' });
-                        if (records.items.length > 0) await pb.collection('user_data').delete(records.items[0].id);
-                    } catch(e) {}
-                    /* Supprimer le compte */
+                    /* Supprimer toutes les données utilisateur (RGPD — droit à l'effacement) */
+                    var collections = ['profiles', 'meals', 'daily_stats', 'activities_log', 'weigh_ins', 'goal_history', 'user_data'];
+                    for (var i = 0; i < collections.length; i++) {
+                        try {
+                            var items = await pb.collection(collections[i]).getFullList({ filter: 'user="' + userId + '"' });
+                            for (var j = 0; j < items.length; j++) {
+                                await pb.collection(collections[i]).delete(items[j].id);
+                            }
+                        } catch(e) { /* collection inexistante ou déjà vide */ }
+                    }
+                    /* Supprimer le compte utilisateur */
                     await pb.collection('users').delete(userId);
                 } catch(e) { console.warn('Erreur suppression PB:', e); }
                 pb.authStore.clear();
