@@ -1258,8 +1258,6 @@ window.renderSuivi = function() {
     const wStartEl = document.getElementById('history-weight-start');
     const wEndEl = document.getElementById('history-weight-end');
     const wDeltaEl = document.getElementById('history-weight-delta');
-    const wEmptyEl = document.getElementById('history-weight-empty');
-    const wChartWrapEl = document.querySelector('.history-chart-wrap');
 
     if (weightAtStart && weightAtEnd && weightAtStart !== 0 && weightAtEnd !== 0) {
         if (wStartEl) wStartEl.textContent = weightAtStart + ' kg';
@@ -1269,14 +1267,10 @@ window.renderSuivi = function() {
             wDeltaEl.textContent = sign + wDiffVal.toFixed(1) + ' kg';
             wDeltaEl.style.color = wDiffVal > 0 ? 'var(--color-accent)' : (wDiffVal < 0 ? 'var(--color-primary)' : 'var(--color-text-2)');
         }
-        if (wEmptyEl) wEmptyEl.style.display = 'none';
-        if (wChartWrapEl) wChartWrapEl.style.display = '';
     } else {
         if (wStartEl) wStartEl.textContent = '—';
         if (wEndEl) wEndEl.textContent = '—';
         if (wDeltaEl) { wDeltaEl.textContent = 'Pas assez de pesées'; wDeltaEl.style.color = ''; }
-        if (wEmptyEl) wEmptyEl.style.display = '';
-        if (wChartWrapEl) wChartWrapEl.style.display = 'none';
     }
 
     // 2. Process Calories & Proteins with Majority Objective
@@ -1411,14 +1405,14 @@ window.renderSuivi = function() {
         cGoalEl.textContent = Math.round(sumCalsGoal);
         cDiffEl.textContent = 'Écart : ' + (cDiff > 0 ? '+' : '') + cDiff + ' kcal';
         cDiffEl.style.color = calsMatch ? 'var(--color-primary)' : 'var(--color-accent)';
-        if (cBadgeEl) { cBadgeEl.textContent = calsMatch ? '✓ Objectif atteint' : 'Hors objectif'; cBadgeEl.style.background = calsMatch ? 'var(--color-accent-light)' : '#fae8e4'; cBadgeEl.style.color = calsMatch ? 'var(--color-primary)' : 'var(--color-accent)'; }
+        if (cBadgeEl) { cBadgeEl.textContent = calsMatch ? '✓ Objectif atteint' : 'Continue comme ça !'; cBadgeEl.style.background = calsMatch ? 'var(--color-primary-xlight)' : 'var(--color-surface-2)'; cBadgeEl.style.color = calsMatch ? 'var(--color-primary)' : 'var(--color-text-2)'; }
     }
     if (pConsEl) {
         pConsEl.textContent = Math.round(sumProtConsumed);
         pGoalEl.textContent = Math.round(sumProtGoal);
         pDiffEl.textContent = 'Écart : ' + (pDiff > 0 ? '+' : '') + pDiff + ' g';
         pDiffEl.style.color = protMatch ? 'var(--color-primary)' : 'var(--color-accent)';
-        if (pBadgeEl) { pBadgeEl.textContent = protMatch ? '✓ Objectif atteint' : 'Hors objectif'; pBadgeEl.style.background = protMatch ? 'var(--color-accent-light)' : '#fae8e4'; pBadgeEl.style.color = protMatch ? 'var(--color-primary)' : 'var(--color-accent)'; }
+        if (pBadgeEl) { pBadgeEl.textContent = protMatch ? '✓ Objectif atteint' : 'Continue comme ça !'; pBadgeEl.style.background = protMatch ? 'var(--color-primary-xlight)' : 'var(--color-surface-2)'; pBadgeEl.style.color = protMatch ? 'var(--color-primary)' : 'var(--color-text-2)'; }
     }
 
     // 4. UI Update: Objectifs Details
