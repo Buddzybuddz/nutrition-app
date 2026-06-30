@@ -1,6 +1,6 @@
 FROM alpine:latest
 
-RUN apk add --no-cache unzip ca-certificates sqlite
+RUN apk add --no-cache unzip ca-certificates
 
 ARG PB_VERSION=0.36.9
 ADD https://github.com/pocketbase/pocketbase/releases/download/v${PB_VERSION}/pocketbase_${PB_VERSION}_linux_amd64.zip /tmp/pb.zip
