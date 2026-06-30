@@ -122,9 +122,11 @@ window.handleLoginSubmit = async function(e) {
 };
 
 window.handleSignupSubmit = async function(e) {
-    const email = document.getElementById('signup-email').value;
+    const firstname = (document.getElementById('signup-firstname')?.value || '').trim();
+    const lastname  = (document.getElementById('signup-lastname')?.value || '').trim();
+    const email    = document.getElementById('signup-email').value;
     const password = document.getElementById('signup-password').value;
-    const confirm = document.getElementById('signup-confirm').value;
+    const confirm  = document.getElementById('signup-confirm').value;
     const btn = e.target.querySelector('button');
 
     if (password !== confirm) {
@@ -135,14 +137,15 @@ window.handleSignupSubmit = async function(e) {
     try {
         btn.disabled = true;
         btn.textContent = "Création...";
-        
+
         // 1. Créer l'utilisateur
         await pb.collection('users').create({
             email,
             password,
             passwordConfirm: confirm,
             emailVisibility: false,
-            is_active: true
+            is_active: true,
+            name: [firstname, lastname].filter(Boolean).join(' ') || undefined,
         });
 
         // 2. Connexion automatique
@@ -345,6 +348,11 @@ async function migrateLegacyData(user, cloudState) {
 }
 
 // --- CHARGEMENT ---
+// Règle de priorité dual-write : le cloud gagne toujours à la connexion.
+// loadFromCloud() écrase entièrement l'état mémoire avec les données PocketBase,
+// sans jamais lire localStorage. Le localStorage n'est qu'un cache en écriture
+// (saveState → localStorage + syncToCloud). Pas de résolution de conflit :
+// en cas d'échec de syncToCloud(), les actions faites hors ligne sont perdues au login suivant.
 
 window.loadFromCloud = async (user) => {
     const userId = user.id;

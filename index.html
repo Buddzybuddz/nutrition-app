@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; connect-src 'self' https://nutridash-pb.fly.dev http://127.0.0.1:8090 https://cdn.jsdelivr.net; font-src https://fonts.googleapis.com https://fonts.gstatic.com; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; frame-ancestors 'none';">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; connect-src 'self' https://nutridash-pb.fly.dev http://127.0.0.1:8090 https://cdn.jsdelivr.net; font-src https://fonts.googleapis.com https://fonts.gstatic.com; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;">
     <meta http-equiv="X-Content-Type-Options" content="nosniff">
-    <title>Dashboard Nutrition</title>
+    <title>NutriDash — Suivi nutritionnel</title>
     <meta name="description" content="Application de suivi nutritionnel précis et moderne.">
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=10">
+    <link rel="stylesheet" href="style.css?v=11">
     <link rel="icon" type="image/png" href="Images/icon-192.png">
     <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
     <link rel="manifest" href="manifest.json">
@@ -16,9 +16,9 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="NutriDash">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3"></script>
-    <script src="https://cdn.jsdelivr.net/npm/pocketbase/dist/pocketbase.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js" integrity="sha384-vsrfeLOOY6KuIYKDlmVH5UiBmgIdB1oEf7p01YgWHuqmOHfZr374+odEv96n9tNC" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js" integrity="sha384-cVMg8E3QFwTvGCDuK+ET4PD341jF3W8nO1auiXfuZNQkzbUUiBGLsIQUE+b1mxws" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/pocketbase@0.27.0/dist/pocketbase.umd.min.js" integrity="sha384-71zKyme2JigFfHC3KzTrayBRD0l2QgSXtX6HkWSs4L5eagGqLaD/Yau+0y4irfP3" crossorigin="anonymous"></script>
 </head>
 <body>
     <!-- Landing Page -->
@@ -175,7 +175,7 @@
                     </div>
                 </div>
                 <div class="lp-process-highlight lp-reveal lp-reveal-d4">
-                    <img src="Images/lp-illustration.png" alt="Illustration d'une personne atteignant ses objectifs" class="lp-process-illus" loading="lazy">
+                    <img src="Images/lp-illustration.png" alt="Illustration d'une personne atteignant ses objectifs" class="lp-process-illus">
                     <p>L'avantage NutriDash : ce process élimine l'incertitude. Vous ne testez pas un régime — vous pilotez vos résultats.</p>
                 </div>
             </div>
@@ -188,7 +188,7 @@
                 <div class="lp-pricing-card lp-reveal lp-reveal-d1">
                     <div class="lp-pricing-badge">7 jours gratuits</div>
                     <div class="lp-pricing-price">
-                        <span class="lp-price-amount">5€</span>
+                        <span class="lp-price-amount">5,99€</span>
                         <span class="lp-price-period">/ mois</span>
                     </div>
                     <div class="lp-pricing-divider"></div>
@@ -212,7 +212,7 @@
                     </ul>
                     <div class="lp-pricing-divider"></div>
                     <button class="lp-btn-primary lp-btn-full" onclick="showAuthPage(true)">Commencer l'essai &rarr;</button>
-                    <p class="lp-pricing-note">Après 7 jours, la facturation démarre automatiquement à 5&nbsp;€/mois via PayPal. Résiliable à tout moment depuis votre profil.</p>
+                    <p class="lp-pricing-note">Après 7 jours, la facturation démarre automatiquement à 5,99&nbsp;€/mois via Stripe. Résiliable à tout moment depuis votre profil.</p>
                 </div>
             </div>
         </section>
@@ -336,6 +336,20 @@
                     <p class="auth-form-subtitle">7 jours d'essai offerts. Puis 5&nbsp;€/mois, sans engagement.</p>
                 </div>
 
+                <!-- Prénom / Nom -->
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                    <div class="auth-input-group">
+                        <svg class="auth-input-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                        <input type="text" id="signup-firstname" name="firstname" required autocomplete="given-name" placeholder=" ">
+                        <label for="signup-firstname">Prénom</label>
+                    </div>
+                    <div class="auth-input-group">
+                        <svg class="auth-input-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                        <input type="text" id="signup-lastname" name="lastname" required autocomplete="family-name" placeholder=" ">
+                        <label for="signup-lastname">Nom</label>
+                    </div>
+                </div>
+
                 <!-- Email -->
                 <div class="auth-input-group">
                     <svg class="auth-input-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
@@ -429,6 +443,10 @@
     </div>
 
     <script>
+    function escapeHtml(str) {
+        return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+    }
+
     /* Toggle visibilité mot de passe */
     function togglePasswordVisibility(inputId, btn) {
         var input = document.getElementById(inputId);
@@ -514,6 +532,16 @@
 
                 <!-- Bouton debug caché -->
                 <button id="btn-fix-profile" onclick="window.forceProfileLink()" class="btn hidden" style="display:none;margin-bottom:12px;font-size:12px;background:var(--color-accent,#E07A5F);color:#fff;border:none;border-radius:10px;padding:8px 14px;">Rattacher mon profil</button>
+
+                <!-- Carte abonnement -->
+                <div class="pv-subscription-card" id="pv-subscription-card">
+                    <div class="pv-sub-header">
+                        <span class="pv-sub-title">Abonnement</span>
+                        <span class="pv-sub-badge" id="pv-sub-badge">—</span>
+                    </div>
+                    <p class="pv-sub-desc" id="pv-sub-desc">Chargement…</p>
+                    <div class="pv-sub-actions" id="pv-sub-actions"></div>
+                </div>
 
                 <!-- Formulaire profil -->
                 <form id="profile-form" class="pv-form-card">
@@ -850,6 +878,9 @@
                         <button type="button" class="db-day-btn" onclick="changeDate(1)" aria-label="Jour suivant">&#8594;</button>
                     </div>
                 </header>
+
+                <!-- Bannière essai gratuit -->
+                <div id="trial-banner" style="display:none;"></div>
 
                 <!-- Goal Reminder -->
                 <div id="dashboard-goal-reminder" style="display: none; padding: 0 4px 12px;">
@@ -1550,7 +1581,7 @@
                 goals.slice().reverse().forEach(function(g) {
                     var chip = document.createElement('div');
                     chip.className = 'history-goal-chip';
-                    chip.innerHTML = '<span class="history-goal-date">' + (g.date || '') + '</span><span class="history-goal-label">' + (g.label || g.type || '') + '</span>';
+                    chip.innerHTML = '<span class="history-goal-date">' + escapeHtml(g.date || '') + '</span><span class="history-goal-label">' + escapeHtml(g.label || g.type || '') + '</span>';
                     goalsList.appendChild(chip);
                 });
             }
@@ -1891,6 +1922,420 @@
             document.addEventListener('DOMContentLoaded', initRGPD);
         } else {
             initRGPD();
+        }
+    })();
+    </script>
+
+    <!-- ============================================================
+         PAYWALL — Overlay bloquant fin de période d'essai
+    ============================================================ -->
+    <div id="paywall-overlay" class="paywall-overlay hidden" role="dialog" aria-modal="true" aria-label="Période d'essai terminée">
+        <div class="paywall-card">
+            <div class="paywall-logo">Nutri<span>Dash</span></div>
+            <div class="paywall-icon">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            </div>
+            <h2 class="paywall-title">Votre essai gratuit est terminé</h2>
+            <p class="paywall-subtitle">Continuez à piloter votre alimentation avec NutriDash — toutes vos données sont conservées.</p>
+            <div class="paywall-price-block">
+                <span class="paywall-amount">5,99 €</span>
+                <span class="paywall-period">/ mois · sans engagement</span>
+            </div>
+            <ul class="paywall-benefits">
+                <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>Accès complet à toutes les fonctionnalités</li>
+                <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>Historique et données illimités</li>
+                <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>Résiliable à tout moment depuis votre profil</li>
+            </ul>
+            <button class="paywall-btn-primary" id="paywall-subscribe-btn">S'abonner — 5,99 €/mois</button>
+            <p class="paywall-legal">Paiement sécurisé via Stripe. En vous abonnant, vous acceptez les <a href="cgu.html" target="_blank">CGU</a>.</p>
+            <button class="paywall-btn-logout" id="paywall-logout-btn">Se déconnecter</button>
+        </div>
+    </div>
+
+    <!-- ============================================================
+         STRIPE — Gestion abonnement
+    ============================================================ -->
+    <!-- ============================================================
+         PATCH — Paywall : check d'accès avant affichage de l'app
+    ============================================================ -->
+    <script>
+    (function() {
+        var TRIAL_DAYS = 7;
+
+        /* Vérifie si l'utilisateur a accès (essai actif OU exempté OU abonnement actif) */
+        async function checkAccess() {
+            if (typeof pb === 'undefined' || !pb.authStore.isValid) return false;
+            var user = pb.authStore.model;
+
+            /* Calcul fin de période d'essai */
+            var created  = new Date(user.created);
+            var trialEnd = new Date(created.getTime() + TRIAL_DAYS * 24 * 60 * 60 * 1000);
+            if (new Date() <= trialEnd) return true;
+
+            /* Essai expiré → rafraîchir le profil pour avoir les données à jour */
+            try {
+                var res    = await pb.collection('users').authRefresh();
+                var record = res.record;
+                if (record.is_exempt) return true;
+                var status = record.subscription_status;
+                return status === 'active' || status === 'trialing';
+            } catch(e) {
+                return false;
+            }
+        }
+
+        function showPaywall() {
+            var overlay = document.getElementById('paywall-overlay');
+            if (overlay) overlay.classList.remove('hidden');
+        }
+
+        function hidePaywall() {
+            var overlay = document.getElementById('paywall-overlay');
+            if (overlay) overlay.classList.add('hidden');
+        }
+
+        function initPaywall() {
+            /* Wrap window.showApp pour intercepter l'accès */
+            var _orig = window.showApp;
+            window._paywallOrig = _orig; // exposé pour le polling post-Stripe
+            window.showApp = async function() {
+                var hasAccess = await checkAccess();
+                if (hasAccess) {
+                    hidePaywall();
+                    if (_orig) _orig();
+                } else {
+                    showPaywall();
+                }
+            };
+
+            /* Bouton S'abonner */
+            var subBtn = document.getElementById('paywall-subscribe-btn');
+            if (subBtn) {
+                subBtn.addEventListener('click', async function() {
+                    subBtn.disabled    = true;
+                    subBtn.textContent = 'Redirection…';
+                    if (typeof window.stripeStartCheckout === 'function') {
+                        await window.stripeStartCheckout();
+                    }
+                    subBtn.disabled    = false;
+                    subBtn.textContent = 'S\'abonner — 5,99 €/mois';
+                });
+            }
+
+            /* Bouton Déconnexion */
+            var logoutBtn = document.getElementById('paywall-logout-btn');
+            if (logoutBtn) {
+                logoutBtn.addEventListener('click', function() {
+                    if (typeof pb !== 'undefined') pb.authStore.clear();
+                    if (typeof window.clearLocalData === 'function') window.clearLocalData();
+                    window.location.reload();
+                });
+            }
+
+            /* Retour de Stripe avec succès → polling jusqu'à activation (max 30s) */
+            var params = new URLSearchParams(window.location.search);
+            if (params.get('stripe') === 'success') {
+                window.history.replaceState({}, '', window.location.pathname);
+                var overlay = document.getElementById('paywall-overlay');
+                var card    = overlay && overlay.querySelector('.paywall-card');
+                if (card) {
+                    card.innerHTML = '<div class="paywall-logo">Nutri<span>Dash</span></div>'
+                        + '<p style="margin:2rem 0;font-size:1.1rem;color:var(--color-text)">Activation de votre abonnement…</p>'
+                        + '<p style="color:var(--color-text-muted);font-size:.9rem">Merci de patienter quelques secondes.</p>';
+                }
+                var attempts = 0;
+                var maxAttempts = 15;
+                var _origRef = window._paywallOrig;
+
+                async function tryActivate() {
+                    attempts++;
+                    var hasAccess = await checkAccess();
+                    if (hasAccess) {
+                        clearInterval(poll);
+                        hidePaywall();
+                        if (typeof _origRef === 'function') _origRef();
+                        if (typeof renderSubscriptionCard === 'function') renderSubscriptionCard();
+                    } else if (attempts >= maxAttempts) {
+                        clearInterval(poll);
+                        if (card) {
+                            card.innerHTML = '<div class="paywall-logo">Nutri<span>Dash</span></div>'
+                                + '<p style="margin:2rem 0;color:var(--color-text)">L\'activation prend plus de temps que prévu.</p>'
+                                + '<button id="retry-activation-btn" class="paywall-btn-primary">Réessayer</button>';
+                            var retryBtn = document.getElementById('retry-activation-btn');
+                            if (retryBtn) retryBtn.addEventListener('click', function() {
+                                retryBtn.textContent = 'Vérification…';
+                                retryBtn.disabled = true;
+                                attempts = 0;
+                                poll = setInterval(tryActivate, 2000);
+                            });
+                        }
+                    }
+                }
+
+                /* Délai initial de 3s pour laisser le webhook arriver */
+                var poll = setTimeout(function() {
+                    tryActivate();
+                    poll = setInterval(tryActivate, 2000);
+                }, 3000);
+            }
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initPaywall);
+        } else {
+            initPaywall();
+        }
+    })();
+    </script>
+
+    <script>
+    (function() {
+        /* Libellés et couleurs selon le statut */
+        var STATUS_LABELS = {
+            'none':       'Aucun abonnement',
+            'trialing':   'Période d\'essai',
+            'active':     'Actif',
+            'past_due':   'Paiement en retard',
+            'canceled':   'Résilié',
+            'incomplete': 'Incomplet',
+        };
+        var STATUS_CLASSES = {
+            'trialing': 'trialing',
+            'active':   'active',
+            'past_due': 'past_due',
+            'canceled': 'canceled',
+        };
+
+        function getToken() {
+            return typeof pb !== 'undefined' && pb.authStore && pb.authStore.isValid
+                ? pb.authStore.token : null;
+        }
+        function getPbUrl() {
+            return typeof PB_URL !== 'undefined' ? PB_URL : 'https://nutridash-pb.fly.dev';
+        }
+
+        var TRIAL_DAYS = 7;
+
+        function getTrialInfo() {
+            if (typeof pb === 'undefined' || !pb.authStore.isValid) return null;
+            var created  = new Date(pb.authStore.model.created);
+            var trialEnd = new Date(created.getTime() + TRIAL_DAYS * 24 * 60 * 60 * 1000);
+            var now      = new Date();
+            var msLeft   = trialEnd - now;
+            return {
+                active:    msLeft > 0,
+                daysLeft:  Math.max(0, Math.ceil(msLeft / (24 * 60 * 60 * 1000))),
+                endDate:   trialEnd,
+            };
+        }
+
+        /* Rendu de la carte abonnement */
+        async function renderSubscriptionCard() {
+            var badge   = document.getElementById('pv-sub-badge');
+            var desc    = document.getElementById('pv-sub-desc');
+            var actions = document.getElementById('pv-sub-actions');
+            if (!badge || !desc || !actions) return;
+
+            var token = getToken();
+            if (!token) {
+                desc.textContent = 'Connectez-vous pour voir votre abonnement.';
+                actions.innerHTML = '';
+                return;
+            }
+
+            var status = 'none';
+            var subEnd = null;
+            var isExempt = false;
+            try {
+                var refreshRes = await fetch(getPbUrl() + '/api/collections/users/auth-refresh', {
+                    method: 'POST',
+                    headers: { 'Authorization': token }
+                });
+                var refreshData = await refreshRes.json();
+                if (refreshData.record) {
+                    status   = refreshData.record.subscription_status || 'none';
+                    subEnd   = refreshData.record.subscription_end || null;
+                    isExempt = !!refreshData.record.is_exempt;
+                }
+            } catch(e) { /* silencieux */ }
+
+            var trial = getTrialInfo();
+
+            /* Cas exempté */
+            if (isExempt) {
+                badge.textContent = 'Accès offert';
+                badge.className   = 'pv-sub-badge active';
+                desc.textContent  = 'Vous bénéficiez d\'un accès gratuit accordé par l\'équipe NutriDash.';
+                actions.innerHTML = '';
+                return;
+            }
+
+            /* Cas essai en cours (pas encore d'abonnement Stripe) */
+            if ((status === 'none' || !status) && trial && trial.active) {
+                badge.textContent = 'Essai gratuit';
+                badge.className   = 'pv-sub-badge trialing';
+                var endFmt = trial.endDate.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' });
+                desc.textContent = trial.daysLeft <= 1
+                    ? 'Votre essai se termine aujourd\'hui. Abonnez-vous pour continuer.'
+                    : 'Il vous reste ' + trial.daysLeft + ' jours d\'essai gratuit (jusqu\'au ' + endFmt + '). Puis 5,99 €/mois.';
+                actions.innerHTML = '';
+                return;
+            }
+
+            /* Badge Stripe */
+            badge.textContent = STATUS_LABELS[status] || status;
+            badge.className   = 'pv-sub-badge ' + (STATUS_CLASSES[status] || '');
+
+            /* Description Stripe */
+            var endFmt2 = subEnd ? new Date(subEnd).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : null;
+            if (status === 'none' || !status) {
+                desc.textContent = 'Votre essai est terminé. Abonnez-vous pour continuer à utiliser NutriDash.';
+            } else if (status === 'trialing') {
+                desc.textContent = 'Période d\'essai Stripe' + (endFmt2 ? ' jusqu\'au ' + endFmt2 : '') + '. La facturation démarrera automatiquement à son terme.';
+            } else if (status === 'active') {
+                desc.textContent = 'Abonnement actif à 5,99 €/mois.' + (endFmt2 ? ' Prochain renouvellement le ' + endFmt2 + '.' : '');
+            } else if (status === 'past_due') {
+                desc.textContent = 'Votre dernier paiement a échoué. Mettez à jour votre moyen de paiement.';
+            } else if (status === 'canceled') {
+                desc.textContent = 'Abonnement résilié.' + (endFmt2 ? ' Accès jusqu\'au ' + endFmt2 + '.' : '');
+            }
+
+            /* Boutons d'action */
+            actions.innerHTML = '';
+            if (status === 'none' || status === 'canceled' || !status) {
+                var btn = document.createElement('button');
+                btn.className = 'pv-sub-btn-primary';
+                btn.textContent = 'S\'abonner — 5,99 €/mois';
+                btn.addEventListener('click', startCheckout);
+                actions.appendChild(btn);
+            } else if (status === 'trialing' || status === 'active' || status === 'past_due') {
+                var btn2 = document.createElement('button');
+                btn2.className = 'pv-sub-btn-secondary';
+                btn2.textContent = 'Gérer mon abonnement';
+                btn2.addEventListener('click', openPortal);
+                actions.appendChild(btn2);
+            }
+        }
+
+        /* Redirection vers Stripe Checkout */
+        window.stripeStartCheckout = async function() { return startCheckout(); };
+        async function startCheckout() {
+            var token = getToken();
+            if (!token) return;
+            var btn = document.querySelector('.pv-sub-btn-primary');
+            if (btn) { btn.disabled = true; btn.textContent = 'Redirection…'; }
+            try {
+                var res = await fetch(getPbUrl() + '/api/stripe/create-checkout-session', {
+                    method: 'POST',
+                    headers: { 'Authorization': token }
+                });
+                var data = await res.json();
+                if (data.url) {
+                    window.location.href = data.url;
+                } else if (res.status === 409) {
+                    alert('Vous avez déjà un abonnement actif. Gérez-le depuis votre profil.');
+                    if (btn) { btn.disabled = false; btn.textContent = 'S\'abonner — 5,99 €/mois'; }
+                } else {
+                    alert('Erreur : ' + (data.error || 'Réessayez.'));
+                    if (btn) { btn.disabled = false; btn.textContent = 'S\'abonner — 5,99 €/mois'; }
+                }
+            } catch(e) {
+                alert('Erreur réseau. Réessayez.');
+                if (btn) { btn.disabled = false; btn.textContent = '🚀 Commencer l\'essai gratuit'; }
+            }
+        }
+
+        /* Redirection vers Stripe Customer Portal */
+        async function openPortal() {
+            var token = getToken();
+            if (!token) return;
+            var btn = document.querySelector('.pv-sub-btn-secondary');
+            if (btn) { btn.disabled = true; btn.textContent = 'Redirection…'; }
+            try {
+                var res = await fetch(getPbUrl() + '/api/stripe/portal', {
+                    method: 'POST',
+                    headers: { 'Authorization': token }
+                });
+                var data = await res.json();
+                if (data.url) {
+                    window.location.href = data.url;
+                } else {
+                    alert('Erreur lors de l\'ouverture du portail. Réessayez.');
+                    if (btn) { btn.disabled = false; btn.textContent = 'Gérer mon abonnement'; }
+                }
+            } catch(e) {
+                alert('Erreur réseau. Réessayez.');
+                if (btn) { btn.disabled = false; btn.textContent = 'Gérer mon abonnement'; }
+            }
+        }
+
+        /* Gérer le retour de Stripe (?stripe=success ou ?stripe=cancel) */
+        function handleStripeReturn() {
+            var params = new URLSearchParams(window.location.search);
+            var stripeParam = params.get('stripe');
+            if (!stripeParam) return;
+
+            /* Nettoyer l'URL */
+            var cleanUrl = window.location.pathname;
+            window.history.replaceState({}, '', cleanUrl);
+
+            if (stripeParam === 'success') {
+                setTimeout(function() {
+                    alert('🎉 Abonnement activé ! Bienvenue dans NutriDash.');
+                    renderSubscriptionCard();
+                }, 500);
+            } else if (stripeParam === 'cancel') {
+                setTimeout(function() {
+                    alert('Vous avez annulé. Votre période d\'essai reste disponible.');
+                }, 300);
+            }
+        }
+
+        /* Initialisation */
+        function renderTrialBanner() {
+            var banner = document.getElementById('trial-banner');
+            if (!banner) return;
+            if (typeof pb === 'undefined' || !pb.authStore.isValid) { banner.style.display = 'none'; return; }
+            var trial = getTrialInfo();
+            /* N'afficher que pendant l'essai et sans abonnement Stripe actif */
+            var status = (pb.authStore.model && pb.authStore.model.subscription_status) || 'none';
+            if (!trial || !trial.active || status === 'active' || status === 'trialing') {
+                banner.style.display = 'none';
+                return;
+            }
+            var endFmt = trial.endDate.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' });
+            var msg = trial.daysLeft <= 1
+                ? 'Votre essai gratuit se termine aujourd\'hui.'
+                : 'Essai gratuit — ' + trial.daysLeft + ' jour' + (trial.daysLeft > 1 ? 's' : '') + ' restant' + (trial.daysLeft > 1 ? 's' : '') + ' (jusqu\'au ' + endFmt + ')';
+            banner.style.display = 'block';
+            banner.innerHTML = '<div class="trial-banner">'
+                + '<span class="trial-banner-text">' + msg + '</span>'
+                + '</div>';
+        }
+
+        function initStripe() {
+            handleStripeReturn();
+            /* Bannière essai sur le dashboard */
+            renderTrialBanner();
+            document.querySelectorAll('[data-target="dashboard-view"]').forEach(function(el) {
+                el.addEventListener('click', function() { setTimeout(renderTrialBanner, 100); });
+            });
+            /* Recharger la carte quand l'onglet Profil est affiché */
+            document.querySelectorAll('[data-target="profile-view"], [onclick*="profile-view"]').forEach(function(el) {
+                el.addEventListener('click', function() {
+                    setTimeout(renderSubscriptionCard, 100);
+                });
+            });
+            /* Premier rendu si on est déjà sur le profil */
+            if (!document.getElementById('profile-view').classList.contains('hidden')) {
+                renderSubscriptionCard();
+            }
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initStripe);
+        } else {
+            initStripe();
         }
     })();
     </script>

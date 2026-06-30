@@ -1,3 +1,6 @@
+# Dépendances
+node_modules/
+
 # PocketBase
 pb/pocketbase.exe
 pb/pb_data/
