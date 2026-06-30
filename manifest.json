@@ -2,14 +2,14 @@
   "name": "NutriDash",
   "short_name": "NutriDash",
   "description": "Suivez votre nutrition et atteignez vos objectifs",
-  "start_url": "/nutrition-app/",
+  "start_url": "/",
   "display": "standalone",
   "background_color": "#F2F1ED",
   "theme_color": "#2D6A4F",
   "orientation": "portrait",
   "icons": [
     {
-      "src": "/nutrition-app/apple-touch-icon.png",
+      "src": "/apple-touch-icon.png",
       "sizes": "1024x1024",
       "type": "image/png",
       "purpose": "any maskable"
