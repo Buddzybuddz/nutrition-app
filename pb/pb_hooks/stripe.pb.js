@@ -118,7 +118,8 @@ routerAdd("POST", "/api/stripe/create-checkout-session", (e) => {
 
         return e.json(200, { url: session.url });
     } catch (err) {
-        return e.json(500, { error: String(err) });
+        $app.logger().error("Stripe create-checkout-session: erreur", "error", String(err));
+        return e.json(500, { error: "Une erreur est survenue, veuillez réessayer." });
     }
 }, $apis.requireAuth());
 
@@ -157,14 +158,75 @@ routerAdd("POST", "/api/stripe/portal", (e) => {
         var data = JSON.parse(res.raw);
         return e.json(200, { url: data.url });
     } catch (err) {
-        return e.json(500, { error: String(err) });
+        $app.logger().error("Stripe portal: erreur", "error", String(err));
+        return e.json(500, { error: "Une erreur est survenue, veuillez réessayer." });
+    }
+}, $apis.requireAuth());
+
+/* ─── POST /api/stripe/cancel-subscription ───────────────────────────────
+   Annulation immédiate de l'abonnement actif du compte authentifié.
+   À appeler AVANT toute suppression de compte (RGPD art. 17) : une fois le
+   compte PocketBase supprimé, l'utilisateur ne peut plus se connecter pour
+   annuler lui-même via le portail Stripe, et continuerait à être facturé
+   indéfiniment. Le customerId vient uniquement de l'auth du token — jamais
+   d'un paramètre client, pour empêcher d'annuler l'abonnement d'un tiers. */
+
+routerAdd("POST", "/api/stripe/cancel-subscription", (e) => {
+    var STRIPE_SECRET_KEY = $os.getenv("STRIPE_SECRET_KEY");
+
+    var info = e.requestInfo();
+    if (!info.auth) return e.json(401, { error: "Non authentifié" });
+
+    var customerId = info.auth.getString("stripe_customer_id");
+    if (!customerId) return e.json(200, { ok: true, canceled: 0 });
+
+    function stripeGet(path) {
+        var res = $http.send({
+            method:  "GET",
+            url:     "https://api.stripe.com/v1" + path,
+            headers: { "Authorization": "Bearer " + STRIPE_SECRET_KEY },
+            timeout: 30,
+        });
+        var data = JSON.parse(res.raw);
+        if (res.statusCode >= 400) {
+            throw new Error("Stripe " + res.statusCode + ": " + (data.error ? data.error.message : res.raw));
+        }
+        return data;
+    }
+
+    function stripeDelete(path) {
+        var res = $http.send({
+            method:  "DELETE",
+            url:     "https://api.stripe.com/v1" + path,
+            headers: { "Authorization": "Bearer " + STRIPE_SECRET_KEY },
+            timeout: 30,
+        });
+        var data = JSON.parse(res.raw);
+        if (res.statusCode >= 400) {
+            throw new Error("Stripe " + res.statusCode + ": " + (data.error ? data.error.message : res.raw));
+        }
+        return data;
+    }
+
+    try {
+        var list = stripeGet("/subscriptions?customer=" + encodeURIComponent(customerId) + "&status=active&limit=10");
+        var canceled = 0;
+        (list.data || []).forEach(function(sub) {
+            stripeDelete("/subscriptions/" + sub.id);
+            canceled++;
+        });
+        return e.json(200, { ok: true, canceled: canceled });
+    } catch (err) {
+        $app.logger().error("Stripe cancel-subscription: erreur", "error", String(err));
+        return e.json(500, { ok: false, error: "Une erreur est survenue, veuillez réessayer." });
     }
 }, $apis.requireAuth());
 
 /* ─── POST /api/stripe/webhook ───────────────────────────────────────── */
 
 routerAdd("POST", "/api/stripe/webhook", (e) => {
-    /* Vérification du secret partagé via query param */
+    /* Rejet rapide via le secret partagé en query param (défense en
+       profondeur additionnelle, pas la protection principale) */
     var WEBHOOK_GUARD = $os.getenv("STRIPE_WEBHOOK_GUARD");
     var receivedSecret = e.request.url.query().get("secret");
     if (!WEBHOOK_GUARD || !receivedSecret || receivedSecret !== WEBHOOK_GUARD) {
@@ -172,9 +234,38 @@ routerAdd("POST", "/api/stripe/webhook", (e) => {
         return e.json(401, { error: "Unauthorized" });
     }
 
+    /* Corps brut requis pour la vérification HMAC — à lire avant tout
+       parsing JSON, qui consommerait le flux de la requête */
+    var rawBody = toString(e.request.body);
+
+    /* Vérification de la signature officielle Stripe (HMAC-SHA256).
+       Sans cette étape, n'importe qui connaissant le secret de query
+       string (visible dans les logs d'accès) pourrait forger un event
+       arbitraire. Voir https://docs.stripe.com/webhooks#verify-manually */
+    var WEBHOOK_SECRET = $os.getenv("STRIPE_WEBHOOK_SECRET");
+    var sigHeader = e.requestInfo().headers["stripe_signature"] || "";
+    var sigParts = {};
+    sigHeader.split(",").forEach(function(p) {
+        var kv = p.split("=");
+        if (kv.length === 2) sigParts[kv[0]] = kv[1];
+    });
+    var timestamp = sigParts["t"];
+    var expectedSig = timestamp && WEBHOOK_SECRET
+        ? $security.hs256(timestamp + "." + rawBody, WEBHOOK_SECRET)
+        : "";
+
+    if (!WEBHOOK_SECRET || !timestamp || !sigParts["v1"] || !expectedSig || !$security.equal(expectedSig, sigParts["v1"])) {
+        $app.logger().warn("Stripe webhook: signature invalide ou absente");
+        return e.json(401, { error: "Unauthorized" });
+    }
+    if (Math.abs(Date.now() / 1000 - parseInt(timestamp, 10)) > 300) {
+        $app.logger().warn("Stripe webhook: signature expirée (anti-rejeu)");
+        return e.json(401, { error: "Unauthorized" });
+    }
+
     var event;
     try {
-        event = e.requestInfo().body;
+        event = JSON.parse(rawBody);
     } catch(_) {
         return e.json(400, { error: "Impossible de lire le body" });
     }
@@ -200,6 +291,10 @@ routerAdd("POST", "/api/stripe/webhook", (e) => {
     /* cancelAt : timestamp Stripe (résiliation programmée), null (aucune
        résiliation programmée -> champ vidé) ou undefined (ne pas toucher
        au champ, utilisé pour les events factures qui n'en parlent pas) */
+    /* Retourne false uniquement en cas d'erreur réelle (pour déclencher
+       le retry Stripe sur les events de retrait d'accès) — "aucun
+       utilisateur trouvé" n'est pas une erreur transitoire, un retry ne
+       la résoudrait jamais. */
     function updateUser(customerId, status, periodEnd, cancelAt) {
         try {
             var rows = $app.findRecordsByFilter(
@@ -209,7 +304,7 @@ routerAdd("POST", "/api/stripe/webhook", (e) => {
                 1, 0,
                 { id: customerId }
             );
-            if (!rows || rows.length === 0) return;
+            if (!rows || rows.length === 0) return true;
             var u = rows[0];
             u.set("subscription_status", status);
             var ts = periodEnd ? parseInt(String(periodEnd), 10) : 0;
@@ -221,8 +316,10 @@ routerAdd("POST", "/api/stripe/webhook", (e) => {
                 u.set("subscription_cancel_at", cts > 0 ? tsToIso(cts) : "");
             }
             $app.save(u);
+            return true;
         } catch(err) {
             $app.logger().error("Stripe webhook: erreur updateUser", "error", String(err));
+            return false;
         }
     }
 
@@ -234,16 +331,27 @@ routerAdd("POST", "/api/stripe/webhook", (e) => {
     }
 
     var type = event.type;
+    var ok = true;
+    /* Events de retrait/dégradation d'accès : un échec silencieux laisserait
+       l'utilisateur "active" alors qu'il ne paie plus (fail-open). On force
+       Stripe à retenter via un 5xx plutôt que d'avaler l'erreur. */
+    var isDowngrade = false;
+
     if (type === "customer.subscription.created" || type === "customer.subscription.updated") {
         var endTs = obj.cancel_at || itemPeriodEnd(obj);
-        updateUser(obj.customer, obj.status, endTs, obj.cancel_at || null);
+        ok = updateUser(obj.customer, obj.status, endTs, obj.cancel_at || null);
     } else if (type === "customer.subscription.deleted") {
-        updateUser(obj.customer, "canceled", itemPeriodEnd(obj), null);
+        isDowngrade = true;
+        ok = updateUser(obj.customer, "canceled", itemPeriodEnd(obj), null);
     } else if (type === "invoice.payment_failed") {
-        updateUser(obj.customer, "past_due", null);
+        isDowngrade = true;
+        ok = updateUser(obj.customer, "past_due", null);
     } else if (type === "invoice.payment_succeeded") {
-        updateUser(obj.customer, "active", null);
+        ok = updateUser(obj.customer, "active", null);
     }
 
+    if (!ok && isDowngrade) {
+        return e.json(500, { error: "Traitement échoué, merci de retenter" });
+    }
     return e.json(200, { received: true });
 });

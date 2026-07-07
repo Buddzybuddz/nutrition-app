@@ -18,3 +18,28 @@ onRecordCreateRequest((e) => {
 
     return e.next();
 });
+
+/* ─── Défense en profondeur : un utilisateur non-superuser ne peut jamais
+   modifier ses propres champs de paywall, même si la règle de collection
+   venait à être mal réécrite par erreur. Seuls les hooks serveur (stripe.pb.js,
+   $app.save() hors contexte @request.auth) doivent piloter ces champs. ───── */
+var LOCKED_SUBSCRIPTION_FIELDS = [
+    "is_exempt",
+    "subscription_status",
+    "subscription_end",
+    "subscription_cancel_at",
+    "stripe_customer_id",
+];
+
+onRecordUpdateRequest((e) => {
+    if (e.collection.name !== "_pb_users_auth_" || e.hasSuperuserAuth()) {
+        return e.next();
+    }
+
+    var original = e.record.original();
+    LOCKED_SUBSCRIPTION_FIELDS.forEach(function(field) {
+        e.record.set(field, original.get(field));
+    });
+
+    return e.next();
+});

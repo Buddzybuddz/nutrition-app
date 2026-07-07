@@ -17,4 +17,5 @@ done
 exec /pb/pocketbase serve \
     --http=0.0.0.0:8080 \
     --migrationsDir=/pb/pb_migrations_active \
-    --hooksDir=/pb/pb_hooks
+    --hooksDir=/pb/pb_hooks \
+    --origins=https://nutridash.fr

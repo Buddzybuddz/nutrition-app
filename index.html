@@ -1866,6 +1866,30 @@
         }
 
         async function deleteAccount() {
+            if (typeof pb !== 'undefined' && pb.authStore && pb.authStore.isValid) {
+                /* Annuler l'abonnement Stripe AVANT de supprimer le compte —
+                   une fois le compte PocketBase supprimé, l'utilisateur ne
+                   peut plus se connecter pour l'annuler lui-même et
+                   continuerait à être facturé indéfiniment. */
+                var token = getToken();
+                if (token) {
+                    try {
+                        var cancelRes = await fetch(getPbUrl() + '/api/stripe/cancel-subscription', {
+                            method: 'POST',
+                            headers: { 'Authorization': token }
+                        });
+                        var cancelData = await cancelRes.json();
+                        if (!cancelRes.ok || cancelData.ok === false) {
+                            var proceed = confirm('Nous n\'avons pas pu annuler automatiquement votre abonnement Stripe. Continuer la suppression du compte quand même ? Vous devrez alors annuler l\'abonnement vous-même depuis Stripe ou nous contacter.');
+                            if (!proceed) return;
+                        }
+                    } catch(e) {
+                        var proceedErr = confirm('Nous n\'avons pas pu contacter Stripe pour annuler votre abonnement. Continuer la suppression du compte quand même ?');
+                        if (!proceedErr) return;
+                    }
+                }
+            }
+
             /* Efface localStorage */
             var STORAGE_KEY = 'nutridash_state';
             try { localStorage.removeItem(STORAGE_KEY); } catch(e) {}
