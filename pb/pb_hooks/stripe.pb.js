@@ -1,17 +1,5 @@
 /// <reference path="../pb_data/types.d.ts" />
 
-/* ─── Rate limiting en mémoire (par userId) ──────────────────────────── */
-var _checkoutLastCall = {};
-
-function checkRateLimit(userId, cooldownMs) {
-    var now = Date.now();
-    if (_checkoutLastCall[userId] && (now - _checkoutLastCall[userId]) < cooldownMs) {
-        return false;
-    }
-    _checkoutLastCall[userId] = now;
-    return true;
-}
-
 /* ─── POST /api/stripe/create-checkout-session ───────────────────────── */
 
 routerAdd("POST", "/api/stripe/create-checkout-session", (e) => {
@@ -25,9 +13,15 @@ routerAdd("POST", "/api/stripe/create-checkout-session", (e) => {
     var userId    = info.auth.id;
     var userEmail = info.auth.get("email");
 
-    if (!checkRateLimit(userId, 30000)) {
+    /* Rate limiting via $app.store() — inline pour éviter toute dépendance
+       à une closure externe au handler (non fiable dans le JSVM PocketBase) */
+    var rlKey = "stripe_rl_" + userId;
+    var rlNow = Date.now();
+    var rlLast = $app.store().get(rlKey);
+    if (rlLast && (rlNow - rlLast) < 30000) {
         return e.json(429, { error: "Trop de requêtes. Patientez 30 secondes." });
     }
+    $app.store().set(rlKey, rlNow);
 
     /* Form-encode un objet plat */
     function encode(obj) {
@@ -138,9 +132,13 @@ routerAdd("POST", "/api/stripe/portal", (e) => {
     if (!info.auth) return e.json(401, { error: "Non authentifié" });
 
     var userId = info.auth.id;
-    if (!checkRateLimit(userId + "_portal", 10000)) {
+    var rlKey = "stripe_rl_" + userId + "_portal";
+    var rlNow = Date.now();
+    var rlLast = $app.store().get(rlKey);
+    if (rlLast && (rlNow - rlLast) < 10000) {
         return e.json(429, { error: "Trop de requêtes. Patientez 10 secondes." });
     }
+    $app.store().set(rlKey, rlNow);
 
     var customerId = info.auth.getString("stripe_customer_id");
     if (!customerId) return e.json(400, { error: "Aucun abonnement trouvé" });
