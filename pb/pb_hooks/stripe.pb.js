@@ -192,8 +192,9 @@ routerAdd("POST", "/api/stripe/webhook", (e) => {
             var rows = $app.findRecordsByFilter(
                 "users",
                 "stripe_customer_id = {:id}",
-                { id: customerId },
-                1, 0
+                "",
+                1, 0,
+                { id: customerId }
             );
             if (!rows || rows.length === 0) return;
             var u = rows[0];
