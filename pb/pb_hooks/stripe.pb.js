@@ -187,7 +187,20 @@ routerAdd("POST", "/api/stripe/webhook", (e) => {
     var obj = event.data && event.data.object;
     if (!obj) return e.json(200, { received: true });
 
-    function updateUser(customerId, status, periodEnd) {
+    function tsToIso(ts) {
+        var d = new Date(ts * 1000);
+        return d.getFullYear() + "-"
+            + String(d.getMonth() + 1).padStart(2, "0") + "-"
+            + String(d.getDate()).padStart(2, "0") + " "
+            + String(d.getHours()).padStart(2, "0") + ":"
+            + String(d.getMinutes()).padStart(2, "0") + ":"
+            + String(d.getSeconds()).padStart(2, "0") + ".000Z";
+    }
+
+    /* cancelAt : timestamp Stripe (résiliation programmée), null (aucune
+       résiliation programmée -> champ vidé) ou undefined (ne pas toucher
+       au champ, utilisé pour les events factures qui n'en parlent pas) */
+    function updateUser(customerId, status, periodEnd, cancelAt) {
         try {
             var rows = $app.findRecordsByFilter(
                 "users",
@@ -201,14 +214,11 @@ routerAdd("POST", "/api/stripe/webhook", (e) => {
             u.set("subscription_status", status);
             var ts = periodEnd ? parseInt(String(periodEnd), 10) : 0;
             if (ts > 0) {
-                var d = new Date(ts * 1000);
-                var iso = d.getFullYear() + "-"
-                    + String(d.getMonth() + 1).padStart(2, "0") + "-"
-                    + String(d.getDate()).padStart(2, "0") + " "
-                    + String(d.getHours()).padStart(2, "0") + ":"
-                    + String(d.getMinutes()).padStart(2, "0") + ":"
-                    + String(d.getSeconds()).padStart(2, "0") + ".000Z";
-                u.set("subscription_end", iso);
+                u.set("subscription_end", tsToIso(ts));
+            }
+            if (cancelAt !== undefined) {
+                var cts = cancelAt ? parseInt(String(cancelAt), 10) : 0;
+                u.set("subscription_cancel_at", cts > 0 ? tsToIso(cts) : "");
             }
             $app.save(u);
         } catch(err) {
@@ -226,9 +236,9 @@ routerAdd("POST", "/api/stripe/webhook", (e) => {
     var type = event.type;
     if (type === "customer.subscription.created" || type === "customer.subscription.updated") {
         var endTs = obj.cancel_at || itemPeriodEnd(obj);
-        updateUser(obj.customer, obj.status, endTs);
+        updateUser(obj.customer, obj.status, endTs, obj.cancel_at || null);
     } else if (type === "customer.subscription.deleted") {
-        updateUser(obj.customer, "canceled", itemPeriodEnd(obj));
+        updateUser(obj.customer, "canceled", itemPeriodEnd(obj), null);
     } else if (type === "invoice.payment_failed") {
         updateUser(obj.customer, "past_due", null);
     } else if (type === "invoice.payment_succeeded") {

@@ -5464,6 +5464,7 @@ details[open] .advice-accordion-summary::after {
 .pv-sub-badge.trialing { background: #FEF3C7; color: #92400E; }
 .pv-sub-badge.past_due { background: #FEE2E2; color: #991B1B; }
 .pv-sub-badge.canceled { background: var(--color-surface-2, #f2f0eb); color: var(--color-text-2, #5a5a5a); }
+.pv-sub-badge.ending   { background: #FEE2E2; color: #991B1B; }
 .pv-sub-desc {
     font-size: 13px;
     color: var(--color-text-2, #5a5a5a);

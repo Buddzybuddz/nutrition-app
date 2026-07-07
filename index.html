@@ -2146,6 +2146,7 @@
 
             var status = 'none';
             var subEnd = null;
+            var subCancelAt = null;
             var isExempt = false;
             try {
                 var refreshRes = await fetch(getPbUrl() + '/api/collections/users/auth-refresh', {
@@ -2154,9 +2155,10 @@
                 });
                 var refreshData = await refreshRes.json();
                 if (refreshData.record) {
-                    status   = refreshData.record.subscription_status || 'none';
-                    subEnd   = refreshData.record.subscription_end || null;
-                    isExempt = !!refreshData.record.is_exempt;
+                    status      = refreshData.record.subscription_status || 'none';
+                    subEnd      = refreshData.record.subscription_end || null;
+                    subCancelAt = refreshData.record.subscription_cancel_at || null;
+                    isExempt    = !!refreshData.record.is_exempt;
                 }
             } catch(e) { /* silencieux */ }
 
@@ -2183,13 +2185,24 @@
                 return;
             }
 
+            /* Résiliation programmée (annulée depuis le portail, accès conservé jusqu'à subCancelAt) */
+            var willCancel = subCancelAt && (status === 'active' || status === 'trialing');
+
             /* Badge Stripe */
-            badge.textContent = STATUS_LABELS[status] || status;
-            badge.className   = 'pv-sub-badge ' + (STATUS_CLASSES[status] || '');
+            if (willCancel) {
+                badge.textContent = 'Se termine bientôt';
+                badge.className   = 'pv-sub-badge ending';
+            } else {
+                badge.textContent = STATUS_LABELS[status] || status;
+                badge.className   = 'pv-sub-badge ' + (STATUS_CLASSES[status] || '');
+            }
 
             /* Description Stripe */
             var endFmt2 = subEnd ? new Date(subEnd).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : null;
-            if (status === 'none' || !status) {
+            var cancelFmt = subCancelAt ? new Date(subCancelAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : null;
+            if (willCancel) {
+                desc.textContent = 'Abonnement annulé — accès maintenu jusqu\'au ' + cancelFmt + ', puis non renouvelé. Vous pouvez réactiver le renouvellement automatique à tout moment.';
+            } else if (status === 'none' || !status) {
                 desc.textContent = 'Votre essai est terminé. Abonnez-vous pour continuer à utiliser NutriDash.';
             } else if (status === 'trialing') {
                 desc.textContent = 'Période d\'essai Stripe' + (endFmt2 ? ' jusqu\'au ' + endFmt2 : '') + '. La facturation démarrera automatiquement à son terme.';
