@@ -216,12 +216,19 @@ routerAdd("POST", "/api/stripe/webhook", (e) => {
         }
     }
 
+    /* Depuis l'API Stripe 2026+, current_period_end n'est plus au niveau
+       racine de la subscription mais sous items.data[0] */
+    function itemPeriodEnd(subscription) {
+        var item = subscription.items && subscription.items.data && subscription.items.data[0];
+        return item ? item.current_period_end : null;
+    }
+
     var type = event.type;
     if (type === "customer.subscription.created" || type === "customer.subscription.updated") {
-        var endTs = obj.cancel_at || obj.current_period_end;
+        var endTs = obj.cancel_at || itemPeriodEnd(obj);
         updateUser(obj.customer, obj.status, endTs);
     } else if (type === "customer.subscription.deleted") {
-        updateUser(obj.customer, "canceled", obj.current_period_end);
+        updateUser(obj.customer, "canceled", itemPeriodEnd(obj));
     } else if (type === "invoice.payment_failed") {
         updateUser(obj.customer, "past_due", null);
     } else if (type === "invoice.payment_succeeded") {
