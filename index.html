@@ -5,8 +5,57 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; connect-src 'self' https://nutridash-pb.fly.dev http://127.0.0.1:8090 https://cdn.jsdelivr.net; font-src https://fonts.googleapis.com https://fonts.gstatic.com; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;">
     <meta http-equiv="X-Content-Type-Options" content="nosniff">
-    <title>NutriDash — Suivi nutritionnel</title>
-    <meta name="description" content="Application de suivi nutritionnel précis et moderne.">
+    <title>NutriDash — Suivi nutritionnel sans base de données alimentaire | Essai 7 jours gratuit</title>
+    <meta name="description" content="NutriDash calcule vos besoins caloriques réels et suit vos macros sans base de données alimentaire approximative. 5,99€/mois, 7 jours d'essai gratuit sans carte bancaire.">
+    <link rel="canonical" href="https://nutridash.fr/">
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="NutriDash">
+    <meta property="og:locale" content="fr_FR">
+    <meta property="og:url" content="https://nutridash.fr/">
+    <meta property="og:title" content="NutriDash — Suivi nutritionnel sans base de données alimentaire">
+    <meta property="og:description" content="Calculez vos besoins caloriques réels et suivez vos macros avec précision, sans base de données alimentaire approximative. 5,99€/mois, 7 jours d'essai gratuit sans carte bancaire.">
+    <meta property="og:image" content="https://nutridash.fr/Images/illustrations/lp-flatlay.png">
+    <meta property="og:image:width" content="1408">
+    <meta property="og:image:height" content="768">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="NutriDash — Suivi nutritionnel sans base de données alimentaire">
+    <meta name="twitter:description" content="Calculez vos besoins caloriques réels et suivez vos macros avec précision, sans base de données alimentaire approximative. 5,99€/mois, 7 jours d'essai gratuit sans carte bancaire.">
+    <meta name="twitter:image" content="https://nutridash.fr/Images/illustrations/lp-flatlay.png">
+
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "SoftwareApplication",
+        "@id": "https://nutridash.fr/#software",
+        "name": "NutriDash",
+        "url": "https://nutridash.fr/",
+        "applicationCategory": "HealthApplication",
+        "operatingSystem": "Web",
+        "description": "NutriDash est une application de suivi nutritionnel qui calcule les besoins caloriques réels de l'utilisateur à partir de sa physiologie (formule Mifflin-St Jeor) et lui permet de saisir directement ses calories et macros, sans dépendre d'une base de données alimentaire souvent erronée.",
+        "offers": {
+            "@type": "Offer",
+            "price": "5.99",
+            "priceCurrency": "EUR",
+            "priceValidUntil": "2027-12-31",
+            "eligibleDuration": {
+                "@type": "QuantitativeValue",
+                "value": "1",
+                "unitCode": "MON"
+            },
+            "description": "Abonnement mensuel avec 7 jours d'essai gratuit, sans carte bancaire requise à l'inscription."
+        },
+        "publisher": {
+            "@type": "Organization",
+            "name": "NutriDash",
+            "url": "https://nutridash.fr/"
+        }
+    }
+    </script>
+
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css?v=11">
     <link rel="icon" type="image/png" href="Images/Logos/icon-192.png?v=2">
@@ -488,7 +537,7 @@
     <div id="app" class="dashboard-layout hidden">
         <!-- Sidebar / Header -->
         <header class="sidebar">
-            <h1 class="logo">Nutri<span>Dash</span></h1>
+            <p class="logo">Nutri<span>Dash</span></p>
 
             <nav>
                 <button class="nav-btn active" data-target="dashboard-view">
