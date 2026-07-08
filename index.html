@@ -5,25 +5,29 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; connect-src 'self' https://nutridash-pb.fly.dev http://127.0.0.1:8090 https://cdn.jsdelivr.net; font-src https://fonts.googleapis.com https://fonts.gstatic.com; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;">
     <meta http-equiv="X-Content-Type-Options" content="nosniff">
-    <title>NutriDash — Suivi nutritionnel sans base de données alimentaire | Essai 7 jours gratuit</title>
-    <meta name="description" content="NutriDash calcule vos besoins caloriques réels et suit vos macros sans base de données alimentaire approximative. 5,99€/mois, 7 jours d'essai gratuit sans carte bancaire.">
+    <title>NutriDash — Suivi nutritionnel sans base alimentaire</title>
+    <meta name="description" content="NutriDash calcule vos besoins caloriques réels et suit vos macros sans base de données alimentaire approximative. Essai gratuit 7 jours, sans carte bancaire.">
     <link rel="canonical" href="https://nutridash.fr/">
+    <link rel="preconnect" href="https://cdn.jsdelivr.net">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preload" as="image" href="Images/illustrations/lp-flatlay.png" fetchpriority="high">
 
     <!-- Open Graph -->
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="NutriDash">
     <meta property="og:locale" content="fr_FR">
     <meta property="og:url" content="https://nutridash.fr/">
-    <meta property="og:title" content="NutriDash — Suivi nutritionnel sans base de données alimentaire">
-    <meta property="og:description" content="Calculez vos besoins caloriques réels et suivez vos macros avec précision, sans base de données alimentaire approximative. 5,99€/mois, 7 jours d'essai gratuit sans carte bancaire.">
+    <meta property="og:title" content="NutriDash — Suivi nutritionnel sans base alimentaire">
+    <meta property="og:description" content="NutriDash calcule vos besoins caloriques réels et suit vos macros sans base de données alimentaire approximative. Essai gratuit 7 jours, sans carte bancaire.">
     <meta property="og:image" content="https://nutridash.fr/Images/illustrations/lp-flatlay.png">
     <meta property="og:image:width" content="1408">
     <meta property="og:image:height" content="768">
 
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="NutriDash — Suivi nutritionnel sans base de données alimentaire">
-    <meta name="twitter:description" content="Calculez vos besoins caloriques réels et suivez vos macros avec précision, sans base de données alimentaire approximative. 5,99€/mois, 7 jours d'essai gratuit sans carte bancaire.">
+    <meta name="twitter:title" content="NutriDash — Suivi nutritionnel sans base alimentaire">
+    <meta name="twitter:description" content="NutriDash calcule vos besoins caloriques réels et suit vos macros sans base de données alimentaire approximative. Essai gratuit 7 jours, sans carte bancaire.">
     <meta name="twitter:image" content="https://nutridash.fr/Images/illustrations/lp-flatlay.png">
 
     <script type="application/ld+json">
@@ -35,7 +39,7 @@
         "url": "https://nutridash.fr/",
         "applicationCategory": "HealthApplication",
         "operatingSystem": "Web",
-        "description": "NutriDash est une application de suivi nutritionnel qui calcule les besoins caloriques réels de l'utilisateur à partir de sa physiologie (formule Mifflin-St Jeor) et lui permet de saisir directement ses calories et macros, sans dépendre d'une base de données alimentaire souvent erronée.",
+        "description": "NutriDash calcule vos besoins caloriques réels et suit vos macros sans base de données alimentaire approximative. Essai gratuit 7 jours, sans carte bancaire.",
         "offers": {
             "@type": "Offer",
             "price": "5.99",
@@ -51,8 +55,19 @@
         "publisher": {
             "@type": "Organization",
             "name": "NutriDash",
-            "url": "https://nutridash.fr/"
+            "url": "https://nutridash.fr/",
+            "logo": "https://nutridash.fr/Images/Logos/logo-nutridash-monogramme-N.png"
         }
+    }
+    </script>
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "@id": "https://nutridash.fr/#website",
+        "url": "https://nutridash.fr/",
+        "name": "NutriDash",
+        "inLanguage": "fr-FR"
     }
     </script>
 
@@ -66,9 +81,9 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="NutriDash">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js" integrity="sha384-vsrfeLOOY6KuIYKDlmVH5UiBmgIdB1oEf7p01YgWHuqmOHfZr374+odEv96n9tNC" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js" integrity="sha384-cVMg8E3QFwTvGCDuK+ET4PD341jF3W8nO1auiXfuZNQkzbUUiBGLsIQUE+b1mxws" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/pocketbase@0.27.0/dist/pocketbase.umd.min.js" integrity="sha384-5DPah+w7pi3/mLwFQ59Hi+6diVITUnphjUWEB10INMXzgvVFk0kW2PMocRCZc1L2" crossorigin="anonymous"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js" integrity="sha384-vsrfeLOOY6KuIYKDlmVH5UiBmgIdB1oEf7p01YgWHuqmOHfZr374+odEv96n9tNC" crossorigin="anonymous"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js" integrity="sha384-cVMg8E3QFwTvGCDuK+ET4PD341jF3W8nO1auiXfuZNQkzbUUiBGLsIQUE+b1mxws" crossorigin="anonymous"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/pocketbase@0.27.0/dist/pocketbase.umd.min.js" integrity="sha384-5DPah+w7pi3/mLwFQ59Hi+6diVITUnphjUWEB10INMXzgvVFk0kW2PMocRCZc1L2" crossorigin="anonymous"></script>
 </head>
 <body>
     <!-- Landing Page -->
@@ -135,7 +150,7 @@
 
         <!-- Photo band -->
         <div class="lp-photo-band">
-            <img src="Images/illustrations/lp-flatlay.png" alt="Repas équilibré avec suivi nutritionnel sur smartphone" loading="eager">
+            <img src="Images/illustrations/lp-flatlay.png" alt="Repas équilibré avec suivi nutritionnel sur smartphone" width="1408" height="768" loading="eager" fetchpriority="high">
         </div>
 
         <!-- Features -->
@@ -225,7 +240,7 @@
                     </div>
                 </div>
                 <div class="lp-process-highlight lp-reveal lp-reveal-d4">
-                    <img src="Images/illustrations/lp-illustration.png" alt="Illustration d'une personne atteignant ses objectifs" class="lp-process-illus">
+                    <img src="Images/illustrations/lp-illustration.png" alt="Illustration d'une personne atteignant ses objectifs" width="1408" height="768" loading="lazy" class="lp-process-illus">
                     <p>L'avantage NutriDash : ce process élimine l'incertitude. Vous ne testez pas un régime — vous pilotez vos résultats.</p>
                 </div>
             </div>
@@ -1344,10 +1359,10 @@
     })();
     </script>
 
-    <script src="pb-config.js"></script>
-    <script src="utils.js"></script>
-    <script src="app.js"></script>
-    <script src="auth-pb.js"></script>
+    <script defer src="pb-config.js"></script>
+    <script defer src="utils.js"></script>
+    <script defer src="app.js"></script>
+    <script defer src="auth-pb.js"></script>
 
     <script>
     /* ============================================================
