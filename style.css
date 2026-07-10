@@ -2411,7 +2411,9 @@ input:focus, select:focus {
 /* Focus visible — accessibilité */
 .lp-btn-primary:focus-visible,
 .lp-btn-ghost:focus-visible,
-.lp-btn-white:focus-visible {
+.lp-btn-white:focus-visible,
+.lp-nav-social:focus-visible,
+.lp-footer-social a:focus-visible {
     outline: 2px solid var(--color-accent);
     outline-offset: 2px;
 }
@@ -2461,6 +2463,18 @@ input:focus, select:focus {
     display: flex;
     align-items: center;
     gap: 12px;
+}
+
+.lp-nav-social {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-text-2);
+    transition: color 150ms ease;
+}
+
+.lp-nav-social:hover {
+    color: var(--color-accent);
 }
 
 /* ============================================================
@@ -2719,7 +2733,7 @@ input:focus, select:focus {
    ============================================================ */
 .lp-process {
     padding: 80px 0;
-    background: var(--color-bg);
+    background: var(--color-surface);
 }
 
 .lp-process-intro {
@@ -2866,6 +2880,29 @@ input:focus, select:focus {
         width: 110px;
         height: 110px;
     }
+}
+
+/* ============================================================
+   INSTAGRAM
+   ============================================================ */
+.lp-instagram {
+    padding: 80px 0;
+    background: var(--color-primary-xlight);
+}
+
+.lp-instagram-intro {
+    font-family: 'Inter', sans-serif;
+    font-size: 1rem;
+    color: var(--color-text-2);
+    text-align: center;
+    max-width: 540px;
+    margin: 12px auto 0;
+    line-height: 1.6;
+}
+
+.lp-instagram-cta {
+    text-align: center;
+    margin-top: 40px;
 }
 
 /* ============================================================
@@ -3093,6 +3130,18 @@ input:focus, select:focus {
 .lp-footer-links span {
     color: var(--color-border-strong);
     font-size: 0.875rem;
+}
+
+.lp-footer-social a {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-text-3);
+    transition: color 150ms ease;
+}
+
+.lp-footer-social a:hover {
+    color: var(--color-primary);
 }
 
 /* ============================================================
