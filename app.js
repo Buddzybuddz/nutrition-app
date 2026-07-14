@@ -105,8 +105,10 @@ function loadState() {
 }
 
 function saveState() {
+    // Règle de priorité : localStorage = cache en écriture seulement.
+    // Au login, loadFromCloud() écrase toujours l'état local avec les données PocketBase (cloud wins).
+    // Si syncToCloud() échoue, les données restent dans localStorage mais seront perdues au prochain login.
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-    // Sync to cloud if available
     if (typeof syncToCloud === 'function' && currentUser) {
         syncToCloud();
     }
@@ -770,6 +772,7 @@ window.editEntry = function(id) {
                 if(typeSelect.options[i].text === entry.name) typeSelect.selectedIndex = i;
             }
         }
+        typeSelect.dispatchEvent(new Event('change', { bubbles: true }));
         document.getElementById('meal-cals').value = entry.cals;
         document.getElementById('meal-protein').value = entry.prot;
         document.getElementById('meal-form').dataset.editingId = id;
@@ -813,6 +816,7 @@ window.openMealModal = function(editMode = false) {
             } else {
                 typeSelect.value = "snack";
             }
+            typeSelect.dispatchEvent(new Event('change', { bubbles: true }));
         }
     }
 }
@@ -1229,7 +1233,6 @@ document.querySelectorAll('.history-period-chip').forEach(chip => {
     });
 });
 
-
 window.renderSuivi = function() {
     const activeChip = document.querySelector('.history-period-chip--active');
     if (!activeChip) return;
@@ -1258,19 +1261,40 @@ window.renderSuivi = function() {
     const wStartEl = document.getElementById('history-weight-start');
     const wEndEl = document.getElementById('history-weight-end');
     const wDeltaEl = document.getElementById('history-weight-delta');
+    const wBadgeEl = document.getElementById('history-weight-badge');
 
     if (weightAtStart && weightAtEnd && weightAtStart !== 0 && weightAtEnd !== 0) {
         if (wStartEl) wStartEl.textContent = weightAtStart + ' kg';
         if (wEndEl) wEndEl.textContent = weightAtEnd + ' kg';
+
+        // Sens du poids attendu selon l'objectif du profil
+        const weightGoal = state.profile ? state.profile.goal : 'maintenance';
+        const MAINTENANCE_TOLERANCE = 0.5; // kg
+        let onTrack;
+        if (weightGoal === 'loss') {
+            onTrack = wDiffVal <= 0;
+        } else if (weightGoal === 'gain') {
+            onTrack = wDiffVal >= 0;
+        } else {
+            onTrack = Math.abs(wDiffVal) <= MAINTENANCE_TOLERANCE;
+        }
+
         if (wDeltaEl) {
             const sign = wDiffVal > 0 ? '+' : '';
-            wDeltaEl.textContent = sign + wDiffVal.toFixed(1) + ' kg';
-            wDeltaEl.style.color = wDiffVal > 0 ? 'var(--color-accent)' : (wDiffVal < 0 ? 'var(--color-primary)' : 'var(--color-text-2)');
+            wDeltaEl.textContent = sign + wDiffVal.toFixed(1) + ' kg ' + (wDiffVal < 0 ? '↓' : '↑');
+            wDeltaEl.style.color = '';
+            wDeltaEl.className = 'history-weight-delta ' + (onTrack ? 'history-weight-delta--good' : 'history-weight-delta--warn');
+        }
+        if (wBadgeEl) {
+            wBadgeEl.style.display = 'inline-flex';
+            wBadgeEl.className = 'history-badge ' + (onTrack ? 'history-badge--ok' : 'history-badge--warn');
+            wBadgeEl.textContent = onTrack ? '✓  Objectif atteint' : (wDiffVal > 0 ? '↑  Poids en hausse' : '↓  Poids en baisse');
         }
     } else {
         if (wStartEl) wStartEl.textContent = '—';
         if (wEndEl) wEndEl.textContent = '—';
-        if (wDeltaEl) { wDeltaEl.textContent = 'Pas assez de pesées'; wDeltaEl.style.color = ''; }
+        if (wDeltaEl) { wDeltaEl.textContent = 'Pas assez de pesées'; wDeltaEl.style.color = ''; wDeltaEl.className = 'history-weight-delta'; }
+        if (wBadgeEl) wBadgeEl.style.display = 'none';
     }
 
     // 2. Process Calories & Proteins with Majority Objective

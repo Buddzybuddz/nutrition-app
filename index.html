@@ -1172,6 +1172,7 @@
                             </div>
                         </div>
                         <span class="history-weight-delta" id="history-weight-delta">Pas assez de pesées</span>
+                        <span class="history-badge" id="history-weight-badge" style="display:none;">—</span>
                     </div>
 
                     <!-- Carte Objectifs historique -->
@@ -1628,9 +1629,27 @@
             var delta = wEnd - wStart;
             if (el('history-weight-start')) el('history-weight-start').textContent = wStart.toFixed(1) + ' kg';
             if (el('history-weight-end')) el('history-weight-end').textContent = wEnd.toFixed(1) + ' kg';
+
+            /* Sens du poids attendu selon l'objectif du profil */
+            var weightGoal = state.profile ? state.profile.goal : 'maintenance';
+            var MAINTENANCE_TOLERANCE = 0.5; // kg
+            var onTrack;
+            if (weightGoal === 'loss') {
+                onTrack = delta <= 0;
+            } else if (weightGoal === 'gain') {
+                onTrack = delta >= 0;
+            } else {
+                onTrack = Math.abs(delta) <= MAINTENANCE_TOLERANCE;
+            }
+
             if (el('history-weight-delta')) {
                 el('history-weight-delta').textContent = (delta <= 0 ? '' : '+') + delta.toFixed(1) + ' kg ' + (delta < 0 ? '↓' : '↑');
-                el('history-weight-delta').className = 'history-weight-delta ' + (delta <= 0 ? 'history-weight-delta--good' : 'history-weight-delta--warn');
+                el('history-weight-delta').className = 'history-weight-delta ' + (onTrack ? 'history-weight-delta--good' : 'history-weight-delta--warn');
+            }
+            if (el('history-weight-badge')) {
+                el('history-weight-badge').style.display = 'inline-flex';
+                el('history-weight-badge').className = 'history-badge ' + (onTrack ? 'history-badge--ok' : 'history-badge--warn');
+                el('history-weight-badge').textContent = onTrack ? '✓  Objectif atteint' : (delta > 0 ? '↑  Poids en hausse' : '↓  Poids en baisse');
             }
             if (el('history-weight-empty')) el('history-weight-empty').style.display = 'none';
             var chartWrap = document.querySelector('.history-chart-wrap');
@@ -1644,6 +1663,7 @@
             if (el('history-weight-start')) el('history-weight-start').textContent = weighIns[0].weight.toFixed(1) + ' kg';
             if (el('history-weight-end')) el('history-weight-end').textContent = '—';
             if (el('history-weight-delta')) { el('history-weight-delta').textContent = 'Une seule pesée — continuez !'; el('history-weight-delta').className = 'history-weight-delta'; }
+            if (el('history-weight-badge')) el('history-weight-badge').style.display = 'none';
             if (el('history-weight-empty')) el('history-weight-empty').style.display = 'block';
             var chartWrap2 = document.querySelector('.history-chart-wrap');
             if (chartWrap2) chartWrap2.style.display = 'none';
@@ -1651,6 +1671,7 @@
             if (el('history-weight-start')) el('history-weight-start').textContent = '—';
             if (el('history-weight-end')) el('history-weight-end').textContent = '—';
             if (el('history-weight-delta')) { el('history-weight-delta').textContent = 'Pas assez de pesées'; el('history-weight-delta').className = 'history-weight-delta'; }
+            if (el('history-weight-badge')) el('history-weight-badge').style.display = 'none';
             if (el('history-weight-empty')) el('history-weight-empty').style.display = 'block';
             var chartWrap3 = document.querySelector('.history-chart-wrap');
             if (chartWrap3) chartWrap3.style.display = 'none';
