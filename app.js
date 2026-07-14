@@ -1280,10 +1280,10 @@ window.renderSuivi = function() {
         }
 
         if (wDeltaEl) {
-            const sign = wDiffVal > 0 ? '+' : '';
-            wDeltaEl.textContent = sign + wDiffVal.toFixed(1) + ' kg ' + (wDiffVal < 0 ? '↓' : '↑');
-            wDeltaEl.style.color = '';
-            wDeltaEl.className = 'history-weight-delta ' + (onTrack ? 'history-weight-delta--good' : 'history-weight-delta--warn');
+            const sign = wDiffVal >= 0 ? '+' : '';
+            wDeltaEl.textContent = 'Écart : ' + sign + wDiffVal.toFixed(1) + ' kg';
+            wDeltaEl.style.color = onTrack ? 'var(--color-primary)' : 'var(--color-accent)';
+            wDeltaEl.className = 'history-diff';
         }
         if (wBadgeEl) {
             wBadgeEl.style.display = 'inline-flex';
@@ -1293,7 +1293,7 @@ window.renderSuivi = function() {
     } else {
         if (wStartEl) wStartEl.textContent = '—';
         if (wEndEl) wEndEl.textContent = '—';
-        if (wDeltaEl) { wDeltaEl.textContent = 'Pas assez de pesées'; wDeltaEl.style.color = ''; wDeltaEl.className = 'history-weight-delta'; }
+        if (wDeltaEl) { wDeltaEl.textContent = 'Pas assez de pesées'; wDeltaEl.style.color = ''; wDeltaEl.className = 'history-diff'; }
         if (wBadgeEl) wBadgeEl.style.display = 'none';
     }
 

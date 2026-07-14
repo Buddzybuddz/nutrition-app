@@ -1171,7 +1171,7 @@
                                 <div class="history-weight-point-val" id="history-weight-end">—</div>
                             </div>
                         </div>
-                        <span class="history-weight-delta" id="history-weight-delta">Pas assez de pesées</span>
+                        <div class="history-diff" id="history-weight-delta">Pas assez de pesées</div>
                         <span class="history-badge" id="history-weight-badge" style="display:none;">—</span>
                     </div>
 
@@ -1643,8 +1643,9 @@
             }
 
             if (el('history-weight-delta')) {
-                el('history-weight-delta').textContent = (delta <= 0 ? '' : '+') + delta.toFixed(1) + ' kg ' + (delta < 0 ? '↓' : '↑');
-                el('history-weight-delta').className = 'history-weight-delta ' + (onTrack ? 'history-weight-delta--good' : 'history-weight-delta--warn');
+                el('history-weight-delta').textContent = 'Écart : ' + (delta >= 0 ? '+' : '') + delta.toFixed(1) + ' kg';
+                el('history-weight-delta').className = 'history-diff';
+                el('history-weight-delta').style.color = onTrack ? 'var(--color-primary)' : 'var(--color-accent)';
             }
             if (el('history-weight-badge')) {
                 el('history-weight-badge').style.display = 'inline-flex';
@@ -1662,7 +1663,7 @@
         } else if (weighIns.length === 1) {
             if (el('history-weight-start')) el('history-weight-start').textContent = weighIns[0].weight.toFixed(1) + ' kg';
             if (el('history-weight-end')) el('history-weight-end').textContent = '—';
-            if (el('history-weight-delta')) { el('history-weight-delta').textContent = 'Une seule pesée — continuez !'; el('history-weight-delta').className = 'history-weight-delta'; }
+            if (el('history-weight-delta')) { el('history-weight-delta').textContent = 'Une seule pesée — continuez !'; el('history-weight-delta').className = 'history-diff'; el('history-weight-delta').style.color = ''; }
             if (el('history-weight-badge')) el('history-weight-badge').style.display = 'none';
             if (el('history-weight-empty')) el('history-weight-empty').style.display = 'block';
             var chartWrap2 = document.querySelector('.history-chart-wrap');
@@ -1670,7 +1671,7 @@
         } else {
             if (el('history-weight-start')) el('history-weight-start').textContent = '—';
             if (el('history-weight-end')) el('history-weight-end').textContent = '—';
-            if (el('history-weight-delta')) { el('history-weight-delta').textContent = 'Pas assez de pesées'; el('history-weight-delta').className = 'history-weight-delta'; }
+            if (el('history-weight-delta')) { el('history-weight-delta').textContent = 'Pas assez de pesées'; el('history-weight-delta').className = 'history-diff'; el('history-weight-delta').style.color = ''; }
             if (el('history-weight-badge')) el('history-weight-badge').style.display = 'none';
             if (el('history-weight-empty')) el('history-weight-empty').style.display = 'block';
             var chartWrap3 = document.querySelector('.history-chart-wrap');

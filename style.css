@@ -4803,28 +4803,6 @@ input:focus, select:focus {
     flex-shrink: 0;
 }
 
-.history-weight-delta {
-    display: inline-block;
-    background: var(--color-surface-2);
-    border-radius: var(--radius-md);
-    padding: 8px 14px;
-    font-family: 'DM Sans', sans-serif;
-    font-size: 15px;
-    font-weight: 600;
-    color: var(--color-text-2);
-    margin-bottom: 16px;
-}
-
-.history-weight-delta--good {
-    background: var(--color-primary-xlight);
-    color: var(--color-primary);
-}
-
-.history-weight-delta--warn {
-    background: var(--color-accent-light);
-    color: var(--color-accent);
-}
-
 .history-chart-title {
     font-family: 'DM Sans', sans-serif;
     font-size: 13px;
