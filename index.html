@@ -860,14 +860,32 @@
                         <h2 class="db-title">Tableau de bord</h2>
                     </div>
                     <div class="db-nav-days">
+                        <button type="button" class="wk-today" id="week-today" hidden>Aujourd’hui</button>
                         <!-- Accès à l'administration : pictogramme réservé aux comptes admin (affiché par admin.js) -->
                         <button type="button" class="db-day-btn db-admin-btn" id="dashboard-admin-btn" hidden onclick="navigateTo('admin')" aria-label="Administration" title="Administration">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
                         </button>
-                        <button type="button" class="db-day-btn" onclick="changeDate(-1)" aria-label="Jour précédent">&#8592;</button>
-                        <button type="button" class="db-day-btn" onclick="changeDate(1)" aria-label="Jour suivant">&#8594;</button>
                     </div>
                 </header>
+
+                <!-- Bandeau de la semaine (week-strip.js) -->
+                <div class="wk" id="week-strip">
+                    <div class="wk-head">
+                        <button type="button" class="wk-arrow" id="week-prev" aria-label="Semaine précédente">&#8592;</button>
+                        <button type="button" class="wk-month" id="week-month" aria-expanded="false" aria-controls="week-cal">Mois<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>
+                        <button type="button" class="wk-arrow" id="week-next" aria-label="Semaine suivante">&#8594;</button>
+                    </div>
+                    <div class="wk-days" id="week-days" role="group" aria-label="Jours de la semaine"></div>
+                    <div class="wk-cal" id="week-cal" hidden>
+                        <div class="wk-cal-head">
+                            <button type="button" class="wk-arrow" id="week-cal-prev" aria-label="Mois précédent">&#8592;</button>
+                            <span class="wk-cal-title" id="week-cal-title" aria-live="polite"></span>
+                            <button type="button" class="wk-arrow" id="week-cal-next" aria-label="Mois suivant">&#8594;</button>
+                        </div>
+                        <div class="wk-cal-grid" id="week-cal-grid"></div>
+                    </div>
+                    <p class="wk-legend"><span class="wk-dot wk-dot--ok"></span> Dans l’objectif <span class="wk-dot wk-dot--over"></span> Au-dessus</p>
+                </div>
 
                 <!-- Bannière essai gratuit -->
                 <div id="trial-banner" style="display:none;"></div>
@@ -1215,6 +1233,7 @@
     <script defer src="ia.js"></script>
     <script defer src="programme.js"></script>
     <script defer src="favorites.js"></script>
+<script defer src="week-strip.js"></script>
 
     <script>
     /* ============================================================

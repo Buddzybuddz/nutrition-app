@@ -870,7 +870,8 @@ function updateDashboard() {
     const dateStr = actLog.date;
     const todayStr = formatISOLocal(new Date());
     let displayDate = dateStr === todayStr ? "Aujourd'hui" : formatDateFR(dateStr);
-    document.getElementById('current-date').textContent = " - " + displayDate;
+    document.getElementById('current-date').textContent = dateStr === todayStr ? "Aujourd'hui" : parseDateFR(dateStr).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
+    if (typeof window.renderWeekStrip === 'function') window.renderWeekStrip();
 
     // 1. Common Date Object for today or selected date
     const dVal = parseDateFR(dateStr);
