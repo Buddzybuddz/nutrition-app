@@ -148,12 +148,35 @@
         box.hidden = false;
     }
 
+    /* Composition du repas estimé par l'IA, enregistrée avec le repas (favoris lisibles).
+       Effacée dès que l'utilisateur modifie les chiffres à la main : elle ne correspondrait plus. */
+    var aiFilled = null;
+
+    function resetMealDescription() {
+        window.__aiMealDesc = '';
+        aiFilled = null;
+    }
+
     function applyMeal(r) {
         document.getElementById('meal-cals').value = r.calories;
         document.getElementById('meal-protein').value = r.protein_g;
+        window.__aiMealDesc = String(r.summary || '').slice(0, 200);
+        aiFilled = { cals: String(r.calories), prot: String(r.protein_g) };
         renderRecap(r);
         return 'Estimation terminée (confiance ' + (CONF[r.confidence] || 'faible') + '). Vérifiez et ajustez si besoin.';
     }
+    /* Un repas favori remplit le formulaire : l'utilisateur ajuste puis valide (aucun appel IA) */
+    window.fillMealFromFavorite = function (fav) {
+        var cals = Math.round(Number(fav.calories) || 0), prot = Math.round(Number(fav.protein) || 0);
+        document.getElementById('meal-cals').value = cals;
+        document.getElementById('meal-protein').value = prot;
+        window.__aiMealDesc = String(fav.description || '').slice(0, 200);
+        aiFilled = { cals: String(cals), prot: String(prot) };
+        clearRecap();
+        var st = document.getElementById('meal-ai-status');
+        if (st) setStatus(st, 'Favori « ' + fav.name + ' » appliqué. Modifiez si besoin, puis validez.');
+    };
+
     applyMeal.summary = function (r) { return r.summary ? r.summary + ' : ' + r.calories + ' kcal, ' + r.protein_g + ' g de protéines' : r.calories + ' kcal, ' + r.protein_g + ' g de protéines'; };
 
     /* ── Activité ─────────────────────────────────────────── */
@@ -204,8 +227,9 @@
         if (modal) new MutationObserver(function () {
             if (modal.classList.contains('hidden')) {
                 textEl.value = ''; setStatus(statusEl, '');
-                if (type === 'activity') exitCompactMode(); else clearRecap();
+                if (type === 'activity') exitCompactMode(); else { clearRecap(); resetMealDescription(); }
             } else {
+                if (type === 'meal') resetMealDescription();
                 refreshUsage();
             }
         }).observe(modal, { attributes: true, attributeFilter: ['class'] });
@@ -214,6 +238,15 @@
     document.addEventListener('DOMContentLoaded', function () {
         wire('meal', 'meal', applyMeal);
         wire('activity', 'activity', applyActivity);
+
+        ['meal-cals', 'meal-protein'].forEach(function (id) {
+            var el = document.getElementById(id);
+            if (el) el.addEventListener('input', function () {
+                if (!aiFilled) return;
+                var c = document.getElementById('meal-cals').value, p = document.getElementById('meal-protein').value;
+                if (c !== aiFilled.cals || p !== aiFilled.prot) resetMealDescription();
+            });
+        });
 
         var reset = document.getElementById('activity-ai-reset');
         if (reset) reset.addEventListener('click', function () {

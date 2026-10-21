@@ -354,6 +354,7 @@ window.routes = {
     'login': { section: 'auth-screen' },
     'tableaudebord': { section: 'app', view: 'dashboard-view' },
     'profil': { section: 'app', view: 'profile-view' },
+    'programme': { section: 'app', view: 'programme-view' },
     'ia': { section: 'app', view: 'ia-view' },
     'conseils': { section: 'app', view: 'ia-view' },
     'historique': { section: 'app', view: 'ia-view' },
@@ -420,6 +421,8 @@ window.navigateTo = function(slug, updateHistory = true) {
             if (typeof populateProfileForm === 'function') populateProfileForm();
         } else if (route.view === 'dashboard-view') {
             if (typeof updateDashboard === 'function') updateDashboard();
+        } else if (route.view === 'programme-view') {
+            if (window.renderProgramme) window.renderProgramme();
         } else if (route.view === 'ia-view') {
             if (window.renderIA) window.renderIA();
         } else if (route.view === 'admin-view') {
@@ -590,6 +593,9 @@ document.getElementById('meal-form').addEventListener('submit', (e) => {
             actLog.consumedProtein -= entry.prot;
             entry.name = type; // Nom d'affichage
             entry.mealType = mealType;
+            // La description (composition estimée par l'IA) ne vaut que pour les valeurs d'origine
+            if (window.__aiMealDesc) entry.desc = window.__aiMealDesc;
+            else if (entry.cals !== cals || entry.prot !== prot) entry.desc = '';
             entry.cals = cals;
             entry.prot = prot;
             actLog.consumedCals += cals;
@@ -606,10 +612,11 @@ document.getElementById('meal-form').addEventListener('submit', (e) => {
         e.target.querySelector('button[type="submit"]').textContent = 'Ajouter le repas';
     } else {
         const mealType = document.getElementById('meal-type').value;
-        const newEntry = { id: Date.now() + Math.random(), type: 'Repas', name: type, mealType, cals, prot };
+        const newEntry = { id: Date.now() + Math.random(), type: 'Repas', name: type, mealType, cals, prot, desc: window.__aiMealDesc || '' };
         actLog.consumedCals += cals;
         actLog.consumedProtein += prot;
         actLog.entries.push(newEntry);
+        if (window.maybeSaveFavorite) window.maybeSaveFavorite(newEntry);
         
         // Sync individuel immédiat si connecté
         if (typeof pb_saveMeal === 'function' && currentUser) {
@@ -1082,8 +1089,9 @@ function updateDashboard() {
 
             li.innerHTML = `
                 <div class="history-title-group">
-                    <div class="history-title">${escapeHtml(entry.name)}</div>
+                    <div class="history-title">${escapeHtml(entry.name)}${entry.type === 'Repas' && window.isFavoriteMeal && window.isFavoriteMeal(entry) ? ' <span class="fav-badge" title="Repas favori" aria-label="Repas favori">★</span>' : ''}</div>
                     <div class="history-details">${details}</div>
+                    ${entry.desc ? `<div class="history-desc">${escapeHtml(entry.desc)}</div>` : ''}
                 </div>
                 <div class="history-actions">
                     <button type="button" class="btn-edit" onclick="editEntry('${escapeHtml(entry.id)}')" title="Modifier">✎</button>
@@ -1175,10 +1183,10 @@ window.editWeighIn = function() {
         </div>`;
 };
 
-window.deleteWeighIn = function() {
+window.deleteWeighIn = function(date) {
     if (!confirm("Voulez-vous vraiment effacer cette pesée ?")) return;
     
-    const idx = state.weighIns.findIndex(wi => wi.date === state.currentViewDate);
+    const idx = state.weighIns.findIndex(wi => wi.date === (date || state.currentViewDate));
     if (idx !== -1) {
         state.weighIns.splice(idx, 1);
         saveState();

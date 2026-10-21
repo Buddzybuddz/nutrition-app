@@ -54,11 +54,8 @@
     }
 
     function syncMenu() {
-        var show = isAdmin();
-        ['nav-admin-btn', 'bottom-nav-admin-btn'].forEach(function (id) {
-            var el = document.getElementById(id);
-            if (el) el.classList.toggle('hidden', !show);
-        });
+        var btn = document.getElementById('dashboard-admin-btn');
+        if (btn) btn.hidden = !isAdmin();
     }
 
     /* ── KPIs ─────────────────────────────────────────────── */
