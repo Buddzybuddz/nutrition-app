@@ -1370,60 +1370,6 @@ input:focus, select:focus {
     transition: transform 0.22s ease-in, opacity 0.22s ease-in;
 }
 
-/* Zone liste activités scrollable */
-#manage-activities-list {
-    max-height: 50vh;
-    overflow-y: auto;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    margin-bottom: 16px;
-    scrollbar-width: none;
-}
-
-#manage-activities-list::-webkit-scrollbar { display: none; }
-
-/* Zone édition inline */
-#edit-custom-activity-form {
-    background: var(--color-surface-2);
-    border: 1.5px dashed var(--color-border-strong);
-    border-radius: var(--lp-radius-md);
-    padding: 16px;
-    margin-bottom: 12px;
-}
-
-#edit-custom-activity-form p {
-    font-family: 'DM Sans', sans-serif;
-    font-size: 14px;
-    font-weight: 600;
-    color: var(--color-text-1);
-    margin-bottom: 12px;
-}
-
-/* Bouton fermer du modal gestion activités */
-#manage-activities-modal .btn[onclick="closeManageActivitiesModal()"] {
-    background: transparent;
-    border: 1px solid var(--color-border);
-    color: var(--color-text-3);
-    border-radius: var(--lp-radius-md);
-    height: 44px;
-    font-family: 'Inter', sans-serif;
-    font-size: 14px;
-    font-weight: 500;
-    cursor: pointer;
-    width: 100%;
-    transition: background 0.15s;
-    box-shadow: none;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-#manage-activities-modal .btn[onclick="closeManageActivitiesModal()"]:hover {
-    background: var(--color-surface-2);
-    transform: none;
-}
-
 /* Suppression de l'ancien .close-btn rouge — remplacé par .modal-close-btn */
 .close-btn {
     display: none !important;
@@ -5864,16 +5810,6 @@ details[open] .advice-accordion-summary::after {
 .ai-estimate-status { margin: 0; min-height: 1em; font-size: 12.5px; line-height: 1.4; color: var(--color-text-2); }
 .ai-estimate-status.is-error { color: #D64545; }
 
-/* Activité estimée par l'IA absente de la liste : seul le résumé et la case d'enregistrement restent */
-.activity-compact #activity-select-group,
-.activity-compact #activity-burn-group,
-.activity-compact #manage-custom-activities-link,
-.activity-compact #custom-activity-group > label[for="activity-desc"],
-.activity-compact #activity-desc { display: none !important; }
-.ai-summary { display: flex; flex-direction: column; gap: 6px; padding: 12px 14px; margin-bottom: 12px; border-radius: var(--lp-radius-md); background: var(--color-surface-2); border: 1px solid var(--color-border); }
-.ai-summary[hidden] { display: none; }
-.ai-summary-text { margin: 0; font-size: 14px; font-weight: 600; color: var(--color-text-1); }
-.ai-link { align-self: flex-start; padding: 0; border: 0; background: none; font: inherit; font-size: 13px; font-weight: 600; color: var(--color-primary); text-decoration: underline; cursor: pointer; }
 .ai-estimate-usage { margin: 0; font-size: 12.5px; font-weight: 600; text-align: center; color: var(--color-text-2); }
 .ai-estimate-usage.is-empty { color: #D64545; font-weight: 600; }
 .ai-recap { padding: 10px 12px; border-radius: 12px; background: var(--color-surface); border: 1px solid var(--color-border); }
@@ -6129,7 +6065,7 @@ details[open] .advice-accordion-summary::after {
 
 /* Fenêtre d'ajout d'un repas : sélecteur « Nouveau repas | Mes favoris », liste de favoris, étoile */
 .meal-modes { display: flex; gap: 4px; padding: 4px; margin: 0 0 14px; border-radius: 12px; background: var(--color-surface-2); }
-.meal-modes[hidden], .meal-mode-fav[hidden], #meal-mode-new[hidden], .meal-fav-manual[hidden], .fav-star[hidden] { display: none; }
+.meal-modes[hidden], .meal-mode-fav[hidden], #meal-mode-new[hidden], #activity-mode-new[hidden], .meal-fav-manual[hidden], .fav-star[hidden] { display: none; }
 .meal-mode { flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 9px 8px; border: 0; border-radius: 9px; background: transparent; color: var(--color-text-2); font: inherit; font-size: 13.5px; font-weight: 600; cursor: pointer; }
 .meal-mode.is-active { background: var(--color-surface); color: var(--color-primary); box-shadow: 0 1px 4px rgba(26, 46, 34, 0.12); }
 .meal-mode-count { min-width: 20px; padding: 1px 6px; border-radius: 999px; background: var(--color-primary); color: #fff; font-size: 11px; font-weight: 700; line-height: 1.5; text-align: center; }
@@ -6147,7 +6083,7 @@ details[open] .advice-accordion-summary::after {
 .meal-fav-remove { flex: none; width: 44px; border: 0; border-left: 1px solid var(--color-border); background: transparent; color: var(--color-text-3); font-size: 20px; line-height: 1; cursor: pointer; }
 .meal-fav-remove:hover { background: #FDECEC; color: #D64545; }
 .meal-fav-use:disabled { opacity: 0.45; cursor: not-allowed; }
-#meal-form.is-fav-mode button[type="submit"] { display: none; }
+#meal-form.is-fav-mode button[type="submit"], #activity-form.is-fav-mode button[type="submit"] { display: none; }
 .fav-star { display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; border-radius: 999px; border: 1px solid var(--color-border-strong); background: var(--color-surface); color: var(--color-text-2); font: inherit; font-size: 13.5px; font-weight: 600; cursor: pointer; }
 .fav-star.is-on { border-color: #E0A526; background: #FDF3D9; color: #8A6410; }
 .fav-star--sm { padding: 5px 11px; font-size: 12.5px; }
@@ -6157,7 +6093,7 @@ details[open] .advice-accordion-summary::after {
 .ai-recap-head .ai-recap-title { margin: 0; }
 .fav-star { white-space: nowrap; flex: none; }
 .ai-recap-head .ai-recap-title { min-width: 0; }
-#meal-form > button[type="submit"] { margin-top: 14px; }
+#meal-form > button[type="submit"], #activity-form > button[type="submit"] { margin-top: 14px; }
 
 /* ============================================================
    DASHBOARD — Bandeau de la semaine + calendrier mensuel

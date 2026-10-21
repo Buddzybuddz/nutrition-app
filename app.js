@@ -214,141 +214,6 @@ const calsConsumed = document.getElementById('cals-consumed');
 const proteinTotal = document.getElementById('protein-total');
 const progressCircle = document.getElementById('calorie-progress');
 
-function renderActivityOptions() {
-    const actSelect = document.getElementById('activity-select');
-    if (!actSelect) return;
-    
-    actSelect.innerHTML = '<option value="" disabled selected>Choisissez une activité...</option>';
-
-    if (state.customActivities && state.customActivities.length > 0) {
-        const customGroup = document.createElement('optgroup');
-        customGroup.label = "Mes activités";
-        state.customActivities.forEach(act => {
-            const option = document.createElement('option');
-            option.value = act.cals;
-            option.setAttribute('data-name', act.name);
-            option.textContent = `${act.name} - ${act.cals} kcal`;
-            customGroup.appendChild(option);
-        });
-        actSelect.appendChild(customGroup);
-    }
-    
-    const customOption = document.createElement('option');
-    customOption.value = 'custom';
-    customOption.setAttribute('data-name', 'Autre');
-    customOption.textContent = 'Autre (Créer une activité)...';
-    actSelect.appendChild(customOption);
-
-    // Afficher/masquer le lien de gestion selon si des custom existent
-    const manageLink = document.getElementById('manage-custom-activities-link');
-    if (manageLink) {
-        manageLink.style.display = (state.customActivities && state.customActivities.length > 0) ? 'block' : 'none';
-    }
-}
-
-// --- Gestion des activités personnalisées ---
-
-let _editingCustomActivityIndex = -1;
-
-window.openManageActivitiesModal = function() {
-    const modal = document.getElementById('manage-activities-modal');
-    if (!modal) return;
-    modal.classList.remove('hidden');
-    renderManageActivitiesList();
-    cancelEditCustomActivity(); // S'assurer que le formulaire d'édition est masqué à l'ouverture
-};
-
-window.closeManageActivitiesModal = function() {
-    const modal = document.getElementById('manage-activities-modal');
-    if (modal) modal.classList.add('hidden');
-    _editingCustomActivityIndex = -1;
-};
-
-function renderManageActivitiesList() {
-    const container = document.getElementById('manage-activities-list');
-    if (!container) return;
-
-    if (!state.customActivities || state.customActivities.length === 0) {
-        container.innerHTML = '<p style="color: var(--text-muted); font-size: 0.9rem; text-align: center; padding: 1rem;">Aucune activité personnalisée enregistrée.</p>';
-        return;
-    }
-
-    container.innerHTML = '';
-    state.customActivities.forEach((act, index) => {
-        const item = document.createElement('div');
-        item.style.cssText = 'display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem; background: #f8f9fa; border: 2px solid var(--border-color); border-radius: var(--radius-sm);';
-        item.innerHTML = `
-            <div style="flex: 1; min-width: 0;">
-                <div style="font-weight: 800; font-size: 0.95rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${escapeHtml(act.name || '?')}</div>
-                <div style="font-size: 0.82rem; color: var(--text-muted); font-weight: 600;">${Number(act.cals) || 0} kcal</div>
-            </div>
-            <button type="button" class="btn-edit" onclick="startEditCustomActivity(${index})" title="Modifier" style="flex-shrink:0;">✎</button>
-            <button type="button" class="btn-delete" onclick="deleteCustomActivity(${index})" title="Supprimer" style="flex-shrink:0;">✕</button>
-        `;
-        container.appendChild(item);
-    });
-}
-
-window.startEditCustomActivity = function(index) {
-    _editingCustomActivityIndex = index;
-    const act = state.customActivities[index];
-    if (!act) return;
-
-    document.getElementById('edit-act-name').value = act.name || '';
-    document.getElementById('edit-act-cals').value = act.cals || 0;
-
-    const form = document.getElementById('edit-custom-activity-form');
-    if (form) form.classList.remove('hidden');
-};
-
-window.cancelEditCustomActivity = function() {
-    _editingCustomActivityIndex = -1;
-    const form = document.getElementById('edit-custom-activity-form');
-    if (form) form.classList.add('hidden');
-};
-
-window.saveEditCustomActivity = function() {
-    if (_editingCustomActivityIndex < 0) return;
-    const newName = document.getElementById('edit-act-name').value.trim();
-    const newCals = parseInt(document.getElementById('edit-act-cals').value) || 0;
-
-    if (!newName) {
-        showToast('Veuillez saisir un nom pour l\'activité.');
-        return;
-    }
-
-    state.customActivities[_editingCustomActivityIndex] = { name: newName, cals: newCals };
-    saveState();
-    // Forcer la sauvegarde directe dans PocketBase (contourne les éventuels blocages de syncToCloud)
-    if (typeof window.pb_saveCustomActivities === 'function') window.pb_saveCustomActivities();
-    renderActivityOptions();
-    renderManageActivitiesList();
-    cancelEditCustomActivity();
-};
-
-window.deleteCustomActivity = function(index) {
-    if (!confirm('Supprimer cette activité de votre liste ?')) return;
-    state.customActivities.splice(index, 1);
-    saveState();
-    // Forcer la sauvegarde directe dans PocketBase
-    if (typeof window.pb_saveCustomActivities === 'function') window.pb_saveCustomActivities();
-    renderActivityOptions();
-    renderManageActivitiesList();
-    // Si on était en train d'éditer cet index ou un suivant, annuler l'édition
-    if (_editingCustomActivityIndex >= index) cancelEditCustomActivity();
-};
-
-// Fermeture du modal gestion au clic extérieur
-document.addEventListener('DOMContentLoaded', () => {
-    const manageModal = document.getElementById('manage-activities-modal');
-    if (manageModal) {
-        manageModal.addEventListener('click', (e) => {
-            if (e.target === manageModal) window.closeManageActivitiesModal();
-        });
-    }
-});
-
-
 window.routes = {
     'landingpage': { section: 'landing-page' },
     'login': { section: 'auth-screen' },
@@ -635,49 +500,14 @@ document.getElementById('meal-form').addEventListener('submit', (e) => {
     if(window.closeMealModal) window.closeMealModal();
 });
 
-const activitySelect = document.getElementById('activity-select');
-const customActivityGroup = document.getElementById('custom-activity-group');
 const activityDesc = document.getElementById('activity-desc');
 const activityBurn = document.getElementById('activity-burn');
 
-if (activitySelect) {
-    activitySelect.addEventListener('change', (e) => {
-        const val = e.target.value;
-        if (val === 'custom') {
-            customActivityGroup.style.display = 'block';
-            activityDesc.required = true;
-            activityBurn.value = '';
-        } else {
-            customActivityGroup.style.display = 'none';
-            activityDesc.required = false;
-            activityBurn.value = val;
-        }
-    });
-}
-
 document.getElementById('activity-form').addEventListener('submit', (e) => {
     e.preventDefault();
-    let desc = '';
-    
-    if (activitySelect) {
-        if (activitySelect.value === 'custom') {
-            desc = activityDesc.value || 'Activité';
-        } else {
-            const selectedOption = activitySelect.options[activitySelect.selectedIndex];
-            desc = selectedOption.getAttribute('data-name');
-        }
-    } else {
-        desc = activityDesc.value || 'Activité';
-    }
-    
+    const desc = activityDesc.value.trim() || 'Activité';
     const burn = parseInt(activityBurn.value);
-    
-    const activitySave = document.getElementById('activity-save');
-    if (activitySelect && activitySelect.value === 'custom' && activitySave && activitySave.checked) {
-        if (!state.customActivities) state.customActivities = [];
-        state.customActivities.push({ name: desc, cals: burn });
-        renderActivityOptions();
-    }
+    const minutes = Math.round(Number(document.getElementById('activity-minutes').value) || 0);
 
     const editId = e.target.dataset.editingId;
     const actLog = getActiveLog();
@@ -703,6 +533,9 @@ document.getElementById('activity-form').addEventListener('submit', (e) => {
         actLog.bonusTDEE += burn;
         actLog.entries.push(newEntry);
 
+        // Enregistre en favori si l'étoile est cochée (favorite-activities.js)
+        if (window.maybeSaveFavoriteActivity) window.maybeSaveFavoriteActivity({ name: desc, minutes: minutes, cals: burn });
+
         // Sync individuel immédiat si connecté
         if (typeof pb_saveActivity === 'function' && typeof currentUser !== 'undefined' && currentUser) {
             pb_saveActivity(newEntry).then(pbRecord => {
@@ -717,12 +550,6 @@ document.getElementById('activity-form').addEventListener('submit', (e) => {
     saveState();
     updateDashboard();
     e.target.reset();
-    
-    if (customActivityGroup) {
-        customActivityGroup.style.display = 'none';
-        activityDesc.required = false;
-        if (activitySave) activitySave.checked = false;
-    }
     if(window.closeActivityModal) window.closeActivityModal();
 });
 
@@ -772,13 +599,9 @@ window.editEntry = function(id) {
         document.getElementById('meal-form').querySelector('button[type="submit"]').textContent = 'Enregistrer la modification';
         if(window.openMealModal) window.openMealModal(true);
     } else if (entry.type === 'Activité') {
-        const actSelect = document.getElementById('activity-select');
-        actSelect.value = 'custom';
-        const customActivityGroup = document.getElementById('custom-activity-group');
-        if(customActivityGroup) customActivityGroup.style.display = 'block';
-        document.getElementById('activity-desc').required = true;
         document.getElementById('activity-desc').value = entry.name;
         document.getElementById('activity-burn').value = entry.cals;
+        document.getElementById('activity-minutes').value = '';
         document.getElementById('activity-form').dataset.editingId = id;
         document.getElementById('activity-form').querySelector('button[type="submit"]').textContent = 'Enregistrer la modification';
         if(window.openActivityModal) window.openActivityModal(true);
@@ -830,9 +653,6 @@ window.openActivityModal = function(editMode = false) {
         document.getElementById('activity-form').reset();
         delete document.getElementById('activity-form').dataset.editingId;
         document.getElementById('activity-form').querySelector('button[type="submit"]').textContent = 'Ajouter l\'activité';
-        const customActivityGroup = document.getElementById('custom-activity-group');
-        if (customActivityGroup) customActivityGroup.style.display = 'none';
-        document.getElementById('activity-desc').required = false;
     }
 }
 window.closeActivityModal = function() {
@@ -863,8 +683,6 @@ document.querySelectorAll('.modal-overlay').forEach(overlay => {
 function updateDashboard() {
     if (!state.profile) return;
     
-    // S'assurer que les activités (standards + custom) sont à jour
-    renderActivityOptions();
 
     const actLog = getActiveLog();
     const dateStr = actLog.date;
@@ -1090,7 +908,7 @@ function updateDashboard() {
 
             li.innerHTML = `
                 <div class="history-title-group">
-                    <div class="history-title">${escapeHtml(entry.name)}${entry.type === 'Repas' && window.isFavoriteMeal && window.isFavoriteMeal(entry) ? ' <span class="fav-badge" title="Repas favori" aria-label="Repas favori">★</span>' : ''}</div>
+                    <div class="history-title">${escapeHtml(entry.name)}${entry.type === 'Repas' && window.isFavoriteMeal && window.isFavoriteMeal(entry) ? ' <span class="fav-badge" title="Repas favori" aria-label="Repas favori">★</span>' : ''}${entry.type === 'Activité' && window.isFavoriteActivity && window.isFavoriteActivity(entry) ? ' <span class="fav-badge" title="Activité favorite" aria-label="Activité favorite">★</span>' : ''}</div>
                     <div class="history-details">${details}</div>
                     ${entry.desc ? `<div class="history-desc">${escapeHtml(entry.desc)}</div>` : ''}
                 </div>
@@ -1111,7 +929,6 @@ window.init = function() {
         // Recalcul forcé silencieux (sans sauvegarder vers le cloud immédiatement)
         updateProfileData(true);
     }
-    renderActivityOptions();
     if (!state.profile) {
         // Force profile view initially
         viewDashboard.classList.add('hidden');

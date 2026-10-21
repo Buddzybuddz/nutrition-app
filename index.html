@@ -1063,6 +1063,17 @@
             </div>
             <div class="modal-body">
                 <form id="activity-form">
+                    <div class="meal-modes" id="activity-modes" role="tablist" aria-label="Mode de saisie">
+                        <button type="button" class="meal-mode is-active" role="tab" aria-selected="true" aria-controls="activity-mode-new" data-mode="new">Nouvelle activité</button>
+                        <button type="button" class="meal-mode" role="tab" aria-selected="false" aria-controls="activity-mode-fav" data-mode="fav">Mes favoris <span class="meal-mode-count" id="activity-fav-count" hidden>0</span></button>
+                    </div>
+
+                    <div class="meal-mode-fav" id="activity-mode-fav" role="tabpanel" hidden>
+                        <div class="meal-fav-list" id="activity-fav-list" role="radiogroup" aria-label="Mes activités favorites"></div>
+                        <button type="button" class="btn btn-primary meal-fav-use" id="activity-fav-use" disabled>Utiliser ce favori</button>
+                    </div>
+
+                    <div id="activity-mode-new" role="tabpanel">
                     <div class="ai-estimate">
                         <label for="activity-ai-text">Décrire mon activité <span class="ai-badge">Estimation IA</span></label>
                         <textarea id="activity-ai-text" rows="2" maxlength="300" placeholder="ex : 45 min de vélo, rythme tranquille"></textarea>
@@ -1070,78 +1081,29 @@
                         <p class="ai-estimate-usage" id="activity-ai-usage"></p>
                         <p class="ai-estimate-status" id="activity-ai-status" role="status" aria-live="polite"></p>
                     </div>
-                    <div class="form-group" id="activity-select-group">
-                        <label for="activity-select">Activité</label>
-                        <div class="select-wrapper" data-force-down>
-                            <select id="activity-select" required>
-                                <option value="" disabled selected>Chargement des activités...</option>
-                            </select>
+
+                    <div class="meal-fav-manual" id="activity-fav-manual">
+                        <button type="button" class="fav-star" id="activity-fav-star" data-label="Enregistrer en favori" aria-pressed="false">☆ Enregistrer en favori</button>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="activity-desc">Activité</label>
+                        <input type="text" id="activity-desc" maxlength="120" required placeholder="ex : Yoga">
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="activity-minutes">Durée (min)</label>
+                            <input type="number" id="activity-minutes" min="0" max="1440" step="1" placeholder="45">
                         </div>
-                        <div id="manage-custom-activities-link" style="display:none;margin-top:8px;text-align:right;">
-                            <button type="button" onclick="openManageActivitiesModal()"
-                                style="background:none;border:none;color:var(--color-primary);font-family:'Inter',sans-serif;font-size:13px;font-weight:600;cursor:pointer;padding:0;text-decoration:underline;">
-                                Gérer mes activités personnalisées
-                            </button>
+                        <div class="form-group" id="activity-burn-group">
+                            <label for="activity-burn">Calories brûlées</label>
+                            <input type="number" id="activity-burn" min="0" step="1" required placeholder="300">
                         </div>
                     </div>
-                    <div class="form-group" id="custom-activity-group" style="display:none">
-                        <div class="ai-summary" id="activity-ai-summary" hidden>
-                            <p class="ai-summary-text" id="activity-ai-summary-text"></p>
-                            <button type="button" class="ai-link" id="activity-ai-reset">Choisir dans la liste</button>
-                        </div>
-                        <label for="activity-desc">Description</label>
-                        <input type="text" id="activity-desc" placeholder="ex: Yoga 45min">
-                        <label style="display:flex;align-items:center;gap:8px;margin-top:10px;font-family:'Inter',sans-serif;font-size:14px;font-weight:400;text-transform:none;letter-spacing:0;color:var(--color-text-2);cursor:pointer;">
-                            <input type="checkbox" id="activity-save" style="width:16px;height:16px;margin:0;box-shadow:none;">
-                            Enregistrer dans ma liste
-                        </label>
                     </div>
-                    <div class="form-group" id="activity-burn-group">
-                        <label for="activity-burn">Calories brûlées</label>
-                        <input type="number" id="activity-burn" min="0" step="1" required placeholder="300">
-                    </div>
+
                     <button type="submit" class="btn btn-primary">Ajouter l'activité</button>
                 </form>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal Gestion Activités Personnalisées -->
-    <div id="manage-activities-modal" class="modal-overlay hidden">
-        <div class="modal-content">
-            <div class="modal-drag-handle"></div>
-            <div class="modal-header">
-                <h3 class="modal-title">Mes activités personnalisées</h3>
-                <button type="button" class="modal-close-btn" onclick="closeManageActivitiesModal()" aria-label="Fermer">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                        <line x1="18" y1="6" x2="6" y2="18"></line>
-                        <line x1="6" y1="6" x2="18" y2="18"></line>
-                    </svg>
-                </button>
-            </div>
-            <div class="modal-body">
-                <div id="manage-activities-list">
-                    <!-- Généré par JS -->
-                </div>
-                <div id="edit-custom-activity-form" class="hidden">
-                    <p>Modifier l'activité</p>
-                    <div class="form-group">
-                        <label for="edit-act-name">Nom</label>
-                        <input type="text" id="edit-act-name" placeholder="ex: Yoga 45min">
-                    </div>
-                    <div class="form-group">
-                        <label for="edit-act-cals">Calories brûlées (kcal)</label>
-                        <input type="number" id="edit-act-cals" min="0" step="1">
-                    </div>
-                    <div style="display:flex;gap:8px;margin-top:4px;">
-                        <button type="button" class="btn btn-primary" style="flex:1;" onclick="saveEditCustomActivity()">Enregistrer</button>
-                        <button type="button" onclick="cancelEditCustomActivity()"
-                            style="flex:1;height:52px;background:transparent;border:1px solid var(--color-border);color:var(--color-text-2);border-radius:var(--lp-radius-full);font-family:'Inter',sans-serif;font-size:15px;font-weight:500;cursor:pointer;transition:background 0.15s;">
-                            Annuler
-                        </button>
-                    </div>
-                </div>
-                <button type="button" class="btn" onclick="closeManageActivitiesModal()">Fermer</button>
             </div>
         </div>
     </div>
@@ -1233,6 +1195,7 @@
     <script defer src="ia.js"></script>
     <script defer src="programme.js"></script>
     <script defer src="favorites.js"></script>
+<script defer src="favorite-activities.js"></script>
 <script defer src="week-strip.js"></script>
 
     <script>
@@ -1584,7 +1547,7 @@
                 try {
                     var userId = pb.authStore.model.id;
                     /* Supprimer toutes les données utilisateur (RGPD — droit à l'effacement) */
-                    var collections = ['profiles', 'meals', 'favorite_meals', 'daily_stats', 'activities_log', 'weigh_ins', 'goal_history', 'user_data'];
+                    var collections = ['profiles', 'meals', 'favorite_meals', 'favorite_activities', 'daily_stats', 'activities_log', 'weigh_ins', 'goal_history', 'user_data'];
                     for (var i = 0; i < collections.length; i++) {
                         try {
                             var items = await pb.collection(collections[i]).getFullList({ filter: 'user="' + userId + '"' });

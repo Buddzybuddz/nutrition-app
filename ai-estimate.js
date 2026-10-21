@@ -53,36 +53,6 @@
             .replace(/[^a-z0-9]+/g, ' ').trim();
     }
 
-    /* "Vélo (30 min)" => { name: 'velo', minutes: 30 } ; "Musculation (1h)" => 60 ; "Yoga 1h30" => 90 */
-    function parseActivityName(label) {
-        var s = String(label || '').toLowerCase();
-        var minutes = null, rest = s;
-        var h = s.match(/(\d+(?:[.,]\d+)?)\s*(?:h|heures?)(?![a-z])\s*(\d{1,2})?/);
-        var m = s.match(/(\d+)\s*(?:min|minutes?|mn)(?![a-z])/);
-        if (h) {
-            minutes = Math.round(parseFloat(h[1].replace(',', '.')) * 60) + (h[2] ? parseInt(h[2], 10) : 0);
-            rest = rest.replace(h[0], ' ');
-        } else if (m) {
-            minutes = parseInt(m[1], 10);
-        }
-        if (m && !(h && h[2])) rest = rest.replace(m[0], ' ');
-        else if (m) rest = rest.replace(m[0], ' ');
-        rest = norm(rest).replace(/^(de|du|des|d)\s+/, '');
-        return { name: rest, minutes: minutes };
-    }
-
-    /* Cherche dans la liste (activités standards + personnalisées) une entrée de même nom ET même durée */
-    function findListOption(activity, minutes) {
-        var wanted = norm(activity), opts = document.querySelectorAll('#activity-select option');
-        for (var i = 0; i < opts.length; i++) {
-            var o = opts[i];
-            if (!o.value || o.value === 'custom') continue;
-            var p = parseActivityName(o.getAttribute('data-name'));
-            if (p.minutes === minutes && p.name === wanted) return o;
-        }
-        return null;
-    }
-
     /* Une activité doit préciser le type d'activité ET une durée avant l'analyse */
     var DURATION_RE = /\d+\s*(?:h|heures?|min|minutes?|mn)(?![a-z])|demi heure|une heure|quart d heure|trois quarts d heure/;
     var STOP = ['de', 'du', 'des', 'pendant', 'environ', 'ai', 'fait', 'faire', 'fais', 'une', 'un', 'les', 'pour', 'durant', 'sur', 'avec', 'et', 'dans', 'env', 'heure', 'heures', 'minutes', 'minute', 'demi', 'quart', 'trois', 'quarts', 'mon', 'ma', 'mes'];
@@ -181,37 +151,28 @@
 
     /* ── Activité ─────────────────────────────────────────── */
 
-    function activityForm() { return document.getElementById('activity-form'); }
-
-    function exitCompactMode() {
-        activityForm().classList.remove('activity-compact');
-        document.getElementById('activity-ai-summary').hidden = true;
-    }
-
+    /* L'estimation remplit le formulaire ; l'utilisateur ajuste puis valide */
     function applyActivity(r) {
-        var sel = document.getElementById('activity-select');
-        exitCompactMode();
-
-        var match = findListOption(r.activity, r.minutes);
-        if (match) {
-            /* Existe déjà : sélection automatique, les calories de la liste s'appliquent */
-            match.selected = true;
-            sel.dispatchEvent(new Event('change', { bubbles: true }));
-            return 'Cette activité existe déjà dans votre liste : « ' + match.getAttribute('data-name') +
-                ' » a été sélectionnée (' + match.value + ' kcal).';
-        }
-
-        /* Nouvelle activité : on masque la liste, il reste le résumé et la case d'enregistrement */
-        sel.value = 'custom';
-        sel.dispatchEvent(new Event('change', { bubbles: true }));
         document.getElementById('activity-desc').value = r.label;
+        document.getElementById('activity-minutes').value = r.minutes || '';
         document.getElementById('activity-burn').value = r.calories_burned;
-        document.getElementById('activity-ai-summary-text').textContent = r.label + ' — ' + r.calories_burned + ' kcal brûlées';
-        document.getElementById('activity-ai-summary').hidden = false;
-        activityForm().classList.add('activity-compact');
-        return "Nouvelle activité (confiance " + (CONF[r.confidence] || 'faible') + ") : cochez « Enregistrer dans ma liste » pour la retrouver plus tard.";
+        if (window.resetActivityFavoriteStar) window.resetActivityFavoriteStar();
+        var known = window.isFavoriteActivity && window.isFavoriteActivity({ name: r.label, minutes: r.minutes });
+        return known
+            ? 'Cette activité est déjà dans vos favoris. Vérifiez et ajustez si besoin.'
+            : 'Estimation terminée (confiance ' + (CONF[r.confidence] || 'faible') + '). Vérifiez et ajustez si besoin, ou touchez « Enregistrer en favori ».';
     }
     applyActivity.summary = function (r) { return r.label + ' : ' + r.calories_burned + ' kcal brûlées'; };
+
+    /* Une activité favorite remplit le formulaire (aucun appel IA) */
+    window.fillActivityFromFavorite = function (fav) {
+        var m = Math.round(Number(fav.minutes) || 0);
+        document.getElementById('activity-desc').value = fav.name + (m ? ' (' + m + ' min)' : '');
+        document.getElementById('activity-minutes').value = fav.minutes || '';
+        document.getElementById('activity-burn').value = Math.round(Number(fav.calories) || 0);
+        var st = document.getElementById('activity-ai-status');
+        if (st) setStatus(st, 'Favori « ' + fav.name + ' » appliqué. Modifiez si besoin, puis validez.');
+    };
 
     function wire(type, prefix, apply) {
         var btn = document.getElementById(prefix + '-ai-btn');
@@ -227,7 +188,7 @@
         if (modal) new MutationObserver(function () {
             if (modal.classList.contains('hidden')) {
                 textEl.value = ''; setStatus(statusEl, '');
-                if (type === 'activity') exitCompactMode(); else { clearRecap(); resetMealDescription(); }
+                if (type === 'meal') { clearRecap(); resetMealDescription(); }
             } else {
                 if (type === 'meal') resetMealDescription();
                 refreshUsage();
@@ -246,15 +207,6 @@
                 var c = document.getElementById('meal-cals').value, p = document.getElementById('meal-protein').value;
                 if (c !== aiFilled.cals || p !== aiFilled.prot) resetMealDescription();
             });
-        });
-
-        var reset = document.getElementById('activity-ai-reset');
-        if (reset) reset.addEventListener('click', function () {
-            exitCompactMode();
-            var sel = document.getElementById('activity-select');
-            sel.selectedIndex = 0;
-            sel.dispatchEvent(new Event('change', { bubbles: true }));
-            setStatus(document.getElementById('activity-ai-status'), '');
         });
     });
 })();

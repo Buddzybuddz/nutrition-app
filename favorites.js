@@ -90,7 +90,7 @@
 
     function setWanted(v) {
         wanted = !!v;
-        document.querySelectorAll('.fav-star').forEach(function (b) {
+        document.querySelectorAll('#meal-modal .fav-star').forEach(function (b) {
             b.setAttribute('aria-pressed', wanted ? 'true' : 'false');
             b.classList.toggle('is-on', wanted);
             b.textContent = (wanted ? '★ ' : '☆ ') + b.dataset.label;
@@ -104,7 +104,7 @@
 
     function setMode(m) {
         mode = m;
-        document.querySelectorAll('.meal-mode').forEach(function (b) {
+        document.querySelectorAll('#meal-modes .meal-mode').forEach(function (b) {
             var on = b.dataset.mode === m;
             b.classList.toggle('is-active', on);
             b.setAttribute('aria-selected', on ? 'true' : 'false');
@@ -185,10 +185,10 @@
         var sel = $('meal-type'), modal = $('meal-modal');
         if (!sel || !modal || !$('meal-modes')) return;
 
-        document.querySelectorAll('.meal-mode').forEach(function (b) {
+        document.querySelectorAll('#meal-modes .meal-mode').forEach(function (b) {
             b.addEventListener('click', function () { setMode(b.dataset.mode); });
         });
-        document.querySelectorAll('.fav-star').forEach(function (b) {
+        document.querySelectorAll('#meal-modal .fav-star').forEach(function (b) {
             b.addEventListener('click', function () { setWanted(!wanted); });
         });
         $('meal-fav-use').addEventListener('click', useSelected);
