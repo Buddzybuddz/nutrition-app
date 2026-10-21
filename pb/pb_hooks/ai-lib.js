@@ -183,6 +183,11 @@ function buildContext(userId, today) {
                 return String(f.get("description") || f.get("name")) + " (" + (Number(f.get("calories")) || 0) + " kcal, " + (Number(f.get("protein")) || 0) + " g de protéines)";
             }).join(" ; "));
         });
+        var acts = findMany("favorite_activities", "user = {:u}", "-created", 10, { u: userId });
+        if (acts.length) lines.push("  Activités favorites enregistrées par l'utilisateur : " + acts.map(function (a) {
+            var m = Number(a.get("minutes")) || 0;
+            return a.get("name") + " (" + (m ? m + " min, " : "") + (Number(a.get("calories")) || 0) + " kcal brûlées)";
+        }).join(" ; "));
         var top = Object.keys(foods).map(function (k) { return [k, foods[k]]; })
             .filter(function (f) { return f[1] >= 2; }).sort(function (a, b) { return b[1] - a[1]; }).slice(0, 12);
         return { favorites: lines, foods: top.map(function (f) { return f[0] + " (" + f[1] + ")"; }) };
