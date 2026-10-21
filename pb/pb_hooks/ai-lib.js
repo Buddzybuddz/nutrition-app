@@ -129,7 +129,7 @@ function buildContext(userId, today) {
     function dayOf(d) { return days[d] || (days[d] = { meals: [], acts: [], cals: 0, prot: 0, burned: 0 }); }
     meals.forEach(function (m) {
         var d = dayOf(String(m.get("date")).slice(0, 10));
-        var e = { type: MEAL_LABELS[m.get("mealType")] || String(m.get("mealType") || "Repas"), name: String(m.get("name") || ""), cals: Number(m.get("calories")) || 0, prot: Number(m.get("protein")) || 0 };
+        var e = { type: MEAL_LABELS[m.get("mealType")] || String(m.get("mealType") || "Repas"), name: String(m.get("name") || ""), desc: String(m.get("description") || "").trim(), cals: Number(m.get("calories")) || 0, prot: Number(m.get("protein")) || 0 };
         d.meals.push(e); d.cals += e.cals; d.prot += e.prot;
     });
     acts.forEach(function (a) {
@@ -148,7 +148,45 @@ function buildContext(userId, today) {
     }
 
     function dayName(day) { return WEEKDAYS[new Date(day + "T12:00:00Z").getUTCDay()] + " " + day; }
-    function mealLine(m) { return "    - " + m.type + " : " + m.name + " — " + m.cals + " kcal, " + m.prot + " g de protéines"; }
+    function mealLine(m) { return "    - " + m.type + " : " + (m.desc ? m.desc + " — " : "") + m.cals + " kcal, " + m.prot + " g de protéines"; }
+
+    /* Goûts de l'utilisateur : repas favoris (même composition saisie au moins 2 fois) et aliments fréquents,
+       sur 6 mois. Seuls les repas avec description sont exploitables (les chiffres seuls ne disent rien du goût). */
+    function tastes() {
+        var rows = findMany("meals", "user = {:u} && date >= {:f}", "-date", 1500, { u: userId, f: addDays(today, -180) + " 00:00:00.000Z" });
+        var favs = {}, foods = {};
+        rows.forEach(function (m) {
+            var desc = String(m.get("description") || "").trim();
+            if (!desc) return;
+            var type = String(m.get("mealType") || "");
+            var key = type + "|" + desc.toLowerCase();
+            var g = favs[key] || (favs[key] = { type: type, desc: desc, count: 0, cals: Number(m.get("calories")) || 0, prot: Number(m.get("protein")) || 0 });
+            g.count++;
+            desc.split(",").forEach(function (part) {
+                var name = part.replace(/\s+\d+([.,]\d+)?\s*(g|ml)\s*$/i, "").trim().toLowerCase();
+                if (name) foods[name] = (foods[name] || 0) + 1;
+            });
+        });
+        var lines = [];
+        Object.keys(MEAL_LABELS).forEach(function (type) {
+            var list = Object.keys(favs).map(function (k) { return favs[k]; })
+                .filter(function (g) { return g.type === type && g.count >= 2; })
+                .sort(function (a, b) { return b.count - a.count; }).slice(0, 3);
+            if (list.length) lines.push("  " + MEAL_LABELS[type] + " : " + list.map(function (g) {
+                return g.desc + " (" + g.cals + " kcal, " + g.prot + " g de protéines, " + g.count + " fois)";
+            }).join(" ; "));
+        });
+        var saved = findMany("favorite_meals", "user = {:u}", "-created", 40, { u: userId });
+        Object.keys(MEAL_LABELS).forEach(function (type) {
+            var mine = saved.filter(function (f) { return f.get("mealType") === type; }).slice(0, 5);
+            if (mine.length) lines.push("  " + MEAL_LABELS[type] + " (favoris enregistrés par l'utilisateur) : " + mine.map(function (f) {
+                return String(f.get("description") || f.get("name")) + " (" + (Number(f.get("calories")) || 0) + " kcal, " + (Number(f.get("protein")) || 0) + " g de protéines)";
+            }).join(" ; "));
+        });
+        var top = Object.keys(foods).map(function (k) { return [k, foods[k]]; })
+            .filter(function (f) { return f[1] >= 2; }).sort(function (a, b) { return b[1] - a[1]; }).slice(0, 12);
+        return { favorites: lines, foods: top.map(function (f) { return f[0] + " (" + f[1] + ")"; }) };
+    }
 
     var t = days[today] || { meals: [], acts: [], cals: 0, prot: 0, burned: 0 };
     var g = goals(today);
@@ -175,6 +213,16 @@ function buildContext(userId, today) {
         var gd = goals(day);
         out.push("  " + dayName(day) + " : " + d.cals + "/" + gd.cal + " kcal, " + d.prot + "/" + gd.prot + " g de protéines, " + d.burned + " kcal d'activités, " + d.meals.length + " repas");
         if (i <= 7) d.meals.forEach(function (m) { out.push(mealLine(m)); });
+    }
+
+    var taste = tastes();
+    out.push("");
+    if (taste.favorites.length || taste.foods.length) {
+        out.push("GOÛTS DE L'UTILISATEUR (déduits de ses repas des 6 derniers mois) :");
+        if (taste.favorites.length) { out.push("REPAS FAVORIS (les plus souvent mangés) :"); taste.favorites.forEach(function (l) { out.push(l); }); }
+        if (taste.foods.length) out.push("ALIMENTS LES PLUS FRÉQUENTS : " + taste.foods.join(", "));
+    } else {
+        out.push("GOÛTS DE L'UTILISATEUR : pas encore assez de repas décrits pour en déduire des favoris.");
     }
 
     out.push("");
