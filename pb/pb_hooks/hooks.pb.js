@@ -29,6 +29,7 @@ var LOCKED_SUBSCRIPTION_FIELDS = [
     "subscription_end",
     "subscription_cancel_at",
     "stripe_customer_id",
+    "is_admin",
 ];
 
 onRecordUpdateRequest((e) => {

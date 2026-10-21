@@ -376,7 +376,8 @@ window.routes = {
     'tableaudebord': { section: 'app', view: 'dashboard-view' },
     'profil': { section: 'app', view: 'profile-view' },
     'historique': { section: 'app', view: 'history-view' },
-    'conseils': { section: 'app', view: 'advice-view' }
+    'conseils': { section: 'app', view: 'advice-view' },
+    'admin': { section: 'app', view: 'admin-view', admin: true }
 };
 
 window.navigateTo = function(slug, updateHistory = true) {
@@ -385,6 +386,11 @@ window.navigateTo = function(slug, updateHistory = true) {
     if (!route) {
         window.PB_CONFIG?.isDev && console.warn(`Route non trouvée pour: ${slug}, redirection vers landingpage`);
         return window.navigateTo('landingpage');
+    }
+
+    // Vue admin : réservée aux comptes is_admin (le serveur revérifie de toute façon)
+    if (route.admin && !(typeof pb !== 'undefined' && pb.authStore.model && pb.authStore.model.is_admin)) {
+        return window.navigateTo('tableaudebord');
     }
 
     // Validation profil pour les vues de l'app (sauf profil lui-même)
@@ -438,6 +444,8 @@ window.navigateTo = function(slug, updateHistory = true) {
             if (typeof updateDashboard === 'function') updateDashboard();
         } else if (route.view === 'advice-view') {
             if (typeof showRandomTip === 'function') showRandomTip();
+        } else if (route.view === 'admin-view') {
+            if (typeof window.renderAdmin === 'function') window.renderAdmin();
         }
     }
 };

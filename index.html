@@ -601,6 +601,10 @@
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
                     Conseils
                 </button>
+                <button class="nav-btn hidden" id="nav-admin-btn" data-target="admin-view">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                    Admin
+                </button>
                 <button class="nav-btn" data-target="profile-view">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
                     Profil
@@ -775,6 +779,14 @@
             </section>
             
             <!-- Advice View — E-06 V2 Soft Modern -->
+            <section id="admin-view" class="view hidden">
+                <header class="advice-header">
+                    <h2 class="advice-title">Administration</h2>
+                    <p class="advice-subtitle">Comptes et abonnements</p>
+                </header>
+                <div id="admin-content" class="admin-content" aria-live="polite"></div>
+            </section>
+
             <section id="advice-view" class="view hidden">
 
                 <!-- Header -->
@@ -1371,6 +1383,10 @@
                 <svg class="bottom-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
                 <span class="bottom-nav-label">Conseils</span>
             </button>
+            <button class="bottom-nav-item hidden" id="bottom-nav-admin-btn" data-target="admin-view" aria-label="Admin">
+                <svg class="bottom-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                <span class="bottom-nav-label">Admin</span>
+            </button>
             <button class="bottom-nav-item" data-target="profile-view" aria-label="Profil">
                 <svg class="bottom-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
                 <span class="bottom-nav-label">Profil</span>
@@ -1398,6 +1414,7 @@
     <script defer src="utils.js"></script>
     <script defer src="app.js"></script>
     <script defer src="auth-pb.js"></script>
+    <script defer src="admin.js"></script>
 
     <script>
     /* ============================================================
