@@ -78,6 +78,26 @@ routerAdd("GET", "/api/admin/stats", (e) => {
     var paying = byStatus.active + byStatus.cancelling;
     var everTrial = users.length - byStatus.exempt;
 
+    /* Usage de l'estimation IA (jour Europe/Paris ; helpers inline, closures top-level non fiables) */
+    var y = new Date(now).getUTCFullYear();
+    function lastSunday(month) {
+        var d0 = new Date(Date.UTC(y, month + 1, 0, 1));
+        return Date.UTC(y, month, d0.getUTCDate() - d0.getUTCDay(), 1);
+    }
+    var dst = now >= lastSunday(2) && now < lastSunday(9);
+    var today = new Date(now + (dst ? 2 : 1) * 3600000).toISOString().slice(0, 10);
+    var from7 = new Date(new Date(today + "T00:00:00Z").getTime() - 6 * DAY).toISOString().slice(0, 10);
+
+    function aiSum(where, bind) {
+        var rows = arrayOf(new DynamicModel({ "meal": 0, "activity": 0, "chat": 0, "hits": 0, "users": 0 }));
+        $app.db().newQuery(
+            "SELECT COALESCE(SUM(meal),0) AS meal, COALESCE(SUM(activity),0) AS activity, COALESCE(SUM(chat),0) AS chat, " +
+            "COALESCE(SUM(cache_hits),0) AS hits, COUNT(DISTINCT user) AS users FROM ai_usage WHERE " + where
+        ).bind(bind).all(rows);
+        var r = rows[0] || { meal: 0, activity: 0, chat: 0, hits: 0, users: 0 };
+        return { meal: r.meal, activity: r.activity, chat: r.chat, cache_hits: r.hits, users: r.users };
+    }
+
     return e.json(200, {
         total: users.length,
         signups_7d: signups7,
@@ -91,6 +111,15 @@ routerAdd("GET", "/api/admin/stats", (e) => {
         by_status: byStatus,
         conversion_pct: everTrial > 0 ? Math.round((paying / everTrial) * 1000) / 10 : 0,
         per_day: perDay,
+        ai: {
+            today: aiSum("day = {:d}", { d: today }),
+            last7: aiSum("day >= {:f}", { f: from7 }),
+            limits: {
+                meal: parseInt($os.getenv("AI_LIMIT_MEAL") || "10", 10),
+                activity: parseInt($os.getenv("AI_LIMIT_ACTIVITY") || "5", 10),
+                chat: parseInt($os.getenv("AI_LIMIT_CHAT") || "15", 10),
+            },
+        },
         users: rows.slice(0, 200),
     });
 });

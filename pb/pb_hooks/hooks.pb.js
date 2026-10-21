@@ -30,6 +30,7 @@ var LOCKED_SUBSCRIPTION_FIELDS = [
     "subscription_cancel_at",
     "stripe_customer_id",
     "is_admin",
+    "ai_consent_at",
 ];
 
 onRecordUpdateRequest((e) => {
