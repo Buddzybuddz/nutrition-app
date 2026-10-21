@@ -233,27 +233,6 @@ function renderActivityOptions() {
         actSelect.appendChild(customGroup);
     }
     
-    const defaultActivities = [
-        { name: 'Marche (30 min)', cals: 150 },
-        { name: 'Course à pied (30 min)', cals: 300 },
-        { name: 'Vélo (30 min)', cals: 250 },
-        { name: 'Natation (30 min)', cals: 200 },
-        { name: 'Musculation (1h)', cals: 400 },
-        { name: 'Sports collectifs (1h)', cals: 500 }
-    ];
-
-    const standardGroup = document.createElement('optgroup');
-    standardGroup.label = "Activités standards";
-    
-    defaultActivities.forEach(act => {
-        const option = document.createElement('option');
-        option.value = act.cals;
-        option.setAttribute('data-name', act.name);
-        option.textContent = `${act.name} - ${act.cals} kcal`;
-        standardGroup.appendChild(option);
-    });
-    actSelect.appendChild(standardGroup);
-    
     const customOption = document.createElement('option');
     customOption.value = 'custom';
     customOption.setAttribute('data-name', 'Autre');
@@ -375,8 +354,9 @@ window.routes = {
     'login': { section: 'auth-screen' },
     'tableaudebord': { section: 'app', view: 'dashboard-view' },
     'profil': { section: 'app', view: 'profile-view' },
-    'historique': { section: 'app', view: 'history-view' },
-    'conseils': { section: 'app', view: 'advice-view' },
+    'ia': { section: 'app', view: 'ia-view' },
+    'conseils': { section: 'app', view: 'ia-view' },
+    'historique': { section: 'app', view: 'ia-view' },
     'admin': { section: 'app', view: 'admin-view', admin: true }
 };
 
@@ -438,12 +418,10 @@ window.navigateTo = function(slug, updateHistory = true) {
         // Logique spécifique aux vues
         if (route.view === 'profile-view') {
             if (typeof populateProfileForm === 'function') populateProfileForm();
-        } else if (route.view === 'history-view') {
-            if (window.renderSuivi) window.renderSuivi();
         } else if (route.view === 'dashboard-view') {
             if (typeof updateDashboard === 'function') updateDashboard();
-        } else if (route.view === 'advice-view') {
-            if (typeof showRandomTip === 'function') showRandomTip();
+        } else if (route.view === 'ia-view') {
+            if (window.renderIA) window.renderIA();
         } else if (route.view === 'admin-view') {
             if (typeof window.renderAdmin === 'function') window.renderAdmin();
         }
@@ -600,7 +578,7 @@ document.getElementById('meal-form').addEventListener('submit', (e) => {
     e.preventDefault();
     const type = document.getElementById('meal-type').options[document.getElementById('meal-type').selectedIndex].text;
     const cals = parseInt(document.getElementById('meal-cals').value);
-    const prot = parseFloat(document.getElementById('meal-protein').value);
+    const prot = Math.round(parseFloat(document.getElementById('meal-protein').value));
 
     const editId = e.target.dataset.editingId;
     const actLog = getActiveLog();
@@ -782,7 +760,7 @@ window.editEntry = function(id) {
         }
         typeSelect.dispatchEvent(new Event('change', { bubbles: true }));
         document.getElementById('meal-cals').value = entry.cals;
-        document.getElementById('meal-protein').value = entry.prot;
+        document.getElementById('meal-protein').value = Math.round(Number(entry.prot) || 0);
         document.getElementById('meal-form').dataset.editingId = id;
         document.getElementById('meal-form').querySelector('button[type="submit"]').textContent = 'Enregistrer la modification';
         if(window.openMealModal) window.openMealModal(true);
@@ -873,29 +851,6 @@ document.querySelectorAll('.modal-overlay').forEach(overlay => {
         }
     });
 });
-
-
-// Tips Logic
-const TIPS = [
-    "L'eau glacée peut légèrement augmenter votre métabolisme car le corps dépense de l'énergie pour la réchauffer.",
-    "La sensation de faim est souvent un signal de déshydratation déguisé. Buvez un verre d'eau avant de grignoter.",
-    "Manger dans des assiettes plus petites trompe le cerveau et aide à se sentir rassasié plus vite.",
-    "Le manque de sommeil augmente la ghréline, l'hormone qui stimule l'appétit pour les aliments gras et sucrés.",
-    "Les fibres (légumes, fruits) ralentissent la digestion et stabilisent votre niveau d'énergie.",
-    "Il faut environ 20 minutes à votre cerveau pour recevoir le signal de satiété provenant de votre estomac.",
-    "Le piment peut booster temporairement votre métabolisme grâce à la capsaïcine.",
-    "Les protéines sont les nutriments les plus rassasiants et demandent le plus d'énergie pour être digérés."
-];
-
-function showRandomTip() {
-    const container = document.getElementById('random-tip-container');
-    if (!container) return;
-    const tip = TIPS[Math.floor(Math.random() * TIPS.length)];
-    container.innerHTML = `
-        <span class="tip-title">💡 Le saviez-vous ?</span>
-        <p class="tip-content">${tip}</p>
-    `;
-}
 
 
 function updateDashboard() {
@@ -1118,7 +1073,7 @@ function updateDashboard() {
             
             let details = '';
             if (entry.type === 'Repas') {
-                details = `<strong>${escapeHtml(entry.cals)} kcal</strong> | ${escapeHtml(entry.prot)}g prot`;
+                details = `<strong>${escapeHtml(entry.cals)} kcal</strong> | ${escapeHtml(Math.round(Number(entry.prot) || 0))}g prot`;
             } else if (entry.type === 'Activité') {
                 details = `<strong>+${escapeHtml(entry.cals)} kcal</strong> brulées`;
             } else if (entry.type === 'Objectif') {
@@ -1231,349 +1186,6 @@ window.deleteWeighIn = function() {
         showToast("Pesée effacée.");
     }
 };
-
-// Suivi period chip listeners
-document.querySelectorAll('.history-period-chip').forEach(chip => {
-    chip.addEventListener('click', () => {
-        document.querySelectorAll('.history-period-chip').forEach(c => c.classList.remove('history-period-chip--active'));
-        chip.classList.add('history-period-chip--active');
-        if (window.renderSuivi) window.renderSuivi();
-    });
-});
-
-window.renderSuivi = function() {
-    const activeChip = document.querySelector('.history-period-chip--active');
-    if (!activeChip) return;
-    const periodDays = parseInt(activeChip.dataset.period) || 7;
-
-    const now = new Date();
-    let cutoffDate = new Date(now);
-    cutoffDate.setDate(now.getDate() - periodDays + 1);
-    cutoffDate.setHours(0, 0, 0, 0);
-    
-    const endDate = new Date(now);
-    endDate.setHours(23, 59, 59, 999);
-
-    // Affichage des dates précises dans l'interface
-    const periodDatesEl = document.getElementById('suivi-period-dates');
-    if (periodDatesEl) {
-        periodDatesEl.textContent = `(du ${formatDateFR(cutoffDate)} au ${formatDateFR(endDate)})`;
-    }
-
-    // 1. Weight boundaries (Strict within period - Option B)
-    const weightAtStart = findClosestWeight(cutoffDate);
-    const weightAtEnd = findClosestWeight(endDate);
-    const wDiffVal = weightAtEnd - weightAtStart;
-
-    // UI Update Weight Card
-    const wStartEl = document.getElementById('history-weight-start');
-    const wEndEl = document.getElementById('history-weight-end');
-    const wDeltaEl = document.getElementById('history-weight-delta');
-    const wBadgeEl = document.getElementById('history-weight-badge');
-
-    if (weightAtStart && weightAtEnd && weightAtStart !== 0 && weightAtEnd !== 0) {
-        if (wStartEl) wStartEl.textContent = weightAtStart + ' kg';
-        if (wEndEl) wEndEl.textContent = weightAtEnd + ' kg';
-
-        // Sens du poids attendu selon l'objectif du profil
-        const weightGoal = state.profile ? state.profile.goal : 'maintenance';
-        const MAINTENANCE_TOLERANCE = 0.5; // kg
-        let onTrack;
-        if (weightGoal === 'loss') {
-            onTrack = wDiffVal <= 0;
-        } else if (weightGoal === 'gain') {
-            onTrack = wDiffVal >= 0;
-        } else {
-            onTrack = Math.abs(wDiffVal) <= MAINTENANCE_TOLERANCE;
-        }
-
-        if (wDeltaEl) {
-            const sign = wDiffVal >= 0 ? '+' : '';
-            wDeltaEl.textContent = 'Écart : ' + sign + wDiffVal.toFixed(1) + ' kg';
-            wDeltaEl.style.color = onTrack ? 'var(--color-primary)' : 'var(--color-accent)';
-            wDeltaEl.className = 'history-diff';
-        }
-        if (wBadgeEl) {
-            wBadgeEl.style.display = 'inline-flex';
-            wBadgeEl.className = 'history-badge ' + (onTrack ? 'history-badge--ok' : 'history-badge--warn');
-            wBadgeEl.textContent = onTrack ? '✓  Objectif atteint' : (wDiffVal > 0 ? '↑  Poids en hausse' : '↓  Poids en baisse');
-        }
-    } else {
-        if (wStartEl) wStartEl.textContent = '—';
-        if (wEndEl) wEndEl.textContent = '—';
-        if (wDeltaEl) { wDeltaEl.textContent = 'Pas assez de pesées'; wDeltaEl.style.color = ''; wDeltaEl.className = 'history-diff'; }
-        if (wBadgeEl) wBadgeEl.style.display = 'none';
-    }
-
-    // 2. Process Calories & Proteins with Majority Objective
-    let historyKeys = Object.keys(state.history || {});
-    const goalFreq = {};
-    const dailyLogs = [];
-    const targetProtein = getLatestWeight() * 2;
-    
-    let defaultGoalMultiplier = 1.0;
-    if (state.profile && state.profile.goal === 'loss') defaultGoalMultiplier = 0.9;
-    if (state.profile && state.profile.goal === 'gain') defaultGoalMultiplier = 1.1;
-
-    // Define effective loop start
-    let firstEntryDate = null;
-    if (state.history) {
-        const entryDates = Object.keys(state.history)
-            .filter(k => {
-                const log = state.history[k];
-                return log && (log.consumedCals > 0 || log.consumedProt > 0 || (log.entries && log.entries.length > 0));
-            })
-            .map(k => parseDateFR(k))
-            .filter(d => !isNaN(d.getTime()))
-            .sort((a, b) => a - b);
-        if (entryDates.length > 0) {
-            firstEntryDate = entryDates[0];
-            firstEntryDate.setHours(0, 0, 0, 0);
-        }
-    }
-
-    let loopStart = new Date(cutoffDate);
-    if (firstEntryDate && firstEntryDate > loopStart) {
-        loopStart = new Date(firstEntryDate);
-    }
-    loopStart.setHours(0,0,0,0);
-
-    const periods = [];
-    let currentPeriod = null;
-    let loopDate = new Date(loopStart);
-
-    const todayStr = formatISOLocal(new Date());
-
-    while (loopDate <= endDate) {
-
-        const dStr = formatISOLocal(loopDate);
-        const log = state.history[dStr];
-
-        const isActive = log && ((log.entries && log.entries.length > 0) || (log.bonusTDEE && log.bonusTDEE !== 0));
-
-        // Priorité : Profil actuel si jour vide, sinon Snapshot (ou historique des objectifs)
-        let dayGoal, dayBaseTdee, dayGoalMultiplier;
-
-        if (isActive && log.baseTDEE && dStr !== todayStr) {
-
-            dayBaseTdee = log.baseTDEE;
-            dayGoal = log.goal || 'maintenance';
-            dayGoalMultiplier = log.goalMultiplier !== undefined ? log.goalMultiplier : (dayGoal === 'loss' ? 0.9 : (dayGoal === 'gain' ? 1.1 : 1.0));
-        } else {
-            // Jour inactif : On utilise les valeurs ACTUELLES du profil
-            dayBaseTdee = state.profile ? state.profile.tdee : 0;
-            dayGoal = state.profile ? state.profile.goal : 'maintenance';
-            dayGoalMultiplier = state.profile ? (state.profile.goal === 'loss' ? 0.9 : (state.profile.goal === 'gain' ? 1.1 : 1.0)) : 1.0;
-        }
-
-        const bonus = (isActive && log.bonusTDEE) ? log.bonusTDEE : 0;
-        const staticTarget = Math.round(dayBaseTdee * dayGoalMultiplier);
-
-
-        goalFreq[dayGoal] = (goalFreq[dayGoal] || 0) + 1;
-        dailyLogs.push({
-            consumedCals: (log && log.consumedCals) || 0,
-            consumedProt: (log && log.consumedProtein) || 0,
-            baseTDEE: dayBaseTdee,
-            bonus: bonus,
-            goal: dayGoal,
-            multiplier: dayGoalMultiplier
-        });
-
-        const shortDate = formatDateFR(loopDate, true);
-        if (!currentPeriod || currentPeriod.goal !== dayGoal || currentPeriod.cals !== staticTarget) {
-            if (currentPeriod) periods.push(currentPeriod);
-            currentPeriod = { start: shortDate, end: shortDate, goal: dayGoal, cals: staticTarget, prot: targetProtein };
-        } else {
-            currentPeriod.end = shortDate;
-        }
-        loopDate.setDate(loopDate.getDate() + 1);
-    }
-    if (currentPeriod) periods.push(currentPeriod);
-
-    // Identify majority goal
-    let majorityGoal = 'maintenance';
-    let maxCount = -1;
-    for (const g in goalFreq) { if (goalFreq[g] > maxCount) { maxCount = goalFreq[g]; majorityGoal = g; } }
-    const majorityMultiplier = majorityGoal === 'loss' ? 0.9 : (majorityGoal === 'gain' ? 1.1 : 1.0);
-    const majorityGoalName = majorityGoal === 'loss' ? 'Sèche' : (majorityGoal === 'gain' ? 'Prise de masse' : 'Maintien');
-
-    // Calculate totals using majority multiplier
-    let sumCalsConsumed = 0; let sumCalsGoal = 0;
-    let sumProtConsumed = 0; let sumProtGoal = 0;
-    let activeDaysCount = 0;
-
-    dailyLogs.forEach(day => {
-        // On ne comptabilise les objectifs que si l'utilisateur a saisi qqch ce jour-là
-        if (day.consumedCals > 0) {
-            activeDaysCount++;
-            sumCalsConsumed += day.consumedCals;
-            sumProtConsumed += day.consumedProt;
-            // La cible est calculée selon l'objectif REEL de chaque jour pour correspondre à la saisie, 
-            // tout en corrigeant la formule (base * mult) + bonus
-            sumCalsGoal += Math.round((day.baseTDEE * day.multiplier) + day.bonus);
-            sumProtGoal += targetProtein;
-        }
-    });
-
-    // 3. UI Update: Consumption Totals
-    const cConsEl = document.getElementById('history-cals-consumed');
-    const cGoalEl = document.getElementById('history-cals-goal');
-    const cDiffEl = document.getElementById('history-cals-diff');
-    const cBadgeEl = document.getElementById('history-cals-badge');
-    const pConsEl = document.getElementById('history-prot-consumed');
-    const pGoalEl = document.getElementById('history-prot-goal');
-    const pDiffEl = document.getElementById('history-prot-diff');
-    const pBadgeEl = document.getElementById('history-prot-badge');
-
-    const totalTolerance = activeDaysCount * 10;
-    const cDiff = Math.round(sumCalsConsumed - sumCalsGoal);
-    let calsMatch = majorityGoal === 'loss' ? cDiff <= 0 : Math.abs(cDiff) <= totalTolerance;
-    const pDiff = Math.round(sumProtConsumed - sumProtGoal);
-    const protMatch = pDiff >= -10;
-
-    if (cConsEl) {
-        cConsEl.textContent = Math.round(sumCalsConsumed);
-        cGoalEl.textContent = Math.round(sumCalsGoal);
-        cDiffEl.textContent = 'Écart : ' + (cDiff > 0 ? '+' : '') + cDiff + ' kcal';
-        cDiffEl.style.color = calsMatch ? 'var(--color-primary)' : 'var(--color-accent)';
-        if (cBadgeEl) { cBadgeEl.textContent = calsMatch ? '✓ Objectif atteint' : 'Continue comme ça !'; cBadgeEl.style.background = calsMatch ? 'var(--color-primary-xlight)' : 'var(--color-surface-2)'; cBadgeEl.style.color = calsMatch ? 'var(--color-primary)' : 'var(--color-text-2)'; }
-    }
-    if (pConsEl) {
-        pConsEl.textContent = Math.round(sumProtConsumed);
-        pGoalEl.textContent = Math.round(sumProtGoal);
-        pDiffEl.textContent = 'Écart : ' + (pDiff > 0 ? '+' : '') + pDiff + ' g';
-        pDiffEl.style.color = protMatch ? 'var(--color-primary)' : 'var(--color-accent)';
-        if (pBadgeEl) { pBadgeEl.textContent = protMatch ? '✓ Objectif atteint' : 'Continue comme ça !'; pBadgeEl.style.background = protMatch ? 'var(--color-primary-xlight)' : 'var(--color-surface-2)'; pBadgeEl.style.color = protMatch ? 'var(--color-primary)' : 'var(--color-text-2)'; }
-    }
-
-    // 4. UI Update: Objectifs Details
-    const objCard = document.getElementById('history-goals-list');
-    if (objCard) {
-        const history = state.goalHistory || [];
-        const displayItems = [];
-        
-        // Trouver l'objectif actif au DEBUT de la période
-        // On prend le dernier enregistrement dont la date <= loopStart
-        const startMs = loopStart.getTime();
-        const initialGoalEntry = [...history].reverse().find(g => new Date(g.date).getTime() <= startMs);
-        
-        if (initialGoalEntry) {
-            displayItems.push({
-                label: 'Depuis le',
-                date: formatDateFR(new Date(initialGoalEntry.date)),
-                goal: initialGoalEntry.goal,
-                isCurrent: false
-            });
-        } else if (history.length > 0) {
-            // Si aucun avant, on prend le tout premier connu
-            displayItems.push({
-                label: 'Depuis le',
-                date: formatDateFR(new Date(history[0].date)),
-                goal: history[0].goal,
-                isCurrent: false
-            });
-        } else if (state.profile) {
-            // Fallback profil
-            displayItems.push({
-                label: 'Depuis le',
-                date: 'Origine',
-                goal: state.profile.goal,
-                isCurrent: true
-            });
-        }
-
-        // Trouver les changements DURANT la période
-        const endMs = endDate.getTime();
-        const changesInPeriod = history.filter(g => {
-            const d = new Date(g.date).getTime();
-            return d > startMs && d <= endMs;
-        });
-
-        changesInPeriod.forEach(g => {
-            displayItems.push({
-                label: 'Modifié le',
-                date: formatDateFR(new Date(g.date)),
-                goal: g.goal,
-                isCurrent: false
-            });
-        });
-
-        // --- NOUVEAU : Filtrage des doublons consécutifs ---
-        const filteredItems = [];
-        displayItems.forEach((item, index) => {
-            if (index === 0) {
-                // Le tout premier garde "Dès le"
-                filteredItems.push(item);
-            } else {
-                const prev = filteredItems[filteredItems.length - 1];
-                // On ne l'ajoute que si l'objectif a CHANGE par rapport au précédent
-                if (item.goal !== prev.goal) {
-                    filteredItems.push(item);
-                }
-            }
-        });
-
-        // Marquer le dernier comme "Toujours en cours" systématiquement
-        if (filteredItems.length > 0) {
-            filteredItems[filteredItems.length - 1].isCurrent = true;
-        }
-
-        // Si après filtrage il n'y a qu'un seul item et qu'il est actuel, 
-        // on s'assure qu'il utilise "Dès le" (parfois déjà le cas, mais sécurité)
-        if (filteredItems.length === 1) {
-            filteredItems[0].label = 'Depuis le';
-        }
-
-        const goalNames = { 'loss': 'Sèche', 'gain': 'Prise de masse', 'maintenance': 'Maintien' };
-        const goalColors = { 'loss': 'var(--color-accent)', 'gain': 'var(--color-primary)', 'maintenance': 'var(--color-primary)' };
-        const goalIcons = { 'loss': '📉', 'gain': '📈', 'maintenance': '⚖️' };
-
-        objCard.innerHTML = filteredItems.map(item => {
-            const multiplier = item.goal === 'loss' ? 0.9 : (item.goal === 'gain' ? 1.1 : 1.0);
-            const estCals = Math.round((state.profile ? state.profile.bmr * 1.2 : 2000) * multiplier);
-            const estProt = Math.round(getLatestWeight() * 2);
-            const accentColor = goalColors[item.goal] || 'var(--color-primary)';
-
-            return `
-                <div class="goal-entry">
-                    <div class="goal-entry-bar" style="background:${accentColor};"></div>
-                    <div class="goal-entry-body">
-                        <div class="goal-entry-header">
-                            <span class="goal-entry-icon" aria-hidden="true">${goalIcons[item.goal] || '🎯'}</span>
-                            <span class="goal-entry-name">${escapeHtml(goalNames[item.goal] || item.goal)}</span>
-                            ${item.isCurrent ? `<span class="goal-entry-badge"><span class="goal-entry-dot"></span>En cours</span>` : ''}
-                        </div>
-                        <div class="goal-entry-meta">
-                            <span class="goal-entry-date">${escapeHtml(item.label)} ${escapeHtml(item.date)}</span>
-                        </div>
-                        <div class="goal-entry-targets">
-                            <span class="goal-entry-target-chip">${estCals} kcal</span>
-                            <span class="goal-entry-target-chip">${estProt} g prot</span>
-                        </div>
-                    </div>
-                </div>
-            `;
-        }).join('');
-    }
-
-    // 5. UI Update: Score Card
-    {
-        const calsDiff2 = sumCalsConsumed - sumCalsGoal;
-        const protDiff2 = sumProtConsumed - sumProtGoal;
-        const totalTol2 = activeDaysCount * 10;
-        let calsOk2 = activeDaysCount === 0 ? true : (majorityGoal === 'loss' ? calsDiff2 <= 0 : Math.abs(calsDiff2) <= totalTol2);
-        const protOk2 = protDiff2 >= -10;
-        const weightOk2 = (majorityGoal === 'loss' && wDiffVal < 0) || (majorityGoal === 'gain' && wDiffVal > 0) || (majorityGoal === 'maintenance' && Math.abs(wDiffVal) < 0.3);
-        const score = (calsOk2 ? 1 : 0) + (protOk2 ? 1 : 0) + (weightOk2 ? 1 : 0);
-        const scoreValEl = document.getElementById('history-score-val');
-        const scoreMsgEl = document.getElementById('history-score-msg');
-        if (scoreValEl) scoreValEl.textContent = score + ' / 3';
-        if (scoreMsgEl) scoreMsgEl.textContent = score === 3 ? 'Parfait, tu es sur la trajectoire idéale !' : score === 2 ? 'Très bien, quelques ajustements et ce sera parfait.' : 'Continue tes efforts, la constance est ton meilleur allié.';
-    }
-}
-
-
 
 // init() is now called by auth.js after authentication
 

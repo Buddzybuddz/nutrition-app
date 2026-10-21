@@ -81,8 +81,6 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="NutriDash">
-    <script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js" integrity="sha384-vsrfeLOOY6KuIYKDlmVH5UiBmgIdB1oEf7p01YgWHuqmOHfZr374+odEv96n9tNC" crossorigin="anonymous"></script>
-    <script defer src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js" integrity="sha384-cVMg8E3QFwTvGCDuK+ET4PD341jF3W8nO1auiXfuZNQkzbUUiBGLsIQUE+b1mxws" crossorigin="anonymous"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/pocketbase@0.27.0/dist/pocketbase.umd.min.js" integrity="sha384-5DPah+w7pi3/mLwFQ59Hi+6diVITUnphjUWEB10INMXzgvVFk0kW2PMocRCZc1L2" crossorigin="anonymous"></script>
 </head>
 <body>
@@ -593,13 +591,9 @@
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
                     Accueil
                 </button>
-                <button class="nav-btn" data-target="history-view">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
-                    Suivi
-                </button>
-                <button class="nav-btn" data-target="advice-view">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-                    Conseils
+                <button class="nav-btn" data-target="ia-view">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 11.5a8.4 8.4 0 0 1-9 8.4 8.6 8.6 0 0 1-3.7-.8L3 21l1.9-5.1A8.4 8.4 0 0 1 3 11.5 8.5 8.5 0 0 1 12 3a8.5 8.5 0 0 1 9 8.5z"/><path d="M8.5 10.5h7M8.5 14h4.5"/></svg>
+                    Assistant IA
                 </button>
                 <button class="nav-btn hidden" id="nav-admin-btn" data-target="admin-view">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
@@ -779,201 +773,64 @@
             </section>
             
             <!-- Advice View — E-06 V2 Soft Modern -->
+            <section id="ia-view" class="view hidden">
+                <header class="advice-header">
+                    <h2 class="advice-title">Assistant IA</h2>
+                    <p class="advice-subtitle">Posez vos questions sur votre suivi et obtenez des conseils</p>
+                </header>
+
+                <!-- Accord préalable : les données de suivi sont transmises à un service d'IA tiers -->
+                <div id="ia-consent" class="ia-consent" hidden>
+                    <h3 class="ia-consent-title">Avant de commencer</h3>
+                    <p>Pour vous répondre, l'assistant lit vos données de suivi : profil, poids, objectifs, repas et activités des 14 derniers jours, ainsi qu'un résumé de vos conversations des 7 derniers jours.</p>
+                    <p>Ces données sont envoyées à <strong>Google (Gemini)</strong>, un service d'IA tiers, uniquement pour générer la réponse. Avec l'offre gratuite utilisée, Google peut réutiliser ces contenus pour améliorer ses services. Votre email et votre nom ne sont pas transmis.</p>
+                    <p>Une conversation est créée chaque jour et conservée 30 jours. Vous pouvez en supprimer une, ou retirer votre accord à tout moment : tout l'historique est alors effacé. <a href="confidentialite.html" target="_blank" rel="noopener">Politique de confidentialité</a></p>
+                    <label class="ia-consent-check">
+                        <input type="checkbox" id="ia-consent-box">
+                        <span>J'accepte que mes données de suivi soient transmises à Google pour utiliser l'assistant.</span>
+                    </label>
+                    <button type="button" class="btn btn-primary" id="ia-consent-btn" disabled>Activer l'assistant</button>
+                    <p class="ia-error" id="ia-consent-error" role="alert"></p>
+                </div>
+
+                <div id="ia-chat" class="ia-chat" hidden>
+                    <div class="ia-toolbar">
+                        <p class="ia-day" id="ia-day-label"></p>
+                        <button type="button" class="ia-history-btn" id="ia-history-btn" aria-expanded="false" aria-controls="ia-history">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/></svg>
+                            Historique
+                        </button>
+                    </div>
+                    <div class="ia-history" id="ia-history" hidden>
+                        <ul class="ia-history-list" id="ia-history-list"></ul>
+                    </div>
+                    <div class="ia-banner" id="ia-banner" hidden>
+                        <span id="ia-banner-text"></span>
+                        <button type="button" class="ai-link" id="ia-back-today">Revenir à aujourd'hui</button>
+                    </div>
+                    <div id="ia-messages" class="ia-messages" aria-live="polite"></div>
+                    <div id="ia-suggestions" class="ia-suggestions" aria-label="Questions suggérées"></div>
+                    <form id="ia-form" class="ia-form" autocomplete="off">
+                        <textarea id="ia-input" rows="1" maxlength="500" placeholder="Posez votre question…" aria-label="Votre question"></textarea>
+                        <button type="submit" id="ia-send" class="ia-send" aria-label="Envoyer">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                        </button>
+                    </form>
+                    <p class="ia-usage" id="ia-usage"></p>
+                    <p class="ia-meta">
+                        <button type="button" class="ai-link" id="ia-clear">Effacer la conversation</button>
+                        <button type="button" class="ai-link" id="ia-revoke">Retirer mon accord</button>
+                    </p>
+                    <p class="ia-disclaimer">Conseils généraux de nutrition : l'assistant ne remplace pas un professionnel de santé.</p>
+                </div>
+            </section>
+
             <section id="admin-view" class="view hidden">
                 <header class="advice-header">
                     <h2 class="advice-title">Administration</h2>
                     <p class="advice-subtitle">Comptes et abonnements</p>
                 </header>
                 <div id="admin-content" class="admin-content" aria-live="polite"></div>
-            </section>
-
-            <section id="advice-view" class="view hidden">
-
-                <!-- Header -->
-                <header class="advice-header">
-                    <h2 class="advice-title">Conseils</h2>
-                    <p class="advice-subtitle">Nutrition, bien-être et science du corps</p>
-                </header>
-
-                <!-- Tip du jour -->
-                <div id="random-tip-container" class="advice-tip-card">
-                    <div class="advice-tip-icon">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 2a7 7 0 0 1 7 7c0 2.5-1.3 4.7-3.3 6L15 17H9l-.7-2C6.3 13.7 5 11.5 5 9a7 7 0 0 1 7-7z"/><path d="M9 21h6M10 17v4M14 17v4"/></svg>
-                    </div>
-                    <div class="advice-tip-body">
-                        <span class="advice-tip-label">Le saviez-vous ?</span>
-                        <p class="advice-tip-text" id="advice-tip-text">Chargement...</p>
-                    </div>
-                </div>
-
-                <!-- Grille de cartes -->
-                <div class="advice-cards-grid">
-
-                    <!-- Nutrition de base -->
-                    <div class="advice-card">
-                        <div class="advice-card-icon advice-card-icon--green">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-                        </div>
-                        <h3 class="advice-card-title">Nutrition de base</h3>
-                        <ul class="advice-list">
-                            <li><strong>Protéines</strong> — Poulet, œufs, tofu, poisson, légumineuses</li>
-                            <li><strong>Glucides complexes</strong> — Riz complet, quinoa, patate douce</li>
-                            <li><strong>Bonnes graisses</strong> — Avocat, amandes, huile d'olive</li>
-                            <li><strong>Légumes</strong> — À volonté pour fibres et micronutriments</li>
-                        </ul>
-                        <div class="advice-example-block">
-                            <span class="advice-example-label">Exemple de journée</span>
-                            <p>P'tit déj : avoine + lait végétal + baies</p>
-                            <p>Déjeuner : saumon + riz basmati + brocolis</p>
-                            <p>Dîner : omelette aux épinards + salade lentilles</p>
-                        </div>
-                    </div>
-
-                    <!-- Hydratation -->
-                    <div class="advice-card">
-                        <div class="advice-card-icon advice-card-icon--blue">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
-                        </div>
-                        <h3 class="advice-card-title">Hydratation</h3>
-                        <p class="advice-card-text">Le pilier oublié — la nutrition ne s'arrête pas à l'assiette.</p>
-                        <ul class="advice-list">
-                            <li><strong>Objectif</strong> — 1,5 à 2 L d'eau par jour, plus en cas de sport</li>
-                            <li><strong>Énergie</strong> — L'eau maintient la concentration et la digestion</li>
-                        </ul>
-                        <div class="advice-tip-inline">
-                            Infusions à froid ou un zeste de citron si l'eau plate vous ennuie.
-                        </div>
-                    </div>
-
-                    <!-- Sommeil -->
-                    <div class="advice-card">
-                        <div class="advice-card-icon advice-card-icon--purple">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
-                        </div>
-                        <h3 class="advice-card-title">Sommeil & récupération</h3>
-                        <p class="advice-card-text">Sans repos, même la meilleure diète ne fait pas de miracles.</p>
-                        <ul class="advice-list">
-                            <li><strong>7 à 9 heures</strong> — La règle d'or pour la récupération</li>
-                            <li><strong>Hormones</strong> — Le manque de sommeil booste la ghréline (faim)</li>
-                            <li><strong>Rituel</strong> — Coupez les écrans 30 min avant le coucher</li>
-                        </ul>
-                    </div>
-
-                    <!-- Micro-nutriments -->
-                    <div class="advice-card">
-                        <div class="advice-card-icon advice-card-icon--orange">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>
-                        </div>
-                        <h3 class="advice-card-title">Micro-nutriments</h3>
-                        <p class="advice-card-text">Les calories ne font pas tout — vitamines et minéraux comptent.</p>
-                        <ul class="advice-list">
-                            <li><strong>Magnésium</strong> — Stress et muscles (chocolat noir, épinards)</li>
-                            <li><strong>Fer</strong> — Énergie (viande rouge, lentilles, spiruline)</li>
-                            <li><strong>Vitamine C</strong> — Immunité (poivrons, agrumes, kiwi)</li>
-                        </ul>
-                    </div>
-
-                </div>
-
-                <!-- Section Peser ses aliments -->
-                <div class="advice-section-block">
-                    <h3 class="advice-section-title">Pourquoi peser ses aliments ?</h3>
-                    <p class="advice-section-intro">L'œil est souvent un mauvais juge. La précision est votre meilleure alliée, que vous visiez la perte de poids ou la prise de masse.</p>
-
-                    <div class="advice-duo-grid">
-                        <div class="advice-duo-card advice-duo-card--red">
-                            <span class="advice-duo-label">Perte de poids</span>
-                            <p>Une cuillère d'huile "à l'œil" peut vite faire 150 kcal au lieu de 90. Peser garantit votre déficit.</p>
-                        </div>
-                        <div class="advice-duo-card advice-duo-card--green">
-                            <span class="advice-duo-label">Prise de masse</span>
-                            <p>Contrôlez votre surplus pour qu'il soit léger et propre. Seul moyen d'atteindre votre quota protéines.</p>
-                        </div>
-                    </div>
-
-                    <div class="advice-steps">
-                        <div class="advice-step">
-                            <span class="advice-step-num">1</span>
-                            <div>
-                                <strong>La tare</strong>
-                                <p>Posez l'assiette, tare, ajoutez l'ingrédient, notez, répétez. Zéro vaisselle supplémentaire.</p>
-                            </div>
-                        </div>
-                        <div class="advice-step">
-                            <span class="advice-step-num">2</span>
-                            <div>
-                                <strong>Priorisez le critique</strong>
-                                <p>Pesez : huiles, beurre, oléagineux, féculents, viandes. À l'œil : légumes verts et épices.</p>
-                            </div>
-                        </div>
-                        <div class="advice-step">
-                            <span class="advice-step-num">3</span>
-                            <div>
-                                <strong>Pesez cru</strong>
-                                <p>Le poids change à la cuisson. Peser avant est plus précis et évite les calculs.</p>
-                            </div>
-                        </div>
-                        <div class="advice-step">
-                            <span class="advice-step-num">4</span>
-                            <div>
-                                <strong>Batch cooking</strong>
-                                <p>Pesez la quantité totale pour 3-4 repas, divisez visuellement après cuisson.</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="advice-quote">
-                        La précision bat la perfection. La régularité sur le long terme est plus importante que l'exactitude d'un seul repas.
-                    </div>
-                </div>
-
-                <!-- Accordéons Explications techniques -->
-                <div class="advice-section-block">
-                    <h3 class="advice-section-title">Comprendre les bases</h3>
-
-                    <details class="advice-accordion">
-                        <summary class="advice-accordion-summary">Le métabolisme — BMR et TDEE</summary>
-                        <div class="advice-accordion-body">
-                            <p>Le <strong>BMR</strong> est ce que votre corps brûle au repos total. Le <strong>TDEE</strong> inclut votre activité quotidienne. Pour maintenir votre poids, mangez l'équivalent de votre TDEE.</p>
-                        </div>
-                    </details>
-
-                    <details class="advice-accordion">
-                        <summary class="advice-accordion-summary">La perte de poids (sèche)</summary>
-                        <div class="advice-accordion-body">
-                            <p>Créez un <strong>déficit calorique</strong> d'environ -10 à -15 % de votre TDEE. Priorisez les protéines pour conserver le muscle tout en brûlant du gras.</p>
-                        </div>
-                    </details>
-
-                    <details class="advice-accordion">
-                        <summary class="advice-accordion-summary">La prise de masse</summary>
-                        <div class="advice-accordion-body">
-                            <p>Consommez un <strong>surplus calorique</strong> de +10 % de votre TDEE. Accompagnez d'un entraînement en résistance pour transformer ce surplus en muscle, pas en gras.</p>
-                        </div>
-                    </details>
-
-                    <details class="advice-accordion">
-                        <summary class="advice-accordion-summary">L'indice glycémique (IG)</summary>
-                        <div class="advice-accordion-body">
-                            <p>Tous les glucides ne se valent pas. Les IG bas (céréales complètes, légumineuses) évitent les pics d'insuline et les fringales qui suivent.</p>
-                        </div>
-                    </details>
-
-                    <details class="advice-accordion">
-                        <summary class="advice-accordion-summary">La fenêtre métabolique post-sport</summary>
-                        <div class="advice-accordion-body">
-                            <p>Manger immédiatement après le sport est moins urgent qu'on ne le pense. Le total calorique et protéique sur la journée prime sur le timing précis.</p>
-                        </div>
-                    </details>
-
-                    <details class="advice-accordion">
-                        <summary class="advice-accordion-summary">Clean Eating vs Flexible Dieting</summary>
-                        <div class="advice-accordion-body">
-                            <p>Le flexible dieting (si ça rentre dans vos macros) est plus soutenable sur le long terme que le clean eating strict. L'équilibre sans frustration produit de meilleurs résultats durables.</p>
-                        </div>
-                    </details>
-                </div>
-
             </section>
 
             <!-- Dashboard View -->
@@ -1069,137 +926,6 @@
                 </div>
             </section>
 
-            <!-- History (Suivi) View — V2 Soft Modern -->
-            <section id="history-view" class="view hidden">
-
-                <!-- Éléments masqués pour compatibilité renderSuivi() de app.js -->
-                <span id="suivi-period-dates" style="display:none;"></span>
-                <select id="suivi-filter" style="display:none;" aria-hidden="true">
-                    <option value="week" selected>7j</option>
-                    <option value="30">30j</option>
-                    <option value="90">90j</option>
-                    <option value="180">180j</option>
-                    <option value="365">365j</option>
-                </select>
-                <span id="suivi-bilan-inner" style="display:none;"></span>
-                <span id="suivi-weight-start-val" style="display:none;"></span>
-                <span id="suivi-weight-start-date" style="display:none;"></span>
-                <span id="suivi-weight-end-val" style="display:none;"></span>
-                <span id="suivi-weight-end-date" style="display:none;"></span>
-                <span id="suivi-weight-diff" style="display:none;"></span>
-                <span id="suivi-cals-consumed" style="display:none;"></span>
-                <span id="suivi-cals-goal" style="display:none;"></span>
-                <span id="suivi-cals-diff" style="display:none;"></span>
-                <span id="suivi-prot-consumed" style="display:none;"></span>
-                <span id="suivi-prot-goal" style="display:none;"></span>
-                <span id="suivi-prot-diff" style="display:none;"></span>
-                <span id="suivi-bilan-card" style="display:none;"></span>
-                <span id="suivi-objectifs-inner" style="display:none;"></span>
-
-                <div class="history-content">
-
-                    <!-- Header -->
-                    <div class="history-view-header">
-                        <h2>Suivi</h2>
-                    </div>
-
-                    <!-- Chips de période -->
-                    <div class="history-period-chips" role="group" aria-label="Période d'analyse">
-                        <button class="history-period-chip history-period-chip--active" data-period="7" type="button">7j</button>
-                        <button class="history-period-chip" data-period="30" type="button">30j</button>
-                        <button class="history-period-chip" data-period="90" type="button">90j</button>
-                        <button class="history-period-chip" data-period="180" type="button">180j</button>
-                        <button class="history-period-chip" data-period="365" type="button">365j</button>
-                    </div>
-
-                    <!-- Carte Bilan Score -->
-                    <div class="history-score-card" aria-label="Score de la période">
-                        <div class="history-score-title">Score de la période</div>
-                        <div class="history-score-value" id="history-score-val">— / 3</div>
-                        <div class="history-score-msg" id="history-score-msg">Chargement…</div>
-                    </div>
-
-                    <!-- Label section Détails -->
-                    <div class="history-section-label">Détails</div>
-
-                    <!-- Carte Calories -->
-                    <div class="history-detail-card" aria-label="Calories">
-                        <div class="history-detail-header">
-                            <span class="history-detail-icon" aria-hidden="true">🔥</span>
-                            <span class="history-detail-title">Calories</span>
-                        </div>
-                        <div class="history-stats-row">
-                            <div class="history-stat-box">
-                                <div class="history-stat-label">Consommé</div>
-                                <div class="history-stat-value" id="history-cals-consumed">—</div>
-                                <span class="history-stat-unit">kcal</span>
-                            </div>
-                            <div class="history-stat-box">
-                                <div class="history-stat-label">Objectif</div>
-                                <div class="history-stat-value" id="history-cals-goal">—</div>
-                                <span class="history-stat-unit">kcal</span>
-                            </div>
-                        </div>
-                        <div class="history-diff" id="history-cals-diff">Écart : —</div>
-                        <span class="history-badge" id="history-cals-badge">—</span>
-                    </div>
-
-                    <!-- Carte Protéines -->
-                    <div class="history-detail-card" aria-label="Protéines">
-                        <div class="history-detail-header">
-                            <span class="history-detail-icon" aria-hidden="true">🥩</span>
-                            <span class="history-detail-title">Protéines</span>
-                        </div>
-                        <div class="history-stats-row">
-                            <div class="history-stat-box">
-                                <div class="history-stat-label">Consommé</div>
-                                <div class="history-stat-value" id="history-prot-consumed">—</div>
-                                <span class="history-stat-unit">g</span>
-                            </div>
-                            <div class="history-stat-box">
-                                <div class="history-stat-label">Objectif</div>
-                                <div class="history-stat-value" id="history-prot-goal">—</div>
-                                <span class="history-stat-unit">g</span>
-                            </div>
-                        </div>
-                        <div class="history-diff" id="history-prot-diff">Écart : —</div>
-                        <span class="history-badge" id="history-prot-badge">—</span>
-                    </div>
-
-                    <!-- Carte Poids -->
-                    <div class="history-weight-card history-detail-card" aria-label="Poids">
-                        <div class="history-detail-header">
-                            <span class="history-detail-icon" aria-hidden="true">⚖️</span>
-                            <span class="history-detail-title">Poids</span>
-                        </div>
-                        <div class="history-weight-extremes">
-                            <div class="history-weight-point">
-                                <div class="history-weight-point-label">Début</div>
-                                <div class="history-weight-point-val" id="history-weight-start">—</div>
-                            </div>
-                            <div class="history-weight-arrow" aria-hidden="true">→</div>
-                            <div class="history-weight-point">
-                                <div class="history-weight-point-label">Fin</div>
-                                <div class="history-weight-point-val" id="history-weight-end">—</div>
-                            </div>
-                        </div>
-                        <div class="history-diff" id="history-weight-delta">Pas assez de pesées</div>
-                        <span class="history-badge" id="history-weight-badge" style="display:none;">—</span>
-                    </div>
-
-                    <!-- Carte Objectifs historique -->
-                    <div class="history-detail-card history-goals-card" aria-label="Historique des objectifs">
-                        <div class="history-detail-header">
-                            <span class="history-detail-icon" aria-hidden="true">🎯</span>
-                            <span class="history-detail-title">Objectifs</span>
-                        </div>
-                        <div id="history-goals-list">
-                            <p style="font-family:'Inter',sans-serif;font-size:13px;color:var(--color-text-3);margin:0;">Chargement…</p>
-                        </div>
-                    </div>
-
-                </div>
-            </section>
         </main>
     </div>
 
@@ -1232,16 +958,17 @@
                         </div>
                     </div>
 
-                    <div class="ai-hint">
-                        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
-                            <span style="font-size:18px;" aria-hidden="true">🤖</span>
-                            <strong>Besoin d'estimer ?</strong>
+                    <div class="ai-estimate">
+                        <label for="meal-ai-text">Décrire mon repas <span class="ai-badge">Estimation IA</span></label>
+                        <textarea id="meal-ai-text" rows="2" maxlength="300" placeholder="ex : 150 g de riz, 100 g de poulet, légumes vapeur"></textarea>
+                        <button type="button" class="btn btn-secondary ai-estimate-btn" id="meal-ai-btn">Estimer avec l'IA</button>
+                        <p class="ai-estimate-usage" id="meal-ai-usage"></p>
+                        <p class="ai-estimate-status" id="meal-ai-status" role="status" aria-live="polite"></p>
+                        <div class="ai-recap" id="meal-ai-recap" hidden>
+                            <p class="ai-recap-title">Récapitulatif de votre saisie</p>
+                            <ul class="ai-recap-list" id="meal-ai-recap-list"></ul>
+                            <p class="ai-recap-total" id="meal-ai-recap-total"></p>
                         </div>
-                        <p style="margin:0 0 6px;color:var(--color-text-3);font-size:13px;">Demandez à une IA (ChatGPT, etc.) :</p>
-                        <details>
-                            <summary>Voir un exemple de prompt</summary>
-                            <div>« J'ai mangé 100g de poulet, 150g de riz cuit et des légumes vapeur. Donne-moi uniquement le total en Calories et en Protéines (g). »</div>
-                        </details>
                     </div>
 
                     <div class="form-row">
@@ -1251,7 +978,7 @@
                         </div>
                         <div class="form-group">
                             <label for="meal-protein">Protéines (g)</label>
-                            <input type="number" id="meal-protein" min="0" step="0.1" required placeholder="35">
+                            <input type="number" id="meal-protein" min="0" step="1" required placeholder="35">
                         </div>
                     </div>
 
@@ -1276,7 +1003,14 @@
             </div>
             <div class="modal-body">
                 <form id="activity-form">
-                    <div class="form-group">
+                    <div class="ai-estimate">
+                        <label for="activity-ai-text">Décrire mon activité <span class="ai-badge">Estimation IA</span></label>
+                        <textarea id="activity-ai-text" rows="2" maxlength="300" placeholder="ex : 45 min de vélo, rythme tranquille"></textarea>
+                        <button type="button" class="btn btn-secondary ai-estimate-btn" id="activity-ai-btn">Estimer avec l'IA</button>
+                        <p class="ai-estimate-usage" id="activity-ai-usage"></p>
+                        <p class="ai-estimate-status" id="activity-ai-status" role="status" aria-live="polite"></p>
+                    </div>
+                    <div class="form-group" id="activity-select-group">
                         <label for="activity-select">Activité</label>
                         <div class="select-wrapper" data-force-down>
                             <select id="activity-select" required>
@@ -1291,6 +1025,10 @@
                         </div>
                     </div>
                     <div class="form-group" id="custom-activity-group" style="display:none">
+                        <div class="ai-summary" id="activity-ai-summary" hidden>
+                            <p class="ai-summary-text" id="activity-ai-summary-text"></p>
+                            <button type="button" class="ai-link" id="activity-ai-reset">Choisir dans la liste</button>
+                        </div>
                         <label for="activity-desc">Description</label>
                         <input type="text" id="activity-desc" placeholder="ex: Yoga 45min">
                         <label style="display:flex;align-items:center;gap:8px;margin-top:10px;font-family:'Inter',sans-serif;font-size:14px;font-weight:400;text-transform:none;letter-spacing:0;color:var(--color-text-2);cursor:pointer;">
@@ -1298,7 +1036,7 @@
                             Enregistrer dans ma liste
                         </label>
                     </div>
-                    <div class="form-group">
+                    <div class="form-group" id="activity-burn-group">
                         <label for="activity-burn">Calories brûlées</label>
                         <input type="number" id="activity-burn" min="0" step="1" required placeholder="300">
                     </div>
@@ -1371,18 +1109,32 @@
 
         <!-- Bottom Navigation — mobile uniquement -->
         <nav class="bottom-nav" id="bottom-nav" aria-label="Navigation principale">
+            <div class="bottom-nav-group">
             <button class="bottom-nav-item active" data-target="dashboard-view" aria-label="Accueil">
                 <svg class="bottom-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
                 <span class="bottom-nav-label">Accueil</span>
             </button>
-            <button class="bottom-nav-item" data-target="history-view" aria-label="Suivi">
-                <svg class="bottom-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
-                <span class="bottom-nav-label">Suivi</span>
+            <button class="bottom-nav-item" data-target="ia-view" aria-label="Assistant IA">
+                <svg class="bottom-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 11.5a8.4 8.4 0 0 1-9 8.4 8.6 8.6 0 0 1-3.7-.8L3 21l1.9-5.1A8.4 8.4 0 0 1 3 11.5 8.5 8.5 0 0 1 12 3a8.5 8.5 0 0 1 9 8.5z"/><path d="M8.5 10.5h7M8.5 14h4.5"/></svg>
+                <span class="bottom-nav-label">IA</span>
             </button>
-            <button class="bottom-nav-item" data-target="advice-view" aria-label="Conseils">
-                <svg class="bottom-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-                <span class="bottom-nav-label">Conseils</span>
-            </button>
+            </div>
+            <div class="bottom-nav-add" id="bottom-nav-add">
+                <div class="bottom-nav-add-menu" id="bottom-nav-add-menu" role="menu" aria-label="Ajouter" aria-hidden="true">
+                    <button type="button" class="bottom-nav-add-option" role="menuitem" id="quick-add-meal" tabindex="-1">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 2v9a2 2 0 0 0 2 2h0a2 2 0 0 0 2-2V2"/><path d="M9 2v20"/><path d="M17 22V2c-2.5 1.5-4 4-4 7.5S14.5 14 17 14"/></svg>
+                        Ajouter un repas
+                    </button>
+                    <button type="button" class="bottom-nav-add-option" role="menuitem" id="quick-add-activity" tabindex="-1">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                        Ajouter une activité
+                    </button>
+                </div>
+                <button type="button" class="bottom-nav-add-btn" id="bottom-nav-add-btn" aria-label="Ajouter un repas ou une activité" aria-haspopup="menu" aria-expanded="false" aria-controls="bottom-nav-add-menu">
+                    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                </button>
+            </div>
+            <div class="bottom-nav-group">
             <button class="bottom-nav-item hidden" id="bottom-nav-admin-btn" data-target="admin-view" aria-label="Admin">
                 <svg class="bottom-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
                 <span class="bottom-nav-label">Admin</span>
@@ -1391,6 +1143,7 @@
                 <svg class="bottom-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
                 <span class="bottom-nav-label">Profil</span>
             </button>
+            </div>
         </nav>
 
     <script>
@@ -1415,6 +1168,9 @@
     <script defer src="app.js"></script>
     <script defer src="auth-pb.js"></script>
     <script defer src="admin.js"></script>
+    <script defer src="ai-estimate.js"></script>
+    <script defer src="quick-add.js"></script>
+    <script defer src="ia.js"></script>
 
     <script>
     /* ============================================================
@@ -1504,234 +1260,6 @@
     })();
 
     /* ============================================================
-       E-05 — Chart.js graphique poids
-    ============================================================ */
-    window.initWeightChart = function(weighIns, targetWeight) {
-        var canvas = document.getElementById('weight-chart');
-        if (!canvas) return;
-        if (window._weightChart) { window._weightChart.destroy(); window._weightChart = null; }
-
-        var datasets = [{
-            label: 'Mon poids',
-            data: weighIns,
-            borderColor: '#52B788',
-            backgroundColor: 'rgba(82,183,136,0.08)',
-            fill: true,
-            tension: 0.3,
-            borderWidth: 2.5,
-            pointRadius: 5,
-            pointBackgroundColor: '#ffffff',
-            pointBorderColor: '#52B788',
-            pointBorderWidth: 2,
-            pointHoverRadius: 7,
-            pointHoverBackgroundColor: '#52B788',
-            pointHoverBorderColor: '#ffffff',
-            pointHoverBorderWidth: 2
-        }];
-
-        if (targetWeight && weighIns.length >= 2) {
-            datasets.push({
-                label: 'Objectif',
-                data: weighIns.map(function(w) { return { x: w.x, y: targetWeight }; }),
-                borderColor: '#E07A5F',
-                backgroundColor: 'transparent',
-                fill: false,
-                borderDash: [5, 3],
-                borderWidth: 2,
-                pointRadius: 0,
-                tension: 0
-            });
-        }
-
-        window._weightChart = new Chart(canvas, {
-            type: 'line',
-            data: { datasets: datasets },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                interaction: { intersect: false, mode: 'index' },
-                plugins: {
-                    legend: { display: false },
-                    tooltip: {
-                        backgroundColor: '#1A2E22',
-                        titleFont: { family: 'DM Sans', size: 13, weight: '600' },
-                        bodyFont: { family: 'Inter', size: 12 },
-                        padding: 12,
-                        cornerRadius: 8,
-                        callbacks: {
-                            title: function(items) {
-                                return new Date(items[0].raw.x).toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'long' });
-                            },
-                            label: function(ctx) { return ' ' + Number(ctx.raw.y).toFixed(1) + ' kg'; }
-                        }
-                    }
-                },
-                scales: {
-                    x: {
-                        type: 'time',
-                        time: { unit: 'day', displayFormats: { day: 'dd/MM' } },
-                        grid: { display: false },
-                        ticks: { color: '#8BA898', font: { family: 'Inter', size: 11 } }
-                    },
-                    y: {
-                        grid: { color: 'rgba(45,106,79,0.06)' },
-                        ticks: {
-                            color: '#8BA898',
-                            font: { family: 'Inter', size: 11 },
-                            callback: function(v) { return v + ' kg'; }
-                        }
-                    }
-                }
-            }
-        });
-    };
-
-    /* ============================================================
-       E-05 — Mise à jour de la vue Suivi
-    ============================================================ */
-    window.updateHistoryView = function(periodDays) {
-        periodDays = periodDays || 7;
-        if (!state || !state.logs) return;
-
-        var today = new Date();
-        var startDate = new Date(today);
-        startDate.setDate(today.getDate() - (periodDays - 1));
-        var startStr = startDate.toISOString().split('T')[0];
-        var todayStr = today.toISOString().split('T')[0];
-
-        var logsInPeriod = (state.logs || []).filter(function(log) {
-            return log.date >= startStr && log.date <= todayStr;
-        });
-
-        var totalCals = 0, totalProt = 0, totalGoalCals = 0, totalGoalProt = 0;
-        logsInPeriod.forEach(function(log) {
-            (log.entries || []).forEach(function(e) {
-                if (e.type === 'Repas') { totalCals += (e.cals || 0); totalProt += (e.prot || 0); }
-            });
-            if (state.profile) {
-                totalGoalCals += (state.profile.goalCals || 0);
-                totalGoalProt += (state.profile.goalProtein || 0);
-            }
-        });
-
-        /* --- Calories --- */
-        var el = function(id) { return document.getElementById(id); };
-        if (el('history-cals-consumed')) el('history-cals-consumed').textContent = Math.round(totalCals).toLocaleString('fr-FR');
-        if (el('history-cals-goal')) el('history-cals-goal').textContent = Math.round(totalGoalCals).toLocaleString('fr-FR');
-        var diffCals = totalCals - totalGoalCals;
-        if (el('history-cals-diff')) el('history-cals-diff').textContent = 'Écart : ' + (diffCals >= 0 ? '+' : '') + Math.round(diffCals).toLocaleString('fr-FR') + ' kcal';
-        if (el('history-cals-badge')) {
-            var okCals = totalGoalCals === 0 || Math.abs(diffCals / totalGoalCals) <= 0.15;
-            el('history-cals-badge').className = 'history-badge ' + (okCals ? 'history-badge--ok' : 'history-badge--warn');
-            el('history-cals-badge').textContent = okCals ? '✓  Dans les objectifs' : (diffCals > 0 ? '↑  Au-dessus de l\'objectif' : '↓  En dessous de l\'objectif');
-        }
-
-        /* --- Protéines --- */
-        if (el('history-prot-consumed')) el('history-prot-consumed').textContent = Math.round(totalProt) + ' g';
-        if (el('history-prot-goal')) el('history-prot-goal').textContent = Math.round(totalGoalProt) + ' g';
-        var diffProt = totalProt - totalGoalProt;
-        if (el('history-prot-diff')) el('history-prot-diff').textContent = 'Écart : ' + (diffProt >= 0 ? '+' : '') + Math.round(diffProt) + ' g';
-        if (el('history-prot-badge')) {
-            el('history-prot-badge').className = 'history-badge ' + (diffProt >= 0 ? 'history-badge--ok' : 'history-badge--warn');
-            el('history-prot-badge').textContent = diffProt >= 0 ? '✓  Objectif atteint' : '⚠  En dessous de l\'objectif';
-        }
-
-        /* --- Poids --- */
-        var weighIns = ((state.weighIns || []).filter(function(w) {
-            return w.date >= startStr && w.date <= todayStr;
-        })).sort(function(a, b) { return a.date.localeCompare(b.date); });
-
-        if (weighIns.length >= 2) {
-            var wStart = weighIns[0].weight, wEnd = weighIns[weighIns.length - 1].weight;
-            var delta = wEnd - wStart;
-            if (el('history-weight-start')) el('history-weight-start').textContent = wStart.toFixed(1) + ' kg';
-            if (el('history-weight-end')) el('history-weight-end').textContent = wEnd.toFixed(1) + ' kg';
-
-            /* Sens du poids attendu selon l'objectif du profil */
-            var weightGoal = state.profile ? state.profile.goal : 'maintenance';
-            var MAINTENANCE_TOLERANCE = 0.5; // kg
-            var onTrack;
-            if (weightGoal === 'loss') {
-                onTrack = delta <= 0;
-            } else if (weightGoal === 'gain') {
-                onTrack = delta >= 0;
-            } else {
-                onTrack = Math.abs(delta) <= MAINTENANCE_TOLERANCE;
-            }
-
-            if (el('history-weight-delta')) {
-                el('history-weight-delta').textContent = 'Écart : ' + (delta >= 0 ? '+' : '') + delta.toFixed(1) + ' kg';
-                el('history-weight-delta').className = 'history-diff';
-                el('history-weight-delta').style.color = onTrack ? 'var(--color-primary)' : 'var(--color-accent)';
-            }
-            if (el('history-weight-badge')) {
-                el('history-weight-badge').style.display = 'inline-flex';
-                el('history-weight-badge').className = 'history-badge ' + (onTrack ? 'history-badge--ok' : 'history-badge--warn');
-                el('history-weight-badge').textContent = onTrack ? '✓  Objectif atteint' : (delta > 0 ? '↑  Poids en hausse' : '↓  Poids en baisse');
-            }
-            if (el('history-weight-empty')) el('history-weight-empty').style.display = 'none';
-            var chartWrap = document.querySelector('.history-chart-wrap');
-            if (chartWrap) chartWrap.style.display = 'block';
-            var canvas = document.getElementById('weight-chart');
-            if (canvas) canvas.style.display = 'block';
-            var chartData = weighIns.map(function(w) { return { x: w.date, y: w.weight }; });
-            var targetW = state.profile && state.profile.targetWeight ? state.profile.targetWeight : null;
-            if (typeof window.initWeightChart === 'function') window.initWeightChart(chartData, targetW);
-        } else if (weighIns.length === 1) {
-            if (el('history-weight-start')) el('history-weight-start').textContent = weighIns[0].weight.toFixed(1) + ' kg';
-            if (el('history-weight-end')) el('history-weight-end').textContent = '—';
-            if (el('history-weight-delta')) { el('history-weight-delta').textContent = 'Une seule pesée — continuez !'; el('history-weight-delta').className = 'history-diff'; el('history-weight-delta').style.color = ''; }
-            if (el('history-weight-badge')) el('history-weight-badge').style.display = 'none';
-            if (el('history-weight-empty')) el('history-weight-empty').style.display = 'block';
-            var chartWrap2 = document.querySelector('.history-chart-wrap');
-            if (chartWrap2) chartWrap2.style.display = 'none';
-        } else {
-            if (el('history-weight-start')) el('history-weight-start').textContent = '—';
-            if (el('history-weight-end')) el('history-weight-end').textContent = '—';
-            if (el('history-weight-delta')) { el('history-weight-delta').textContent = 'Pas assez de pesées'; el('history-weight-delta').className = 'history-diff'; el('history-weight-delta').style.color = ''; }
-            if (el('history-weight-badge')) el('history-weight-badge').style.display = 'none';
-            if (el('history-weight-empty')) el('history-weight-empty').style.display = 'block';
-            var chartWrap3 = document.querySelector('.history-chart-wrap');
-            if (chartWrap3) chartWrap3.style.display = 'none';
-        }
-
-        /* --- Score --- */
-        var score = 0;
-        if (logsInPeriod.length > 0) {
-            if (totalGoalCals === 0 || Math.abs(diffCals / totalGoalCals) <= 0.15) score++;
-            if (diffProt >= 0) score++;
-            if (weighIns.length >= 1) score++;
-        }
-        if (el('history-score-val')) el('history-score-val').textContent = score + ' / 3';
-        if (el('history-score-msg')) {
-            var msgs = ['Commencez à saisir vos données !', 'Bon début, continuez vos efforts !', 'Bon travail, presque parfait !', 'Excellent, tous vos objectifs sont atteints !'];
-            el('history-score-msg').textContent = msgs[Math.min(score, 3)];
-        }
-
-        /* --- Objectifs historique --- */
-        var goalsList = el('history-goals-list');
-        if (goalsList) {
-            var goals = state.goalHistory || [];
-            if (goals.length === 0) {
-                goalsList.innerHTML = '<p style="font-family:\'Inter\',sans-serif;font-size:13px;color:var(--color-text-3);margin:0;">Aucun historique d\'objectif disponible.</p>';
-            } else {
-                goalsList.innerHTML = '';
-                goals.slice().reverse().forEach(function(g) {
-                    var chip = document.createElement('div');
-                    chip.className = 'history-goal-chip';
-                    chip.innerHTML = '<span class="history-goal-date">' + escapeHtml(g.date || '') + '</span><span class="history-goal-label">' + escapeHtml(g.label || g.type || '') + '</span>';
-                    goalsList.appendChild(chip);
-                });
-            }
-        }
-
-        /* --- Sync chips actives --- */
-        document.querySelectorAll('.history-period-chip').forEach(function(chip) {
-            chip.classList.toggle('history-period-chip--active', parseInt(chip.dataset.period) === periodDays);
-        });
-    };
-
-    /* ============================================================
        Navigation bottom nav — couvre TOUS les .bottom-nav-item
        app.js écoute seulement .nav-btn ; ce listener comble le manque
        en résolvant le slug via window.routes (même logique qu'app.js)
@@ -1748,21 +1276,9 @@
                     });
                     if (slug) {
                         navigateTo(slug);
-                        /* Initialisation spécifique à la vue Suivi */
-                        if (targetView === 'history-view') {
-                            setTimeout(function() {
-                                if (typeof window.updateHistoryView === 'function') window.updateHistoryView(7);
-                            }, 60);
-                        }
                     }
                 }
                 return;
-            }
-
-            /* Listener chips période */
-            var chip = e.target.closest('.history-period-chip');
-            if (chip && chip.dataset.period) {
-                window.updateHistoryView(parseInt(chip.dataset.period));
             }
         });
     })();
@@ -1913,35 +1429,6 @@
             var btn = e.target.closest('[onclick*="openMealModal"], [onclick*="openActivityModal"]');
             if (btn) setTimeout(initCustomSelects, 50);
         });
-    })();
-
-    /* ============================================================
-       PATCH E-06 — showRandomTip : redirection vers #advice-tip-text
-       app.js écrit dans #random-tip-container (div masquée),
-       on surcharge pour écrire dans le nouveau container V2
-    ============================================================ */
-    (function() {
-        function patchShowRandomTip() {
-            if (typeof window.showRandomTip !== 'function') return;
-            var _orig = window.showRandomTip;
-            window.showRandomTip = function() {
-                _orig();
-                /* Récupère le texte injecté par app.js et le transfère */
-                var src = document.getElementById('random-tip-container');
-                var dst = document.getElementById('advice-tip-text');
-                if (src && dst) {
-                    var p = src.querySelector('.tip-content, p');
-                    if (p) dst.textContent = p.textContent;
-                    /* Cache la div originale (inutile en V2) */
-                    src.style.display = 'none';
-                }
-            };
-        }
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', patchShowRandomTip);
-        } else {
-            setTimeout(patchShowRandomTip, 0);
-        }
     })();
 
     /* ============================================================

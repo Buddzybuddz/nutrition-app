@@ -86,6 +86,24 @@
             '</div>';
     }
 
+    /* ── Usage de l'estimation IA ─────────────────────────── */
+    function split(m, a, c) { return m + ' repas · ' + a + (a > 1 ? ' activités' : ' activité') + ' · ' + c + (c > 1 ? ' messages' : ' message'); }
+
+    function renderAi(d) {
+        if (!d.ai) return '';
+        var t = d.ai.today, w = d.ai.last7;
+        var calls = w.meal + w.activity + w.chat, total = w.meal + w.activity + w.cache_hits;
+        var hitPct = total ? Math.round((w.cache_hits / total) * 100) + ' % du cache (7 j)' : 'aucune estimation (7 j)';
+        return '<section class="admin-card admin-card-wide"><h3 class="admin-h">Usage IA<span class="admin-h-note">limites par utilisateur et par jour : ' +
+            d.ai.limits.meal + ' repas · ' + d.ai.limits.activity + ' activités · ' + d.ai.limits.chat + ' messages</span></h3>' +
+            '<div class="admin-kpis">' +
+            kpi("Aujourd'hui", t.meal + t.activity + t.chat, esc(split(t.meal, t.activity, t.chat))) +
+            kpi('7 derniers jours', calls, esc(split(w.meal, w.activity, w.chat))) +
+            kpi('Utilisateurs IA (jour)', t.users, esc(w.users + ' sur 7 j')) +
+            kpi('Réponses gratuites', w.cache_hits, esc(hitPct)) +
+            '</div></section>';
+    }
+
     /* ── Courbe des inscriptions ──────────────────────────── */
     function renderChart(d) {
         var n = state.period, days = [], max = 1, i;
@@ -212,6 +230,7 @@
         var d = state.data;
         box.innerHTML = renderKpis(d) +
             '<div class="admin-grid">' + renderChart(d) + renderDonut(d) + renderFunnel(d) + '</div>' +
+            renderAi(d) +
             renderList();
     }
 
@@ -255,5 +274,8 @@
     document.addEventListener('DOMContentLoaded', function () {
         if (typeof pb === 'undefined') return;
         pb.authStore.onChange(syncMenu, true);
+        /* Rechargement sur #admin : la vue est déjà affichée avant la définition de renderAdmin */
+        var view = document.getElementById('admin-view');
+        if (view && !view.classList.contains('hidden')) window.renderAdmin();
     });
 })();
