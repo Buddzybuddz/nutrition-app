@@ -5950,6 +5950,7 @@ details[open] .advice-accordion-summary::after {
 .ia-send:disabled { opacity: 0.45; cursor: not-allowed; }
 .ia-usage { margin: 0; font-size: 12.5px; font-weight: 600; text-align: center; color: var(--color-text-2); }
 .ia-usage.is-empty { color: #D64545; }
+.ai-link { align-self: flex-start; padding: 0; border: 0; background: none; font: inherit; font-size: 13px; font-weight: 600; color: var(--color-primary); text-decoration: underline; cursor: pointer; }
 .ia-meta { margin: 0; display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
 .ia-disclaimer { margin: 0; font-size: 12px; text-align: center; color: var(--color-text-3); }
 @media (max-width: 767px) {
