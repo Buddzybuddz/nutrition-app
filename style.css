@@ -6406,3 +6406,8 @@ details[open] .advice-accordion-summary::after {
     .lp-photo-band { height: 440px; }
     .lp-photo-band img { object-position: center 50%; }
 }
+
+/* Attente de l'estimation IA : points animés et phrase qui change (comme l'assistant) */
+.ai-estimate-status.is-waiting { display: flex; align-items: center; gap: 10px; color: var(--color-text-2); }
+.ai-estimate-status.is-waiting .ia-typing { padding: 0; flex: none; }
+.ai-estimate-status.is-waiting .ia-step { font-size: inherit; }

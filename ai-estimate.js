@@ -6,6 +6,7 @@
     var CONF = { low: 'faible', medium: 'moyenne', high: 'bonne' };
 
     function setStatus(el, msg, isError) {
+        el.classList.remove('is-waiting');
         el.textContent = msg || '';
         el.classList.toggle('is-error', !!isError);
     }
@@ -66,6 +67,52 @@
         return words.length ? '' : "Précisez l'activité pratiquée (ex. : 45 min de vélo).";
     }
 
+    /* Étapes affichées pendant l'attente : elles reprennent la saisie de l'utilisateur et suivent ce que fait le serveur
+       (repas : décomposition en aliments puis calcul à partir des valeurs pour 100 g ; activité : durée et poids). */
+    function waitSteps(type, text) {
+        var steps = [type === 'meal' ? 'Je lis la description de votre repas…' : 'Je lis votre activité…'];
+        if (type === 'meal') {
+            var names = text.split(/,|;|\n|\bet\b|\bavec\b|\bplus\b/i).map(function (part) {
+                return part.trim().replace(/^[\d.,\s]*(?:kg|g|ml|cl|dl|l|cuill\S*|tranches?|poign\S*)?\s*(?:de |d'|d’|du |des |un |une |le |la |les )?/i, '').trim();
+            }).filter(function (n) { return n.length >= 2; });
+            if (names.length) {
+                var shown = names.slice(0, 3).map(function (n) { return n.length > 22 ? n.slice(0, 21) + '…' : n; });
+                steps.push('Je repère ' + names.length + (names.length > 1 ? ' aliments : ' : ' aliment : ') + shown.join(', ') + (names.length > 3 ? '…' : '.'));
+            }
+            steps.push(/\d/.test(text) ? 'Je convertis vos quantités en grammes et en millilitres…' : 'Je vérifie que les quantités sont précisées…');
+            steps.push('Je calcule calories et protéines à partir des valeurs pour 100 g…');
+            steps.push('Je prépare votre récapitulatif…');
+        } else {
+            var dur = norm(text).match(DURATION_RE);
+            steps.push(dur ? 'Je retiens la durée : ' + dur[0] + '.' : 'Je cherche la durée de l’activité…');
+            var w = typeof state !== 'undefined' && state.profile ? Number(state.profile.weight) : 0;
+            steps.push(w >= 30 ? 'Je tiens compte de votre poids (' + String(w).replace('.', ',') + ' kg).' : 'Je pars d’un poids moyen de 70 kg, faute de poids dans votre profil.');
+            steps.push('J’estime les calories brûlées au-delà du métabolisme de repos…');
+            steps.push('Je prépare votre résultat…');
+        }
+        return steps;
+    }
+
+    /* Points animés + phrase qui change toutes les ~2 s (la dernière reste affichée) ; renvoie la fonction d'arrêt. */
+    function startWait(el, type, text) {
+        var steps = waitSteps(type, text), i = 0;
+        el.classList.remove('is-error');
+        el.classList.add('is-waiting');
+        el.innerHTML = '<span class="ia-typing" aria-hidden="true"><span></span><span></span><span></span></span><span class="ia-step"></span>';
+        var line = el.querySelector('.ia-step');
+        function show() {
+            var next = line.cloneNode(false);
+            next.textContent = steps[i];
+            line.replaceWith(next); /* nouvel élément : l'animation d'entrée se rejoue */
+            line = next;
+        }
+        show();
+        var timer = setInterval(function () {
+            if (i < steps.length - 1) { i++; show(); } else clearInterval(timer);
+        }, 2000);
+        return function () { clearInterval(timer); };
+    }
+
     async function estimate(type, textEl, btn, statusEl, apply) {
         var text = textEl.value.trim();
         if (text.length < 3) { setStatus(statusEl, 'Décrivez votre saisie en quelques mots.', true); return; }
@@ -75,13 +122,15 @@
         }
         btn.disabled = true;
         if (type === 'meal') clearRecap();
-        setStatus(statusEl, 'Estimation en cours…');
+        var stopWait = startWait(statusEl, type, text);
         try {
             var r = await pb.send('/api/ai/estimate', { method: 'POST', body: { type: type, text: text } });
+            stopWait();
             showUsage(type, r.usage);
             var custom = apply(r);
             setStatus(statusEl, custom || ('≈ ' + apply.summary(r) + ' — confiance ' + (CONF[r.confidence] || 'faible') + '. Vérifiez et ajustez si besoin.'));
         } catch (err) {
+            stopWait();
             var msg = (err && err.response && err.response.error) || "Estimation impossible pour l'instant.";
             setStatus(statusEl, msg, true);
             if (err && err.response && err.response.usage) showUsage(type, err.response.usage);
@@ -180,9 +229,6 @@
         var statusEl = document.getElementById(prefix + '-ai-status');
         if (!btn || !textEl || !statusEl) return;
         btn.addEventListener('click', function () { estimate(type, textEl, btn, statusEl, apply); });
-        textEl.addEventListener('keydown', function (e) {
-            if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); btn.click(); }
-        });
         /* Réinitialise le bloc à la fermeture de la modale, recharge le compteur à l'ouverture */
         var modal = btn.closest('.modal-overlay');
         if (modal) new MutationObserver(function () {
