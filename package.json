@@ -4,11 +4,15 @@
   "description": "Application de suivi nutritionnel",
   "main": "app.js",
   "scripts": {
-    "test": "vitest"
+    "test": "vitest",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:headed": "playwright test --headed"
   },
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@playwright/test": "^1.61.1",
     "vitest": "^4.1.5"
   }
 }
