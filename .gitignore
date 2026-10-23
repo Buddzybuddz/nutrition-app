@@ -16,3 +16,15 @@ Thumbs.db
 
 # Local session
 .env
+
+# Sorties de tests et d'outils
+.playwright-cli/
+playwright-report/
+test-results/
+graphify-out/
+
+# Médias lourds générés (reels, audio)
+marketing/**/*.mp4
+marketing/**/*.mp3
+marketing/**/*.wav
+marketing/**/*.ogg
