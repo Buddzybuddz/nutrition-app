@@ -304,7 +304,7 @@
     <div class="legal-hero">
         <span class="legal-badge">RGPD &amp; Confidentialité</span>
         <h1>Politique de Confidentialité</h1>
-        <p class="legal-date">Dernière mise à jour : juin 2026</p>
+        <p class="legal-date">Dernière mise à jour : octobre 2026</p>
     </div>
 
     <div class="legal-summary">
@@ -334,8 +334,8 @@
             <tbody>
                 <tr>
                     <td><strong>Compte</strong></td>
-                    <td>Adresse email, mot de passe (chiffré)</td>
-                    <td>Authentification</td>
+                    <td>Adresse email, mot de passe (chiffré), statut d'abonnement et identifiant client Stripe</td>
+                    <td>Authentification et gestion de l'abonnement</td>
                 </tr>
                 <tr>
                     <td><strong>Profil</strong></td>
@@ -344,8 +344,13 @@
                 </tr>
                 <tr>
                     <td><strong>Suivi</strong></td>
-                    <td>Repas saisis (avec leur composition lorsqu'ils sont estimés par l'IA), calories, protéines, activités, pesées</td>
-                    <td>Affichage du tableau de bord et statistiques</td>
+                    <td>Repas saisis (avec leur composition lorsqu'ils sont estimés par l'IA), calories, protéines, activités, pesées, repas et activités favoris</td>
+                    <td>Affichage du tableau de bord et statistiques, ressaisie rapide de vos favoris</td>
+                </tr>
+                <tr>
+                    <td><strong>Assistant IA</strong></td>
+                    <td>Conversations (une par jour), date de votre accord, compteurs d'usage quotidiens (nombre d'estimations et de messages)</td>
+                    <td>Fonctionnement de l'assistant, limites d'usage quotidiennes, preuve de votre consentement</td>
                 </tr>
                 <tr>
                     <td><strong>Technique</strong></td>
@@ -387,7 +392,7 @@
         <h3>Intelligence artificielle (Google Gemini)</h3>
         <ul>
             <li><strong>Estimation d'un repas ou d'une activité</strong> — le texte que vous saisissez (par exemple « 150 g de riz ») est envoyé à Google pour en déduire les calories. Ces estimations sont mémorisées sans lien avec votre compte, afin que la même description donne toujours le même résultat.</li>
-            <li><strong>Assistant IA</strong> — avec votre accord, vos questions ainsi que votre profil (sexe, âge, taille), votre poids, vos objectifs, vos repas et vos activités des 14 derniers jours, vos repas et activités favoris et aliments les plus fréquents des 6 derniers mois, et un résumé de vos conversations des 7 derniers jours, sont envoyés à Google pour générer la réponse. Votre adresse email et votre nom ne sont pas transmis.</li>
+            <li><strong>Assistant IA</strong> — avec votre accord, vos questions ainsi que votre profil (sexe, âge, taille), votre poids et vos pesées récentes, vos objectifs et leurs changements, vos repas et vos activités des 14 derniers jours, vos repas et activités favoris et aliments les plus fréquents des 6 derniers mois, et un résumé de vos conversations des 7 derniers jours, sont envoyés à Google pour générer la réponse. Votre adresse email et votre nom ne sont pas transmis.</li>
             <li><strong>Offre gratuite de Google</strong> — Google peut réutiliser les contenus envoyés pour améliorer ses services, et les traiter en dehors de l'Union européenne.</li>
             <li><strong>Vos choix</strong> — vous pouvez supprimer une conversation ou retirer votre accord à tout moment ; le retrait efface tout l'historique conservé.</li>
         </ul>
@@ -400,6 +405,7 @@
             <li><strong>Données après résiliation</strong> — supprimées dans un délai de 30 jours</li>
             <li><strong>Suppression immédiate</strong> — possible à tout moment via la fonction "Supprimer mon compte" dans l'application</li>
             <li><strong>Conversations avec l'assistant IA</strong> — une conversation par jour, conservée 30 jours au maximum, ou jusqu'à sa suppression, le retrait de votre accord ou la suppression du compte</li>
+            <li><strong>Favoris, compteurs d'usage de l'IA et date de votre accord</strong> — conservés tant que le compte existe, supprimés avec le compte</li>
             <li><strong>Logs techniques</strong> — conservés 90 jours maximum</li>
         </ul>
     </div>
@@ -451,7 +457,8 @@
             <li>Chiffrement des mots de passe avec <strong>bcrypt</strong></li>
             <li>Connexions chiffrées via <strong>HTTPS/TLS</strong></li>
             <li>Authentification par <strong>JWT</strong> à durée limitée</li>
-            <li>Accès aux données strictement limité à l'utilisateur propriétaire</li>
+            <li>Accès à vos données de suivi (repas, activités, pesées, conversations) strictement limité à vous, propriétaire du compte</li>
+            <li>Un compte administrateur, réservé à l'exploitant de NutriDash, consulte en lecture seule des statistiques de fonctionnement : adresse email, nom, date d'inscription, statut d'abonnement, identifiant client Stripe, nombre de repas saisis et volume d'utilisation de l'IA. Il ne donne pas accès au contenu de vos repas, de vos pesées ou de vos conversations avec l'assistant.</li>
         </ul>
     </div>
 
