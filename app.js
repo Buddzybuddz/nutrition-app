@@ -695,11 +695,11 @@ function updateDashboard() {
     const dVal = parseDateFR(dateStr);
 
     // Daily Process Progress Logic
-    const progressFill = document.getElementById('daily-progress-fill');
+    const stepsBox = document.getElementById('daily-steps');
     const progressPerc = document.getElementById('daily-progress-percentage');
     const progressStatus = document.getElementById('daily-progress-status');
 
-    if (progressFill && progressPerc && progressStatus) {
+    if (stepsBox && progressPerc && progressStatus) {
         // 1. Determine mandatory items for today
         const mandatorySequence = [];
         const isWeighInDay = state.profile && dVal.getDay() === state.profile.weighInDay;
@@ -722,12 +722,31 @@ function updateDashboard() {
 
         // 3. Calculate percentage
         const processPercVal = Math.round((completedItems.length / mandatorySequence.length) * 100);
-        progressFill.style.width = processPercVal + '%';
-        progressPerc.textContent = processPercVal + '%';
         animCelebrate(document.getElementById('daily-progress-container'), processPercVal === 100, dateStr);
 
-        // 4. Generate dynamic status text
+        // 4. Pastilles des étapes : faite (coche), prochaine (en relief), à venir (pointillés)
         const nextStep = mandatorySequence.find(s => !completedItems.includes(s));
+        const STEP_ICONS = {
+            done: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="5 12.5 10 17.5 19 7.5"/></svg>',
+            weigh: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 7h14l-1.5 11a2 2 0 0 1-2 1.7H8.5a2 2 0 0 1-2-1.7z"/><path d="M9 7a3 3 0 0 1 6 0"/></svg>',
+            meal: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 3v8M5 3v5a2 2 0 0 0 4 0V3M7 11v10M17 3c-2 1-3 4-3 7s1 4 3 4v7"/></svg>'
+        };
+        // La collation est facultative : elle s'ajoute (cochée) aux étapes seulement si elle est saisie, avant le dîner.
+        // Elle compte dans « x sur y » mais jamais dans le 100 % du jour (calculé sur les étapes obligatoires).
+        const displayedSteps = [...mandatorySequence];
+        if (loggedMeals.includes('Collation')) displayedSteps.splice(displayedSteps.indexOf('Dîner'), 0, 'Collation');
+        const doneCount = displayedSteps.filter(l => completedItems.includes(l) || l === 'Collation').length;
+        progressPerc.textContent = doneCount + ' sur ' + displayedSteps.length;
+        stepsBox.innerHTML = displayedSteps.map(label => {
+            const done = completedItems.includes(label) || label === 'Collation';
+            const isNext = !done && label === nextStep;
+            const icon = done ? STEP_ICONS.done : (isNext ? (label === 'Pesée' ? STEP_ICONS.weigh : STEP_ICONS.meal) : '');
+            const short = label === 'Petit-déjeuner' ? 'Petit-déj.' : label;
+            return `<div class="step${done ? ' is-done' : ''}${isNext ? ' is-next' : ''}"><span class="step-dot">${icon}</span><span class="step-label">${escapeHtml(short)}</span></div>`;
+        }).join('');
+        progressStatus.classList.toggle('is-complete', processPercVal === 100);
+
+        // 5. Texte d'état (lu par les lecteurs d'écran ; affiché seulement quand tout est fait)
         
         if (processPercVal === 100) {
             progressStatus.textContent = "Objectif Nutritionnel atteint ! Toutes les étapes sont validées. 🏆";
@@ -762,10 +781,13 @@ function updateDashboard() {
             } else {
                 weighCard.innerHTML = `
                     <div class="weigh-in-text">
-                        <h3 style="border:none; margin:0; font-size:1.5rem;">C'est l'heure de votre pesée ! ⚖️</h3>
+                        <h3>C'est l'heure de votre pesée</h3>
                     </div>
                     <div class="weigh-in-actions">
-                        <input type="number" id="weigh-input" step="0.1" min="10" max="300" placeholder="Ex: 75.5">
+                        <label class="weigh-field">
+                            <input type="number" id="weigh-input" step="0.1" min="10" max="300" placeholder="75,5" aria-label="Poids en kilogrammes">
+                            <span aria-hidden="true">kg</span>
+                        </label>
                         <button type="button" class="weigh-in-btn" onclick="window.saveWeighIn()">Valider</button>
                     </div>`;
             }
@@ -863,12 +885,12 @@ function updateDashboard() {
         
         if (remainingProtein <= 0) {
             animNum(proteinRemainingEl, 0);
-            animRing(proteinCircle, 360, 'var(--color-primary)');
+            animRing(proteinCircle, 360, 'var(--color-accent)');
         } else {
             animNum(proteinRemainingEl, Math.abs(remainingProtein));
-            animRing(proteinCircle, degProtein, 'var(--color-primary)');
+            animRing(proteinCircle, degProtein, 'var(--color-accent)');
         }
-        animCelebrate(proteinCircle.closest('.progress-card'), remainingProtein <= 0, dateStr);
+        animCelebrate(proteinCircle.closest('.today-col'), remainingProtein <= 0, dateStr);
     }
 
     // Progress circle (0 to 360 deg) for calories
@@ -879,13 +901,13 @@ function updateDashboard() {
     if (remaining < 0) {
         progressCircle.classList.add('danger');
         animNum(calsRemaining, Math.abs(remaining));
-        document.querySelector('.remaining-label').innerHTML = 'dépassement<br>kcal';
+        document.getElementById('cals-label').innerHTML = 'dépassement<br>kcal';
         animRing(progressCircle, 360, '#C0392B');
     } else {
         progressCircle.classList.remove('danger');
         animNum(calsRemaining, remaining);
-        document.querySelector('.remaining-label').innerHTML = 'kcal';
-        animRing(progressCircle, degrees, 'var(--color-accent)');
+        document.getElementById('cals-label').textContent = 'kcal restantes';
+        animRing(progressCircle, degrees, 'var(--color-primary)');
     }
 
     // Render history

@@ -891,31 +891,59 @@
                 <div id="trial-banner" style="display:none;"></div>
 
                 <!-- Goal Reminder -->
-                <div id="dashboard-goal-reminder" style="display: none; padding: 0 4px 12px;">
+                <div id="dashboard-goal-reminder" class="db-goal-wrap" style="display: none;">
                     <p id="dashboard-goal-text" class="db-goal-text"></p>
                 </div>
 
                 <div class="dashboard-grid">
 
-                    <!-- Daily Process Progress -->
-                    <div id="daily-progress-container" class="card db-progress-card">
-                        <div class="db-progress-header">
-                            <span class="db-progress-title">Ma progression</span>
-                            <span id="daily-progress-percentage" class="db-progress-pct">0%</span>
+                    <!-- Aujourd'hui : anneaux calories + protéines -->
+                    <div class="card today-card">
+                        <h2 class="today-title">Aujourd'hui</h2>
+                        <div class="today-cols">
+                            <div class="today-col today-col--cal">
+                                <div class="ring ring--cal" id="calorie-progress">
+                                    <svg viewBox="0 0 140 140" aria-hidden="true"><circle class="ring-track" cx="70" cy="70" r="60"/><circle class="ring-fill" cx="70" cy="70" r="60" data-len="376.99"/></svg>
+                                    <div class="ring-center">
+                                        <span class="ring-num" id="cals-remaining">--</span>
+                                        <span class="ring-unit" id="cals-label">kcal restantes</span>
+                                    </div>
+                                </div>
+                                <p class="today-legend"><strong id="cals-consumed">0</strong> / <strong id="cals-goal">--</strong> kcal</p>
+                            </div>
+                            <div class="today-col today-col--prot">
+                                <div class="ring ring--prot" id="protein-progress">
+                                    <svg viewBox="0 0 104 104" aria-hidden="true"><circle class="ring-track" cx="52" cy="52" r="42"/><circle class="ring-fill" cx="52" cy="52" r="42" data-len="263.89"/></svg>
+                                    <div class="ring-center">
+                                        <span class="ring-num" id="protein-remaining">--</span>
+                                        <span class="ring-unit">g restants</span>
+                                    </div>
+                                </div>
+                                <p class="today-legend"><strong id="protein-consumed">0</strong> / <strong id="protein-goal">--</strong> g prot.</p>
+                            </div>
                         </div>
-                        <div class="db-progress-track">
-                            <div id="daily-progress-fill" class="db-progress-fill" style="width: 0%;"></div>
+                    </div>
+
+                    <!-- Étapes du jour -->
+                    <div id="daily-progress-container" class="card steps-card">
+                        <div class="steps-header">
+                            <h2 class="steps-title">Étapes du jour</h2>
+                            <span id="daily-progress-percentage" class="steps-count">0 sur 3</span>
                         </div>
-                        <p id="daily-progress-status" class="db-progress-status">Commencez à saisir vos repas pour remplir la barre !</p>
+                        <div id="daily-steps" class="steps-row"></div>
+                        <p id="daily-progress-status" class="steps-status"></p>
                     </div>
 
                     <!-- Weigh-In Prompt Card -->
                     <div id="weigh-in-card" class="weigh-in-card">
-                        <div>
-                            <h3>C'est l'heure de votre pesée !</h3>
+                        <div class="weigh-in-text">
+                            <h3>C'est l'heure de votre pesée</h3>
                         </div>
-                        <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
-                            <input type="number" id="weigh-input" step="0.1" min="10" max="300" placeholder="Ex: 75.5">
+                        <div class="weigh-in-actions">
+                            <label class="weigh-field">
+                                <input type="number" id="weigh-input" step="0.1" min="10" max="300" placeholder="75,5" aria-label="Poids en kilogrammes">
+                                <span aria-hidden="true">kg</span>
+                            </label>
                             <button type="button" class="weigh-in-btn" onclick="saveWeighIn()">Valider</button>
                         </div>
                     </div>
@@ -924,36 +952,6 @@
                     <div class="card add-actions-card">
                         <button type="button" class="btn btn-primary" onclick="openMealModal()">+ Ajouter un repas</button>
                         <button type="button" class="btn btn-secondary" onclick="openActivityModal()">+ Ajouter une activité</button>
-                    </div>
-
-                    <!-- Progress Card — Calories -->
-                    <div class="card progress-card">
-                        <h3>Calories</h3>
-                        <div class="progress-circle" id="calorie-progress">
-                            <div class="circle-inner">
-                                <span class="remaining-value" id="cals-remaining">--</span>
-                                <span class="remaining-label">kcal</span>
-                            </div>
-                        </div>
-                        <div class="progress-stats">
-                            <div><span>Objectif : </span><strong id="cals-goal">--</strong></div>
-                            <div><span>Consommé : </span><strong id="cals-consumed">0</strong></div>
-                        </div>
-                    </div>
-
-                    <!-- Macro Card — Protéines -->
-                    <div class="card progress-card macro-card">
-                        <h3>Protéines</h3>
-                        <div class="progress-circle" id="protein-progress">
-                            <div class="circle-inner">
-                                <span class="remaining-value" id="protein-remaining">--</span>
-                                <span class="remaining-label">g</span>
-                            </div>
-                        </div>
-                        <div class="progress-stats">
-                            <div><span>Objectif : </span><strong id="protein-goal">--</strong></div>
-                            <div><span>Consommé : </span><strong id="protein-consumed">0</strong></div>
-                        </div>
                     </div>
 
                     <!-- History List -->

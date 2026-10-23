@@ -29,10 +29,16 @@
         })(t0);
     };
 
-    /* Remplit l'anneau (conic-gradient) de l'ancien angle jusqu'à `deg`. */
+    /* Remplit l'anneau SVG (.ring-fill, longueur du cercle dans data-len) de l'ancien angle jusqu'à `deg`. */
     window.animRing = function (el, deg, color) {
-        if (!el) return;
-        function paint(d) { el.style.background = 'conic-gradient(' + color + ' ' + d + 'deg, var(--color-surface) ' + d + 'deg)'; }
+        var fill = el && el.querySelector('.ring-fill');
+        if (!fill) return;
+        var len = Number(fill.dataset.len);
+        function paint(d) {
+            fill.style.stroke = color;
+            fill.style.strokeDasharray = (len * d / 360) + ' ' + len;
+            fill.style.opacity = d > 0.5 ? 1 : 0; /* à 0 %, le bout arrondi dessinerait un point */
+        }
         var from = el.dataset.deg !== undefined ? Number(el.dataset.deg) : 0;
         el.dataset.anim = '1';
         el.dataset.deg = String(deg);
