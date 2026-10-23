@@ -73,6 +73,7 @@
 
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css?v=13">
+<link rel="stylesheet" href="landing.css?v=1">
     <link rel="icon" type="image/png" href="Images/Logos/icon-192.png?v=2">
     <link rel="apple-touch-icon" sizes="180x180" href="Images/Logos/apple-touch-icon.png?v=2">
     <link rel="manifest" href="manifest.json">
@@ -115,187 +116,103 @@
         </script>
 
         <!-- Hero -->
-        <section class="lp-hero">
-            <div class="lp-hero-inner">
-                <div class="lp-hero-content">
-                    <span class="lp-hero-badge">Nouveau · estimation par IA</span>
-                    <h1 class="lp-hero-title">Décrivez votre assiette.<br>NutriDash calcule.</h1>
-                    <p class="lp-hero-subtitle">Dites ce que vous avez mangé avec vos mots. L'IA estime les calories et les protéines, vous validez, c'est noté dans votre journée.</p>
-                    <button class="lp-btn-primary" onclick="showAuthPage(true)">Démarrer gratuitement &rarr;</button>
-                    <p class="lp-hero-meta"><span class="lp-meta-check">&#10003;</span> 7 jours gratuits &nbsp;&middot;&nbsp; <span class="lp-meta-check">&#10003;</span> Sans engagement &nbsp;&middot;&nbsp; <span class="lp-meta-check">&#10003;</span> Annulation immédiate</p>
+        <section class="lx-hero">
+            <div class="lx-hero-glow" aria-hidden="true"></div>
+            <div class="lx-hero-inner">
+                <span class="lx-badge">Nouveau · estimation par IA</span>
+                <h1 class="lx-title" aria-label="Votre assiette, en une phrase.">
+                    <span style="--d:.05s" aria-hidden="true">Votre</span> <span style="--d:.12s" aria-hidden="true">assiette,</span><br>
+                    <em><span style="--d:.25s" aria-hidden="true">en</span> <span style="--d:.32s" aria-hidden="true">une</span> <span style="--d:.39s" aria-hidden="true">phrase.</span></em>
+                </h1>
+                <p class="lx-sub">NutriDash estime vos calories et vos protéines à partir de ce que vous écrivez. Vous validez, c'est noté dans votre journée.</p>
+                <div class="lx-hero-cta">
+                    <button class="lx-btn" onclick="showAuthPage(true)">Commencer mes 7 jours gratuits <span class="lx-arr" aria-hidden="true">&rarr;</span></button>
                 </div>
-                <!-- Démonstration de l'estimation IA : maquette CSS pure, exemple illustratif -->
-                <div class="lp-hero-graphic" aria-hidden="true">
-                    <span class="lp-demo-label">Décrivez votre repas</span>
-                    <div class="lp-demo-input">
-                        <div class="lp-demo-text">2 œufs au plat, une tranche de pain complet et un café</div>
-                        <span class="lp-demo-btn">Estimer</span>
-                    </div>
-                    <div class="lp-demo-rows">
-                        <div class="lp-demo-row"><span>Œufs au plat <em>· 2</em></span><span><strong>180</strong> kcal · <strong>12</strong> g prot.</span></div>
-                        <div class="lp-demo-row"><span>Pain complet <em>· 1 tranche</em></span><span><strong>80</strong> kcal · <strong>3</strong> g prot.</span></div>
-                        <div class="lp-demo-row"><span>Café <em>· 1 tasse</em></span><span><strong>0</strong> kcal · <strong>0</strong> g prot.</span></div>
-                    </div>
-                    <div class="lp-demo-total"><span>Total du repas</span><strong>260 kcal · 15 g</strong></div>
-                    <p class="lp-demo-note">Exemple de résultat. Une quantité manque ? Elle n'est jamais inventée : vous la précisez.</p>
-                </div>
+                <p class="lx-micro">Sans carte bancaire &nbsp;&middot;&nbsp; Sans engagement &nbsp;&middot;&nbsp; Annulation immédiate</p>
             </div>
+            <div class="lx-stage" aria-hidden="true">
+                <div class="lx-phone"><div class="lx-screen lx-loop">
+                    <img src="Images/landing/app-estimation.png" alt="" width="693" height="1500" fetchpriority="high">
+                    <img src="Images/landing/app-accueil.png" alt="" width="693" height="1500">
+                    <img src="Images/landing/app-assistant.png" alt="" width="693" height="1500">
+                </div></div>
+                <div class="lx-bub l1"><span class="lx-type">Riz, poulet grillé et brocoli</span></div>
+                <div class="lx-bub r1"><span style="font-size:.8125rem;font-weight:600;color:#1B4332">Estimation</span><strong>≈ 620 kcal · 42 g</strong><small style="color:#1B4332">Exemple illustratif</small></div>
+                <div class="lx-bub l2"><span style="font-weight:600">Anneaux mis à jour</span></div>
+                <div class="lx-bub r2"><span style="font-weight:600">« Une idée pour ce soir ? »</span></div>
+            </div>
+            <div class="lx-tick" aria-hidden="true"><div class="lx-tick-track">
+                <span>« 2 œufs au plat et un café »</span><span>« 45 minutes de vélo »</span><span>« un bol de riz, du poulet et du brocoli »</span><span>« une pizza margherita à deux »</span><span>« 30 minutes de course à pied »</span><span>« un yaourt grec et des noix »</span>
+                <span>« 2 œufs au plat et un café »</span><span>« 45 minutes de vélo »</span><span>« un bol de riz, du poulet et du brocoli »</span><span>« une pizza margherita à deux »</span><span>« 30 minutes de course à pied »</span><span>« un yaourt grec et des noix »</span>
+            </div></div>
         </section>
 
-        <!-- Photo band -->
-        <div class="lp-photo-band">
-            <img src="Images/illustrations/lp-flatlay.png" alt="Repas équilibré et application NutriDash affichant le tableau de bord sur un smartphone" width="1916" height="821" loading="eager" fetchpriority="high">
-        </div>
-
-        <!-- Une phrase suffit -->
-        <section class="lp-flow">
-            <div class="lp-section-inner">
-                <h2 class="lp-section-title lp-reveal">Une phrase suffit. Repas ou activité.</h2>
-                <div class="lp-flow-grid">
-                    <div class="lp-flow-step lp-reveal lp-reveal-d1">
-                        <span class="lp-flow-num" aria-hidden="true">1</span>
-                        <h3 class="lp-flow-title">Décrivez</h3>
-                        <p class="lp-flow-text">En texte libre : « poulet, riz et brocoli », « 45 minutes de vélo ».</p>
-                    </div>
-                    <div class="lp-flow-step lp-reveal lp-reveal-d2">
-                        <span class="lp-flow-num" aria-hidden="true">2</span>
-                        <h3 class="lp-flow-title">Vérifiez</h3>
-                        <p class="lp-flow-text">L'IA détaille chaque aliment avec ses calories et ses protéines. Vous corrigez si besoin.</p>
-                    </div>
-                    <div class="lp-flow-step lp-reveal lp-reveal-d3">
-                        <span class="lp-flow-num" aria-hidden="true">3</span>
-                        <h3 class="lp-flow-title">Validez</h3>
-                        <p class="lp-flow-text">Le repas rejoint votre journée : vos anneaux de calories et de protéines se mettent à jour.</p>
-                    </div>
+        <!-- Comment ça marche : le téléphone change d'écran pendant le défilement -->
+        <section class="lx-sec lx-story" id="lx-comment">
+            <div class="lx-wrap">
+                <div class="lp-reveal">
+                    <span class="lx-eyebrow">Comment ça marche</span>
+                    <h2 class="lx-h2">Une phrase suffit. Le reste suit.</h2>
+                    <p class="lx-lead">Plus de recherche dans une base, plus de pesée de chaque ingrédient. Vous décrivez, NutriDash propose, vous gardez la main.</p>
                 </div>
-            </div>
-        </section>
-
-        <!-- Assistant IA -->
-        <section class="lp-assistant">
-            <div class="lp-section-inner lp-assistant-grid">
-                <div class="lp-assistant-text lp-reveal">
-                    <h2 class="lp-assistant-title">Un assistant qui connaît votre journée.</h2>
-                    <p class="lp-assistant-lead">Il analyse vos repas, fait le bilan de votre semaine et propose des idées pour tenir vos objectifs, en tenant compte de vos goûts.</p>
-                    <ul class="lp-assistant-list">
-                        <li>Bilan de votre journée en un message</li>
-                        <li>Bilan de la semaine et tendance</li>
-                        <li>Idées de repas selon vos favoris</li>
-                    </ul>
-                    <p class="lp-assistant-note">Conseils généraux de nutrition : l'assistant ne remplace pas un professionnel de santé. Il n'est activé qu'avec votre accord explicite.</p>
-                </div>
-                <div class="lp-chat lp-reveal lp-reveal-d1" aria-hidden="true">
-                    <div class="lp-chat-user">Que manger ce soir ?</div>
-                    <div class="lp-chat-bot">Il vous reste <strong>1213 kcal</strong> et <strong>94 g de protéines</strong> aujourd'hui. Une idée : saumon grillé, riz et brocoli, avec un yaourt grec en dessert.</div>
-                    <div class="lp-chat-chips"><span>Où j'en suis aujourd'hui ?</span><span>Bilan de ma semaine</span></div>
-                    <p class="lp-chat-note">Exemple de conversation.</p>
-                </div>
-            </div>
-        </section>
-
-        <!-- Features -->
-        <section class="lp-features">
-            <div class="lp-section-inner">
-                <h2 class="lp-section-title lp-reveal">Votre corps mérite mieux que des approximations.</h2>
-                <div class="lp-features-grid">
-                    <!-- Card Estimation IA -->
-                    <div class="lp-feature-card lp-reveal lp-reveal-d1">
-                        <div class="lp-feature-icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" width="24" height="24" aria-hidden="true"><path d="M12 3l1.8 4.6L18.5 9l-4.7 1.4L12 15l-1.8-4.6L5.5 9l4.7-1.4z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8 2-.8z"/></svg></div>
-                        <h3 class="lp-feature-title">Estimation par IA</h3>
-                        <p class="lp-feature-text">Décrivez un repas ou une activité : les calories et les protéines sont calculées pour vous.</p>
-                    </div>
-                    <!-- Card Assistant IA -->
-                    <div class="lp-feature-card lp-reveal lp-reveal-d2">
-                        <div class="lp-feature-icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" width="24" height="24" aria-hidden="true"><path d="M21 11.5a8.4 8.4 0 0 1-9 8.4 8.6 8.6 0 0 1-3.7-.8L3 21l1.9-5.1A8.4 8.4 0 0 1 3 11.5 8.5 8.5 0 0 1 12 3a8.5 8.5 0 0 1 9 8.5z"/></svg></div>
-                        <h3 class="lp-feature-title">Assistant IA</h3>
-                        <p class="lp-feature-text">Bilans de la journée et de la semaine, idées de repas adaptées à vos objectifs et à vos goûts.</p>
-                    </div>
-                    <!-- Card TDEE -->
-                    <div class="lp-feature-card lp-reveal lp-reveal-d1">
-                        <div class="lp-feature-icon-wrap">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"
-                                 stroke-linecap="round" stroke-linejoin="round" width="24" height="24"
-                                 aria-hidden="true">
-                                <path d="M12 2C12 2 7 8 7 13a5 5 0 0 0 10 0c0-2.5-1.5-5-2-6.5C14 8 14.5 10 14 11.5c-.5-1-2-3-2-9.5z"/>
-                                <circle cx="12" cy="13" r="1.5" fill="currentColor" stroke="none"/>
-                            </svg>
-                        </div>
-                        <h3 class="lp-feature-title">Calculateur TDEE Intelligent</h3>
-                        <p class="lp-feature-text">Découvrez instantanément combien de calories vous devez consommer pour atteindre votre objectif réel.</p>
-                    </div>
-                    <!-- Card Journal -->
-                    <div class="lp-feature-card lp-reveal lp-reveal-d2">
-                        <div class="lp-feature-icon-wrap">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"
-                                 stroke-linecap="round" stroke-linejoin="round" width="24" height="24"
-                                 aria-hidden="true">
-                                <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
-                                <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
-                            </svg>
-                        </div>
-                        <h3 class="lp-feature-title">Journal et favoris</h3>
-                        <p class="lp-feature-text">Réutilisez vos repas et activités favoris en un geste. Suivez vos calories et vos protéines sans effort.</p>
-                    </div>
-                    <!-- Card Historique -->
-                    <div class="lp-feature-card lp-reveal lp-reveal-d3">
-                        <div class="lp-feature-icon-wrap">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"
-                                 stroke-linecap="round" stroke-linejoin="round" width="24" height="24"
-                                 aria-hidden="true">
-                                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
-                            </svg>
-                        </div>
-                        <h3 class="lp-feature-title">Analyse de l'évolution</h3>
-                        <p class="lp-feature-text">Anneaux, étapes du jour, calendrier avec repères d'objectif et suivi du poids : pilotez vos résultats par les données, pas les émotions.</p>
+                <div class="lx-story-g">
+                    <div class="lx-story-ph" aria-hidden="true"><div class="lx-phone"><div class="lx-screen">
+                        <img src="Images/landing/app-estimation.png" alt="" width="693" height="1500" loading="lazy">
+                        <img src="Images/landing/app-accueil.png" alt="" width="693" height="1500" loading="lazy">
+                        <img src="Images/landing/app-assistant.png" alt="" width="693" height="1500" loading="lazy">
+                    </div></div></div>
+                    <div class="lx-steps">
+                        <div class="lx-step"><span class="lx-step-n" aria-hidden="true">1</span><h3>Décrivez votre repas</h3><p>En texte libre, avec vos mots. Un repas ou une activité, peu importe : « 45 minutes de vélo » fonctionne aussi.</p><div class="lx-ex">« Un bol de riz, du poulet grillé et du brocoli »</div></div>
+                        <div class="lx-step"><span class="lx-step-n" aria-hidden="true">2</span><h3>Vérifiez et validez</h3><p>Chaque aliment est détaillé avec ses calories et ses protéines. Une quantité manque ? Vous la précisez, elle n'est jamais inventée. Puis vos anneaux du jour se mettent à jour.</p></div>
+                        <div class="lx-step"><span class="lx-step-n" aria-hidden="true">3</span><h3>Demandez à l'assistant</h3><p>Bilan de la journée, de la semaine, idées pour ce soir selon vos favoris et ce qu'il vous reste à manger.</p><div class="lx-ex">« Où j'en suis aujourd'hui ? »</div></div>
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- Process -->
-        <section class="lp-process">
-            <div class="lp-section-inner">
-                <h2 class="lp-section-title lp-reveal">Le Process NutriDash</h2>
-                <p class="lp-process-intro lp-reveal lp-reveal-d1">Pour obtenir des résultats visibles et durables, la clé n'est pas la restriction — c'est la précision.</p>
-                <div class="lp-process-grid">
-                    <div class="lp-process-step lp-reveal lp-reveal-d1">
-                        <div class="lp-step-number" aria-hidden="true">01</div>
-                        <div class="lp-step-body">
-                            <h3 class="lp-step-title">Fixer le cap</h3>
-                            <ul class="lp-step-list">
-                                <li>Identité métabolique (âge, poids, taille)</li>
-                                <li>Choix de l'objectif (Sèche, Masse, Maintien)</li>
-                                <li>Calcul automatique de votre budget kcal/prot</li>
-                            </ul>
-                        </div>
-                    </div>
-                    <div class="lp-process-step lp-reveal lp-reveal-d2">
-                        <div class="lp-step-number" aria-hidden="true">02</div>
-                        <div class="lp-step-body">
-                            <h3 class="lp-step-title">Piloter au quotidien</h3>
-                            <ul class="lp-step-list">
-                                <li>Repas décrits en une phrase, estimés par l'IA</li>
-                                <li>Repas et activités favoris en un geste</li>
-                                <li>Saisie de l'activité physique</li>
-                            </ul>
-                        </div>
-                    </div>
-                    <div class="lp-process-step lp-reveal lp-reveal-d3">
-                        <div class="lp-step-number" aria-hidden="true">03</div>
-                        <div class="lp-step-body">
-                            <h3 class="lp-step-title">Analyser &amp; Ajuster</h3>
-                            <ul class="lp-step-list">
-                                <li>Rendez-vous hebdomadaire de pesée</li>
-                                <li>Suivi de votre objectif</li>
-                                <li>Bilan de la semaine avec l'assistant IA</li>
-                                <li>Ajustement basé sur les données réelles</li>
-                            </ul>
-                        </div>
-                    </div>
+        <!-- Fonctionnalités -->
+        <section class="lx-sec" style="padding-top:24px">
+            <div class="lx-wrap">
+                <div class="lp-reveal">
+                    <span class="lx-eyebrow">Tout ce qu'il faut, rien de plus</span>
+                    <h2 class="lx-h2">Votre corps mérite mieux que des approximations.</h2>
                 </div>
-                <div class="lp-process-highlight lp-reveal lp-reveal-d4">
-                    <img src="Images/illustrations/lp-illustration.png" alt="Illustration d'une personne atteignant ses objectifs" width="1408" height="768" loading="lazy" class="lp-process-illus">
-                    <p>L'avantage NutriDash : ce process élimine l'incertitude. Vous ne testez pas un régime — vous pilotez vos résultats.</p>
+                <div class="lx-bento">
+                    <div class="lx-tile lx-t7 lp-reveal"><h3>Vos anneaux du jour</h3><p>Calories et protéines d'un coup d'œil, avec les étapes de la journée : petit-déjeuner, déjeuner, collation, dîner.</p>
+                        <div class="lx-today" aria-hidden="true"><div class="lx-today-top"><strong>Aujourd'hui</strong><span>Exemple illustratif</span></div><div class="lx-rings"><div class="lx-ring-box"><div class="lx-ring"><svg viewBox="0 0 120 120" aria-hidden="true"><circle cx="60" cy="60" r="52" fill="none" stroke="#E2E8DF" stroke-width="11"/><circle class="lx-ring-fill r-cal lx-scrolled" cx="60" cy="60" r="52" fill="none" stroke="#2D6A4F" stroke-width="11" stroke-linecap="round" pathLength="100" transform="rotate(-90 60 60)"/></svg><div class="lx-ring-c"><strong class="lx-num n-cal lx-scrolled"></strong><span>kcal restantes</span></div></div><span class="lx-ring-sub">710 / 1896 kcal</span></div><div class="lx-ring-box"><div class="lx-ring"><svg viewBox="0 0 120 120" aria-hidden="true"><circle cx="60" cy="60" r="52" fill="none" stroke="#E2E8DF" stroke-width="11"/><circle class="lx-ring-fill r-prot lx-scrolled" cx="60" cy="60" r="52" fill="none" stroke="#E07A5F" stroke-width="11" stroke-linecap="round" pathLength="100" transform="rotate(-90 60 60)"/></svg><div class="lx-ring-c"><strong class="lx-num n-prot lx-scrolled"></strong><span>g restants</span></div></div><span class="lx-ring-sub">33 / 132 g prot.</span></div></div><div class="lx-steps-row"><span class="lx-steps-t">Étapes du jour</span><div class="lx-sts"><span class="lx-st lx-st--done" style="--k:0"><i></i>Pesée</span><span class="lx-st lx-st--done" style="--k:1"><i></i>Petit-déj.</span><span class="lx-st" style="--k:2"><i></i>Déjeuner</span><span class="lx-st lx-st--done" style="--k:3"><i></i>Collation</span><span class="lx-st" style="--k:4"><i></i>Dîner</span></div></div></div></div>
+                    <div class="lx-tile lx-t5 lx-tile--dark lp-reveal lp-reveal-d1"><h3>Un assistant qui connaît vos repas</h3><p>Posez vos questions, il répond avec vos vraies données.</p>
+                        <div class="lx-chat" aria-hidden="true"><div class="u">Une idée pour ce soir ?</div><div class="a">Il vous reste de la place pour des protéines : saumon grillé, riz et brocoli.</div><div class="u u2">Et pour la semaine ?</div><div class="a a2">Vous êtes régulier, il manque surtout des protéines au dîner.</div></div>
+                        <span class="lx-note">Exemple de conversation. Conseils généraux, ne remplace pas un professionnel de santé.</span></div>
+                    <div class="lx-tile lx-t4 lp-reveal"><h3>Suivi du poids</h3><p>Une pesée par semaine, une courbe qui se dessine.</p>
+                        <svg viewBox="0 0 240 110" width="100%" style="margin-top:18px" aria-hidden="true"><path d="M0 100H240M0 60H240M0 20H240" stroke="#E2E8DF" stroke-width="1"/><path class="lx-draw lx-scrolled" pathLength="1" d="M4 22 C34 28 44 40 70 44 S112 58 136 62 S190 80 236 88" fill="none" stroke="#2D6A4F" stroke-width="3.5" stroke-linecap="round"/><circle cx="236" cy="88" r="5" fill="#E07A5F"/></svg></div>
+                    <div class="lx-tile lx-t4 lx-tile--mint lp-reveal lp-reveal-d1"><h3>Votre budget calculé</h3><p>Âge, poids, taille, objectif : NutriDash en tire vos calories et vos protéines.</p>
+                        <div class="lx-big" aria-hidden="true"><span class="lx-cnt lx-scrolled"></span><small>kcal / jour</small></div><span class="lx-note" style="color:#1B4332">Exemple illustratif.</span></div>
+                    <div class="lx-tile lx-t4 lp-reveal lp-reveal-d2"><h3>Favoris en un geste</h3><p>Vos repas et activités habituels, réutilisés sans rien retaper.</p>
+                        <div class="lx-chips" aria-hidden="true"><span>Porridge banane</span><span>Salade poulet</span><span>Vélo 45 min</span><span>Yaourt grec</span></div></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Les 7 jours -->
+        <section class="lx-days">
+            <div class="lx-wrap">
+                <div class="lp-reveal">
+                    <span class="lx-eyebrow">Votre essai</span>
+                    <h2 class="lx-h2">Sept jours pour voir si ça change vos habitudes.</h2>
+                    <p class="lx-lead">Un parcours simple, à votre rythme. Au bout d'une semaine, l'assistant vous fait le bilan, et vous décidez.</p>
+                </div>
+                <div class="lx-rail">
+                    <div class="lx-day" data-d="J1" style="--i:0"><h4>Créez votre profil</h4><p>Objectif et budget calculés.</p></div>
+                    <div class="lx-day" data-d="J2" style="--i:1"><h4>Décrivez un repas</h4><p>Une phrase, une estimation.</p></div>
+                    <div class="lx-day" data-d="J3" style="--i:2"><h4>Notez une activité</h4><p>Vélo, marche, sport.</p></div>
+                    <div class="lx-day" data-d="J4" style="--i:3"><h4>Ajoutez vos favoris</h4><p>Vos habitudes en un geste.</p></div>
+                    <div class="lx-day" data-d="J5" style="--i:4"><h4>Première pesée</h4><p>Le suivi démarre.</p></div>
+                    <div class="lx-day" data-d="J6" style="--i:5"><h4>Questions à l'IA</h4><p>Idées de repas, bilans.</p></div>
+                    <div class="lx-day lx-day--last" data-d="J7" style="--i:6"><h4>Bilan de la semaine</h4><p>Vous décidez de continuer.</p></div>
+                </div>
+                <div class="lx-days-cta">
+                    <button class="lx-btn" onclick="showAuthPage(true)">Démarrer mon essai gratuit <span class="lx-arr" aria-hidden="true">&rarr;</span></button>
+                    <span>Aucune carte bancaire à l'inscription.</span>
                 </div>
             </div>
         </section>
@@ -389,6 +306,8 @@
                 </div>
             </div>
         </footer>
+
+        <div class="lx-sticky-cta"><button class="lx-btn" onclick="showAuthPage(true)">Essayer 7 jours gratuits</button></div>
 
         <!-- Script animations au scroll — placé après tous les éléments .lp-reveal -->
         <script>
