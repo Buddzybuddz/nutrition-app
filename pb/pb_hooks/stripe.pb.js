@@ -156,6 +156,9 @@ routerAdd("POST", "/api/stripe/portal", (e) => {
             timeout: 30,
         });
         var data = JSON.parse(res.raw);
+        if (res.statusCode >= 400 || !data.url) {
+            throw new Error("Stripe " + res.statusCode + ": " + (data.error ? data.error.message : res.raw));
+        }
         return e.json(200, { url: data.url });
     } catch (err) {
         $app.logger().error("Stripe portal: erreur", "error", String(err));
@@ -209,9 +212,11 @@ routerAdd("POST", "/api/stripe/cancel-subscription", (e) => {
     }
 
     try {
-        var list = stripeGet("/subscriptions?customer=" + encodeURIComponent(customerId) + "&status=active&limit=10");
+        /* status=all : un abonnement impayé, en essai ou en pause continuerait sinon d'être facturé après la suppression du compte */
+        var list = stripeGet("/subscriptions?customer=" + encodeURIComponent(customerId) + "&status=all&limit=10");
         var canceled = 0;
         (list.data || []).forEach(function(sub) {
+            if (sub.status === "canceled" || sub.status === "incomplete_expired") return;
             stripeDelete("/subscriptions/" + sub.id);
             canceled++;
         });
@@ -229,7 +234,7 @@ routerAdd("POST", "/api/stripe/webhook", (e) => {
        profondeur additionnelle, pas la protection principale) */
     var WEBHOOK_GUARD = $os.getenv("STRIPE_WEBHOOK_GUARD");
     var receivedSecret = e.request.url.query().get("secret");
-    if (!WEBHOOK_GUARD || !receivedSecret || receivedSecret !== WEBHOOK_GUARD) {
+    if (!WEBHOOK_GUARD || !receivedSecret || !$security.equal(receivedSecret, WEBHOOK_GUARD)) {
         $app.logger().warn("Stripe webhook: secret invalide ou absent");
         return e.json(401, { error: "Unauthorized" });
     }
@@ -244,21 +249,29 @@ routerAdd("POST", "/api/stripe/webhook", (e) => {
        arbitraire. Voir https://docs.stripe.com/webhooks#verify-manually */
     var WEBHOOK_SECRET = $os.getenv("STRIPE_WEBHOOK_SECRET");
     var sigHeader = e.requestInfo().headers["stripe_signature"] || "";
-    var sigParts = {};
+    /* Stripe peut envoyer plusieurs signatures v1 (rotation du secret) : l'une d'elles doit correspondre */
+    var timestamp = "";
+    var sigsV1 = [];
     sigHeader.split(",").forEach(function(p) {
-        var kv = p.split("=");
-        if (kv.length === 2) sigParts[kv[0]] = kv[1];
+        var i = p.indexOf("=");
+        if (i < 1) return;
+        var k = p.slice(0, i).trim();
+        var v = p.slice(i + 1).trim();
+        if (k === "t") timestamp = v;
+        else if (k === "v1") sigsV1.push(v);
     });
-    var timestamp = sigParts["t"];
     var expectedSig = timestamp && WEBHOOK_SECRET
         ? $security.hs256(timestamp + "." + rawBody, WEBHOOK_SECRET)
         : "";
+    var sigOk = false;
+    sigsV1.forEach(function(s) { if (expectedSig && $security.equal(expectedSig, s)) sigOk = true; });
 
-    if (!WEBHOOK_SECRET || !timestamp || !sigParts["v1"] || !expectedSig || !$security.equal(expectedSig, sigParts["v1"])) {
+    if (!WEBHOOK_SECRET || !timestamp || !sigOk) {
         $app.logger().warn("Stripe webhook: signature invalide ou absente");
         return e.json(401, { error: "Unauthorized" });
     }
-    if (Math.abs(Date.now() / 1000 - parseInt(timestamp, 10)) > 300) {
+    var tsAge = Math.abs(Date.now() / 1000 - parseInt(timestamp, 10));
+    if (isNaN(tsAge) || tsAge > 300) {
         $app.logger().warn("Stripe webhook: signature expirée (anti-rejeu)");
         return e.json(401, { error: "Unauthorized" });
     }
@@ -280,12 +293,13 @@ routerAdd("POST", "/api/stripe/webhook", (e) => {
 
     function tsToIso(ts) {
         var d = new Date(ts * 1000);
-        return d.getFullYear() + "-"
-            + String(d.getMonth() + 1).padStart(2, "0") + "-"
-            + String(d.getDate()).padStart(2, "0") + " "
-            + String(d.getHours()).padStart(2, "0") + ":"
-            + String(d.getMinutes()).padStart(2, "0") + ":"
-            + String(d.getSeconds()).padStart(2, "0") + ".000Z";
+        /* Suffixe « Z » = UTC : on lit donc les composantes UTC, pas l'heure locale du serveur */
+        return d.getUTCFullYear() + "-"
+            + String(d.getUTCMonth() + 1).padStart(2, "0") + "-"
+            + String(d.getUTCDate()).padStart(2, "0") + " "
+            + String(d.getUTCHours()).padStart(2, "0") + ":"
+            + String(d.getUTCMinutes()).padStart(2, "0") + ":"
+            + String(d.getUTCSeconds()).padStart(2, "0") + ".000Z";
     }
 
     /* cancelAt : timestamp Stripe (résiliation programmée), null (aucune
