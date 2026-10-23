@@ -6327,3 +6327,82 @@ details[open] .advice-accordion-summary::after {
 #weigh-in-card .weigh-field span { font-size: 14px; font-weight: 600; color: var(--color-text-2); }
 #weigh-in-card .weigh-in-btn { height: 48px; padding: 0 22px; border-radius: 12px; background: var(--color-primary); box-shadow: none; font-family: 'Inter', sans-serif; font-size: 15px; font-weight: 600; }
 #weigh-in-card .weigh-in-btn:hover { background: #245A42; box-shadow: none; }
+
+/* ============================================================
+   LANDING — mise à jour IA : badge, démo d'estimation, « une phrase suffit », assistant
+   ============================================================ */
+
+/* Bouton principal : saumon plus foncé pour un texte blanc lisible (contraste ≥ 4,5:1) */
+.lp-btn-primary { background: #B9553A; }
+.lp-btn-primary:hover { background: #A44A31; }
+.lp-hero-meta { color: var(--color-text-2); }
+
+.lp-hero-badge { display: inline-flex; margin-bottom: 16px; padding: 6px 12px; border-radius: 999px; background: var(--color-accent-light); color: #8A3A24; font-family: 'Inter', sans-serif; font-size: 0.8125rem; font-weight: 600; }
+
+/* Démo d'estimation (carte du hero) */
+.lp-hero-graphic { display: flex; flex-direction: column; gap: 14px; max-width: 420px; }
+.lp-demo-label { font-size: 12.5px; font-weight: 600; color: var(--color-text-2); }
+.lp-demo-input { display: flex; gap: 8px; align-items: stretch; }
+.lp-demo-text { flex: 1; min-width: 0; padding: 12px 14px; border-radius: 12px; background: var(--color-bg); border: 1px solid var(--color-border-strong); font-size: 14.5px; line-height: 1.4; color: var(--color-text-1); }
+.lp-demo-btn { display: flex; align-items: center; padding: 0 14px; border-radius: 12px; background: var(--color-primary); color: #fff; font-size: 14px; font-weight: 600; }
+.lp-demo-rows { display: flex; flex-direction: column; }
+.lp-demo-row { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--color-border); font-size: 14px; font-weight: 500; color: var(--color-text-1); }
+.lp-demo-row:last-child { border-bottom: 0; }
+.lp-demo-row em { font-style: normal; font-weight: 400; color: var(--color-text-2); }
+.lp-demo-row span:last-child { flex: none; font-size: 13px; font-weight: 400; color: var(--color-text-2); }
+.lp-demo-row strong { color: var(--color-text-1); }
+.lp-demo-total { display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; border-radius: 12px; background: var(--color-primary-xlight); color: #1B4332; font-size: 14px; font-weight: 600; }
+.lp-demo-total strong { font-family: 'DM Sans', sans-serif; font-size: 16px; font-weight: 700; }
+.lp-demo-note { margin: 0; font-size: 12.5px; line-height: 1.4; color: var(--color-text-2); }
+
+/* Une phrase suffit */
+.lp-flow { padding: 72px 0; background: var(--color-surface); }
+.lp-flow-grid { display: grid; grid-template-columns: 1fr; gap: 24px; margin-top: 40px; }
+.lp-flow-step { display: flex; flex-direction: column; gap: 8px; }
+.lp-flow-num { width: 36px; height: 36px; border-radius: 50%; background: var(--color-primary); color: #fff; display: flex; align-items: center; justify-content: center; font-family: 'DM Sans', sans-serif; font-weight: 700; }
+.lp-flow-title { margin: 0; font-family: 'DM Sans', sans-serif; font-size: 1.125rem; font-weight: 600; color: var(--color-text-1); }
+.lp-flow-text { margin: 0; font-size: 0.9375rem; line-height: 1.55; color: var(--color-text-2); }
+
+/* Assistant IA */
+.lp-assistant { padding: 72px 0; background: var(--color-bg); }
+.lp-assistant-grid { display: grid; grid-template-columns: 1fr; gap: 32px; align-items: center; }
+.lp-assistant-title { margin: 0 0 14px; font-family: 'DM Sans', sans-serif; font-size: clamp(1.5rem, 3vw, 2.25rem); font-weight: 600; line-height: 1.2; color: var(--color-text-1); }
+.lp-assistant-lead { margin: 0 0 18px; font-size: 1rem; line-height: 1.6; color: var(--color-text-2); }
+.lp-assistant-list { margin: 0 0 18px; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 10px; }
+.lp-assistant-list li { position: relative; padding-left: 28px; font-size: 0.9375rem; color: var(--color-text-1); }
+.lp-assistant-list li::before { content: ''; position: absolute; left: 0; top: 4px; width: 14px; height: 7px; border-left: 2.5px solid var(--color-primary); border-bottom: 2.5px solid var(--color-primary); transform: rotate(-45deg); }
+.lp-assistant-note { margin: 0; font-size: 12.5px; line-height: 1.5; color: var(--color-text-2); }
+.lp-chat { display: flex; flex-direction: column; gap: 10px; padding: 18px; max-width: 460px; border-radius: var(--lp-radius-xl); background: var(--color-surface); border: 1px solid var(--color-border); box-shadow: var(--lp-shadow-2); }
+.lp-chat-user { align-self: flex-end; max-width: 80%; padding: 10px 14px; border-radius: 16px 16px 4px 16px; background: var(--color-primary); color: #fff; font-size: 14.5px; line-height: 1.4; }
+.lp-chat-bot { align-self: flex-start; max-width: 92%; padding: 10px 14px; border-radius: 16px 16px 16px 4px; background: var(--color-surface-2); color: var(--color-text-1); font-size: 14.5px; line-height: 1.5; }
+.lp-chat-chips { display: flex; gap: 6px; flex-wrap: wrap; padding-top: 4px; }
+.lp-chat-chips span { padding: 8px 12px; border-radius: 999px; border: 1px solid var(--color-border-strong); color: var(--color-primary); font-size: 12.5px; font-weight: 600; }
+.lp-chat-note { margin: 0; font-size: 12px; color: var(--color-text-2); }
+
+/* Cartes de fonctionnalités : 5 cartes, grille souple */
+.lp-features-grid { grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+
+@media (min-width: 768px) {
+    .lp-flow-grid { grid-template-columns: repeat(3, 1fr); gap: 32px; }
+}
+@media (min-width: 900px) {
+    .lp-assistant-grid { grid-template-columns: 1.1fr 0.9fr; gap: 56px; }
+}
+
+/* 5 cartes : 3 + 2 centrées en ordinateur, 2 + 2 + 1 centrée en tablette, jamais une carte seule à gauche */
+@media (min-width: 600px) {
+    .lp-features-grid { grid-template-columns: repeat(6, 1fr); }
+    .lp-features-grid > .lp-feature-card { grid-column: span 3; }
+    .lp-features-grid > .lp-feature-card:nth-child(5) { grid-column: 2 / span 4; }
+}
+@media (min-width: 960px) {
+    .lp-features-grid > .lp-feature-card { grid-column: span 2; }
+    .lp-features-grid > .lp-feature-card:nth-child(4) { grid-column: 2 / span 2; }
+    .lp-features-grid > .lp-feature-card:nth-child(5) { grid-column: 4 / span 2; }
+}
+
+/* Bande photo : plus haute sur grand écran pour montrer l'assiette et le téléphone en entier */
+@media (min-width: 900px) {
+    .lp-photo-band { height: 440px; }
+    .lp-photo-band img { object-position: center 50%; }
+}
