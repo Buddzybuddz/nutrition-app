@@ -1,0 +1,49 @@
+{
+  "kicker": "Ton essai NutriDash",
+  "number": {
+    "value": "7",
+    "unit": "jours gratuits",
+    "size": 500
+  },
+  "headline": "Teste NutriDash à ton rythme.",
+  "points": [
+    "0 carte bancaire à l'inscription.",
+    "Ensuite 5,99 € par mois, résiliable à tout moment."
+  ],
+  "tease": "Et ensuite ?",
+  "footnote": "Sans engagement. Annulation immédiate.",
+  "decor": "neutre",
+  "sfx": {
+    "cta": "switch",
+    "ambiance": null
+  },
+  "palette": {
+    "bg": "#183b2d",
+    "bg2": "#10201A",
+    "ink": "#F7F8F3",
+    "ink2": "#B9CFC2",
+    "accent": "#D4694D",
+    "accent_dark": "#B9553A",
+    "on_accent": "#FFFFFF"
+  },
+  "music": {
+    "file": "assets/music/bed.mp3",
+    "bpm": 92,
+    "first_beat": 0.0,
+    "media_start": 0.0,
+    "volume": 0.96
+  },
+  "brand": {
+    "logo": "assets/img/logo.png"
+  },
+  "finale": {
+    "title": [
+      "7 jours",
+      "gratuits."
+    ],
+    "cta": "Lien en bio",
+    "url": "nutridash.fr",
+    "duration": 3.6
+  },
+  "loop": true
+}

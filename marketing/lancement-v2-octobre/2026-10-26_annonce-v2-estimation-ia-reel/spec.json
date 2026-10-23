@@ -1,0 +1,219 @@
+{
+  "theme": "sombre",
+  "mode": "ecrans",
+  "palette": {
+    "bg": "#183b2d",
+    "bg2": "#10201A",
+    "ink": "#F7F8F3",
+    "ink2": "#B9CFC2",
+    "accent": "#E07A5F",
+    "accent_dark": "#B9553A",
+    "on_accent": "#10201A"
+  },
+  "look": {
+    "glow": "45,106,79",
+    "glow_light": "216,243,220",
+    "field": "45,106,79"
+  },
+  "tones": [
+    [
+      "#2D6A4F",
+      "#1B4332"
+    ],
+    [
+      "#E07A5F",
+      "#B9553A"
+    ],
+    [
+      "#2D6A4F",
+      "#1B4332"
+    ]
+  ],
+  "hook": {
+    "line1": "Ton repas",
+    "big": "en une phrase.",
+    "chip": "Regarde bien…",
+    "beats": 5
+  },
+  "app": {
+    "primary": "#2D6A4F",
+    "soft": "#D8F3DC",
+    "on_soft": "#1B4332",
+    "second": "#E07A5F",
+    "nav": [
+      "Accueil",
+      "Programme",
+      "IA",
+      "Profil"
+    ],
+    "time": "12:30"
+  },
+  "steps": [
+    {
+      "title": "Saisie Journalière",
+      "back": false,
+      "nav_active": 0,
+      "label": "Tu décris",
+      "callout": "Une phrase suffit",
+      "beats": 6,
+      "blocks": [
+        {
+          "type": "segment",
+          "label": "",
+          "options": [
+            "Nouveau repas",
+            "Mes favoris"
+          ],
+          "on": 0
+        },
+        {
+          "type": "field",
+          "label": "TYPE DE REPAS",
+          "text": "Déjeuner"
+        },
+        {
+          "type": "text",
+          "label": "DÉCRIRE MON REPAS",
+          "text": "150 g de riz basmati cuit, 120 g de poulet grillé et 100 g de brocoli vapeur"
+        },
+        {
+          "type": "button",
+          "text": "Estimer avec l'IA",
+          "press": true
+        }
+      ]
+    },
+    {
+      "title": "Saisie Journalière",
+      "back": false,
+      "nav_active": 0,
+      "label": "L'IA détaille",
+      "callout": "En g et ml",
+      "beats": 6,
+      "blocks": [
+        {
+          "type": "note",
+          "text": "Estimation terminée"
+        },
+        {
+          "type": "kv",
+          "label": "RÉCAPITULATIF DE VOTRE SAISIE",
+          "rows": [
+            [
+              "riz cuit · 150 g",
+              "195 kcal"
+            ],
+            [
+              "poulet grillé · 120 g",
+              "198 kcal"
+            ],
+            [
+              "légume vapeur · 100 g",
+              "35 kcal"
+            ]
+          ]
+        },
+        {
+          "type": "stat",
+          "label": "TOTAL",
+          "value": "428 kcal",
+          "text": "43 g de protéines"
+        }
+      ]
+    },
+    {
+      "title": "Saisie Journalière",
+      "back": false,
+      "nav_active": 0,
+      "label": "Tu vérifies",
+      "callout": "Rien d'inventé",
+      "beats": 5,
+      "blocks": [
+        {
+          "type": "kv",
+          "label": "CALORIES ET PROTÉINES",
+          "rows": [
+            [
+              "Calories (kcal)",
+              "428"
+            ],
+            [
+              "Protéines (g)",
+              "43"
+            ]
+          ]
+        },
+        {
+          "type": "note",
+          "text": "Une quantité manque ? Tu la précises."
+        },
+        {
+          "type": "button",
+          "text": "Ajouter le repas"
+        }
+      ]
+    },
+    {
+      "title": "Saisie Journalière",
+      "back": false,
+      "nav_active": 0,
+      "label": "Tu valides",
+      "callout": "Ajouté au journal",
+      "beats": 5,
+      "blocks": [
+        {
+          "type": "text",
+          "label": "DÉJEUNER",
+          "text": "428 kcal · 43 g de protéines"
+        },
+        {
+          "type": "button",
+          "text": "Ajouter le repas",
+          "press": true
+        }
+      ]
+    },
+    {
+      "title": "Tableau de bord",
+      "back": false,
+      "nav_active": 0,
+      "label": "Ta journée se met à jour",
+      "callout": "Anneaux mis à jour",
+      "beats": 8,
+      "blocks": [
+        {
+          "type": "image",
+          "src": "assets/img/accueil.png",
+          "height": 760,
+          "position": "50% 34%"
+        }
+      ]
+    }
+  ],
+  "tease": "Et ta journée se met à jour…",
+  "brand": {
+    "logo": "assets/img/logo.png"
+  },
+  "music": {
+    "file": "assets/music/bed.mp3",
+    "bpm": 120,
+    "first_beat": 0.0,
+    "media_start": 0.0,
+    "volume": 0.96
+  },
+  "finale": {
+    "title": [
+      "7 jours",
+      "gratuits."
+    ],
+    "cta": "Lien en bio",
+    "url": "nutridash.fr",
+    "duration": 3.6
+  },
+  "loop": true,
+  "decor": "neutre",
+  "sfx": {
+    "cta": "switch",
+    "ambiance": null
+  }
+}

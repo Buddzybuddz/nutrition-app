@@ -1,0 +1,68 @@
+{
+  "caption": "Exemple de conversation",
+  "contact": {
+    "name": "Assistant NutriDash",
+    "initial": "N",
+    "status": "Assistant IA"
+  },
+  "messages": [
+    {
+      "from": "me",
+      "text": "Où j'en suis aujourd'hui ?"
+    },
+    {
+      "from": "them",
+      "text": "Je regarde votre journée : 710 kcal sur 1896, 33 g de protéines sur 132."
+    },
+    {
+      "from": "them",
+      "text": "Vous avez consommé 710 kcal et 33 g de protéines. Il vous reste : 1186 kcal et 99 g de protéines."
+    },
+    {
+      "from": "me",
+      "text": "Idée de déjeuner pour tenir mes objectifs"
+    },
+    {
+      "from": "them",
+      "text": "Pour votre déjeuner : poulet grillé, riz basmati et brocoli, pour environ 690 kcal et 46 g de protéines."
+    }
+  ],
+  "stamp": "Conseils généraux, pas un avis médical",
+  "decor": "neutre",
+  "palette": {
+    "bg": "#F7F8F3",
+    "bg2": "#D8F3DC",
+    "ink": "#1A2E22",
+    "ink2": "#2D6A4F",
+    "accent": "#B9553A",
+    "accent_dark": "#2D6A4F",
+    "on_accent": "#FFFFFF"
+  },
+  "music": {
+    "file": "assets/music/bed.mp3",
+    "bpm": 96,
+    "first_beat": 0.0,
+    "media_start": 0.0,
+    "volume": 1.0
+  },
+  "brand": {
+    "logo": "assets/img/logo.png"
+  },
+  "finale": {
+    "title": [
+      "7 jours",
+      "gratuits."
+    ],
+    "cta": "Lien en bio",
+    "url": "nutridash.fr",
+    "duration": 3.6
+  },
+  "loop": true,
+  "read_max": 3.0,
+  "hold_last": 4.2,
+  "silence_rupture": false,
+  "hook": {
+    "line1": "Ton assistant IA",
+    "line2": "connaît ta journée."
+  }
+}

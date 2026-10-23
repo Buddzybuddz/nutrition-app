@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <title>Reel — fausse messagerie</title>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      :root { --bg: #F7F8F3; --bg2: #D8F3DC; --ink: #1A2E22; --ink2: #2D6A4F; --accent: #B9553A;
+        --accent-dark: #2D6A4F; --on-accent: #FFFFFF; }
+      body { margin: 0; background: var(--bg2); color: var(--ink); font-family: Inter, system-ui, sans-serif; }
+      #root { position: relative; width: 100%; height: 100%; overflow: hidden; background: linear-gradient(180deg, var(--bg) 0%, var(--bg2) 100%); }
+      .clip { position: absolute; inset: 0; box-sizing: border-box; }
+      .center { display: flex; flex-direction: column; align-items: center; justify-content: center; }
+      .mk { display: inline-block; overflow: hidden; vertical-align: top; padding: 0 0.05em; }
+      .mk > span { display: inline-block; }
+      #flash { position: absolute; inset: 0; background: var(--ink); opacity: 0; z-index: 60; pointer-events: none; }
+      #s3 { z-index: 50; }
+      #logo { width: 230px; height: 230px; border-radius: 52px; display: block; box-shadow: 0 0 110px rgba(0,0,0,0.25); object-fit: cover; }
+      #s3-h { margin: 50px 40px 0; text-align: center; font-size: 92px; line-height: 1.08; font-weight: 800; letter-spacing: -2px; color: var(--ink); }
+      #s3-h .g { color: var(--accent); }
+      #cta { margin-top: 54px; position: relative; overflow: hidden; background: var(--accent-dark); color: var(--on-accent); font-size: 62px; font-weight: 800;
+        padding: 0 70px; height: 140px; border-radius: 30px; display: flex; align-items: center; box-shadow: 0 16px 50px rgba(0,0,0,0.35); }
+      #cshine { position: absolute; top: 0; bottom: 0; left: -200px; width: 120px; transform: skewX(-20deg); background: rgba(255,255,255,0.4); display: block; }
+      #url { margin-top: 36px; font-size: 48px; font-weight: 600; color: var(--ink2); }
+
+      #cap { position: absolute; left: 0; right: 0; top: 232px; text-align: center; z-index: 5; }
+      #cap span { display: inline-block; font-size: 34px; font-weight: 800; letter-spacing: 1px; color: var(--ink2); background: rgba(255,255,255,0.08);
+        border: 3px solid rgba(255,255,255,0.25); padding: 8px 28px; border-radius: 999px; }
+      #chat { position: absolute; left: 40px; top: 300px; width: 1000px; height: 1190px; border-radius: 52px; background: #f3f5f4; color: #1c1c1e;
+        box-shadow: 0 50px 110px rgba(0,0,0,0.5); overflow: hidden; }
+      #hdr { position: absolute; left: 0; right: 0; top: 0; height: 130px; background: var(--accent-dark); color: var(--on-accent); display: flex; align-items: center; gap: 24px; padding: 0 40px; z-index: 3; }
+      #hdr .av { width: 78px; height: 78px; border-radius: 50%; background: rgba(255,255,255,0.25); display: flex; align-items: center; justify-content: center; font-size: 40px; font-weight: 800; }
+      #hdr .nm { font-size: 42px; font-weight: 800; }
+      #hdr .st { position: relative; font-size: 28px; opacity: 0.92; height: 34px; }
+      #hdr .st span { position: absolute; left: 0; top: 0; white-space: nowrap; }
+      #st2 { opacity: 0; }
+      #area { position: absolute; left: 0; right: 0; top: 130px; bottom: 150px; overflow: hidden; }
+      #msgs { position: relative; padding: 30px 34px; display: flex; flex-direction: column; gap: 22px; }
+      .bub { max-width: 78%; padding: 22px 32px; border-radius: 38px; font-size: 40px; line-height: 1.3; font-weight: 500; }
+      .bub.them { align-self: flex-start; background: #fff; border: 2px solid #e4e8e6; border-bottom-left-radius: 10px; }
+      .bub.me { align-self: flex-end; background: var(--accent-dark); color: var(--on-accent); border-bottom-right-radius: 10px; }
+      .later { opacity: 0; }
+      #typ { position: absolute; left: 34px; bottom: 172px; background: #fff; border: 2px solid #e4e8e6; border-radius: 34px; border-bottom-left-radius: 10px; padding: 24px 30px; display: flex; gap: 12px; opacity: 0; z-index: 3; }
+      #typ i { width: 16px; height: 16px; border-radius: 50%; background: #9aa5a0; display: block; }
+      #inp { position: absolute; left: 30px; right: 30px; bottom: 26px; height: 100px; border-radius: 50px; background: #fff; border: 3px solid var(--accent-dark); display: flex; align-items: center; padding: 0 30px; font-size: 36px; z-index: 3; }
+      #ph { color: #7d8883; position: absolute; left: 36px; }
+      .itx { position: absolute; left: 36px; right: 120px; opacity: 0; white-space: nowrap; overflow: hidden; color: #1c1c1e; }
+      #snd { position: absolute; right: 14px; top: 14px; width: 72px; height: 72px; border-radius: 50%; background: var(--accent-dark); color: var(--on-accent); display: flex; align-items: center; justify-content: center; font-size: 34px; }
+      #hook { position: absolute; left: 70px; right: 70px; top: 760px; text-align: center; z-index: 6; }
+      #hook span { display: block; font-weight: 800; letter-spacing: -2px; line-height: 1.05; }
+      #hook .h1 { font-size: 88px; color: var(--ink); } #hook .h2 { font-size: 88px; color: var(--accent); }
+      #stamp { position: absolute; left: 0; right: 0; top: 1508px; text-align: center; opacity: 0; z-index: 5; }
+      #stamp span { display: inline-block; font-size: 40px; font-weight: 800; color: #04281f; background: var(--accent); padding: 12px 34px; border-radius: 20px; box-shadow: 0 16px 36px rgba(0,0,0,0.4); }
+</style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="main" data-start="0" data-width="1080" data-height="1920" data-duration="25.5" data-fx-chain='{"version":1,"nodes":[{"type":"truepeak","id":"m1","params":{"ceiling":-3,"lookahead":3,"release":80}}]}'>
+
+      <div id="cap"><span>Exemple de conversation</span></div>
+      <div id="chat">
+        <div id="hdr"><span class="av">N</span><div><div class="nm">Assistant NutriDash</div>
+          <div class="st"><span id="st1">Assistant IA</span><span id="st2">écrit…</span></div></div></div>
+        <div id="area"><div id="msgs">
+          <div class="bub me" id="b0">Où j'en suis aujourd'hui ?</div>
+<div class="bub them later" id="b1">Je regarde votre journée : 710 kcal sur 1896, 33 g de protéines sur 132.</div>
+<div class="bub them later" id="b2">Vous avez consommé 710 kcal et 33 g de protéines. Il vous reste : 1186 kcal et 99 g de protéines.</div>
+<div class="bub me later" id="b3">Idée de déjeuner pour tenir mes objectifs</div>
+<div class="bub them later" id="b4">Pour votre déjeuner : poulet grillé, riz basmati et brocoli, pour environ 690 kcal et 46 g de protéines.</div>
+        </div></div>
+        <div id="typ"><i></i><i></i><i></i></div>
+        <div id="inp"><span id="ph">Écrire un message…</span><span class="itx" id="itx0"></span><span class="itx" id="itx1"></span><span class="itx" id="itx2"></span><span class="itx" id="itx3"></span><span class="itx" id="itx4"></span><b id="snd">➤</b></div>
+      </div>
+      <div id="hook"><span class="h1">Ton assistant IA</span><span class="h2">connaît ta journée.</span></div>
+      <div id="stamp"><span>Conseils généraux, pas un avis médical</span></div>
+      <section id="s3" class="clip center" data-start="21.875" data-duration="3.62">
+        <img id="logo" src="assets/img/logo.png" alt="" />
+        <h2 id="s3-h"><span class="mk"><span class="g w3">7 jours</span></span><br /><span class="mk"><span class="w3">gratuits.</span></span></h2>
+        <div id="cta">Lien en bio<i id="cshine"></i></div>
+        <div id="url">nutridash.fr</div>
+      </section>
+      <div id="flash"></div>
+      <audio id="music" src="assets/music/bed.mp3" data-start="0.0" data-media-start="0.0" data-duration="25.5" data-track-index="0" data-volume="1.0" data-automation='{"version":1,"lanes":[{"target":"volume","points":[{"t":0,"v":1},{"t":0.01,"v":1},{"t":0.11,"v":0.7},{"t":0.51,"v":1},{"t":3.07,"v":1},{"t":3.17,"v":0.7},{"t":3.57,"v":1},{"t":8.07,"v":1},{"t":8.17,"v":0.7},{"t":8.57,"v":1},{"t":13.07,"v":1},{"t":13.17,"v":0.7},{"t":13.57,"v":1},{"t":16.36,"v":1},{"t":16.46,"v":0.7},{"t":16.86,"v":1},{"t":17.45,"v":1},{"t":17.55,"v":1},{"t":17.65,"v":0.7},{"t":17.95,"v":1},{"t":18.05,"v":1},{"t":21.83,"v":1},{"t":21.93,"v":0.7},{"t":22.33,"v":1},{"t":24.6,"v":1},{"t":25.5,"v":0}]}]}'></audio>
+      <audio id="sfx1" src="assets/sfx/impactSoft_medium_001.ogg" data-start="0.00" data-duration="0.18" data-track-index="1" data-volume="0.8"></audio>
+      <audio id="sfx2" src="assets/sfx/card-slide-1.ogg" data-start="0.00" data-duration="0.4" data-track-index="2" data-volume="0.5"></audio>
+      <audio id="sfx3" src="assets/sfx/ping.wav" data-start="3.12" data-duration="0.35" data-track-index="3" data-volume="0.7"></audio>
+      <audio id="sfx4" src="assets/sfx/ping.wav" data-start="8.12" data-duration="0.35" data-track-index="4" data-volume="0.7"></audio>
+      <audio id="sfx5" src="assets/sfx/pop.wav" data-start="13.12" data-duration="0.18" data-track-index="5" data-volume="0.7"></audio>
+      <audio id="sfx6" src="assets/sfx/keytap.wav" data-start="11.43" data-duration="0.06" data-track-index="6" data-volume="0.35"></audio>
+      <audio id="sfx7" src="assets/sfx/keytap.wav" data-start="11.57" data-duration="0.06" data-track-index="7" data-volume="0.35"></audio>
+      <audio id="sfx8" src="assets/sfx/keytap.wav" data-start="11.71" data-duration="0.06" data-track-index="8" data-volume="0.35"></audio>
+      <audio id="sfx9" src="assets/sfx/keytap.wav" data-start="11.85" data-duration="0.06" data-track-index="9" data-volume="0.35"></audio>
+      <audio id="sfx10" src="assets/sfx/keytap.wav" data-start="11.99" data-duration="0.06" data-track-index="10" data-volume="0.35"></audio>
+      <audio id="sfx11" src="assets/sfx/keytap.wav" data-start="12.13" data-duration="0.06" data-track-index="11" data-volume="0.35"></audio>
+      <audio id="sfx12" src="assets/sfx/keytap.wav" data-start="12.27" data-duration="0.06" data-track-index="12" data-volume="0.35"></audio>
+      <audio id="sfx13" src="assets/sfx/keytap.wav" data-start="12.41" data-duration="0.06" data-track-index="13" data-volume="0.35"></audio>
+      <audio id="sfx14" src="assets/sfx/keytap.wav" data-start="12.55" data-duration="0.06" data-track-index="14" data-volume="0.35"></audio>
+      <audio id="sfx15" src="assets/sfx/keytap.wav" data-start="12.69" data-duration="0.06" data-track-index="15" data-volume="0.35"></audio>
+      <audio id="sfx16" src="assets/sfx/keytap.wav" data-start="12.83" data-duration="0.06" data-track-index="16" data-volume="0.35"></audio>
+      <audio id="sfx17" src="assets/sfx/keytap.wav" data-start="12.97" data-duration="0.06" data-track-index="17" data-volume="0.35"></audio>
+      <audio id="sfx18" src="assets/sfx/ping.wav" data-start="17.50" data-duration="0.35" data-track-index="18" data-volume="0.7"></audio>
+      <audio id="sfx19" src="assets/sfx/boom.wav" data-start="8.12" data-duration="0.9" data-track-index="19" data-volume="0.8"></audio>
+      <audio id="sfx20" src="assets/sfx/riser.wav" data-start="16.41" data-duration="1.09" data-track-index="20" data-volume="0.55"></audio>
+      <audio id="sfx21" src="assets/sfx/boom.wav" data-start="17.50" data-duration="0.9" data-track-index="21" data-volume="0.8"></audio>
+      <audio id="sfx22" src="assets/sfx/bong_001.ogg" data-start="17.60" data-duration="0.12" data-track-index="22" data-volume="0.6"></audio>
+      <audio id="sfx23" src="assets/sfx/bong_001.ogg" data-start="21.88" data-duration="0.12" data-track-index="23" data-volume="0.8"></audio>
+    </div>
+    <script>
+var A = [0.0, 3.125, 8.125, 13.125, 17.5], TYP = [null, 2.23, 6.12, 11.23, 15.9], TD = [0.0, 0.9, 2.0, 1.7, 1.6], KIND = ["me", "them", "them", "me", "them"], TEXT = ["Où j'en suis aujourd'hui ?", "Je regarde votre journée : 710 kcal sur 1896, 33 g de protéines sur 132.", "Vous avez consommé 710 kcal et 33 g de protéines. Il vous reste : 1186 kcal et 99 g de protéines.", "Idée de déjeuner pour tenir mes objectifs", "Pour votre déjeuner : poulet grillé, riz basmati et brocoli, pour environ 690 kcal et 46 g de protéines."], RUP = 2, LAST = 4, D = 25.5, T_F = 21.875, T_HOOK = 2.73;
+var tl = gsap.timeline({ paused: true });
+
+      var area = document.getElementById('area'), VH = area.clientHeight;
+      function bottomOf(i) { var b = document.getElementById('b' + i); return b.offsetTop + b.offsetHeight + 30; }
+      for (var i = 1; i < TEXT.length; i++) {
+        (function (i) {
+          var b = '#b' + i, t = A[i];
+          tl.fromTo(b, { opacity: 0, y: 40, scale: 0.92 }, { opacity: 1, y: 0, scale: 1, duration: 0.3, ease: 'back.out(1.8)', immediateRender: false }, t);
+          var off = Math.max(0, bottomOf(i) - VH);
+          tl.fromTo('#msgs', { y: -Math.max(0, bottomOf(i - 1) - VH) }, { y: -off, duration: 0.35, ease: 'power2.out', immediateRender: false }, t);
+          if (KIND[i] === 'them') {
+            tl.set('#typ', { opacity: 1 }, TYP[i]); tl.set('#typ', { opacity: 0 }, t);
+            tl.set('#st1', { opacity: 0 }, TYP[i]); tl.set('#st2', { opacity: 1 }, TYP[i]);
+            tl.set('#st2', { opacity: 0 }, t); tl.set('#st1', { opacity: 1 }, t);
+            tl.fromTo('#typ i', { y: 0 }, { y: -8, duration: 0.25, yoyo: true, repeat: Math.max(1, Math.round(TD[i] / 0.25)), stagger: 0.08, ease: 'sine.inOut', immediateRender: false }, TYP[i]);
+          } else {
+            var id = '#itx' + i, o = { n: 0 };
+            tl.set('#ph', { opacity: 0 }, TYP[i]); tl.set(id, { opacity: 1 }, TYP[i]);
+            tl.to(o, { n: TEXT[i].length, duration: Math.max(0.5, TD[i] - 0.3), ease: 'none', onUpdate: function () { document.querySelector(id).textContent = TEXT[i].slice(0, Math.round(o.n)); } }, TYP[i] + 0.2);
+            tl.set(id, { opacity: 0 }, t); tl.set('#ph', { opacity: 1 }, t);
+            tl.fromTo('#snd', { scale: 1 }, { scale: 1.25, duration: 0.12, yoyo: true, repeat: 1, immediateRender: false }, t - 0.1);
+          }
+        })(i);
+      }
+      // rupture : flash ; chute : le dernier message prend la lumière
+      tl.fromTo('#flash', { opacity: 0.5 }, { opacity: 0, duration: 0.25, ease: 'power2.out', immediateRender: false }, A[RUP]);
+      tl.fromTo('#b' + LAST, { boxShadow: '0 0 0 0px rgba(94,234,212,0)' }, { boxShadow: '0 0 0 12px rgba(94,234,212,0.7)', scale: 1.04, duration: 0.3, ease: 'back.out(2)', immediateRender: false }, A[LAST] + 0.1);
+      tl.fromTo('#flash', { opacity: 0.35 }, { opacity: 0, duration: 0.3, ease: 'power2.out', immediateRender: false }, A[LAST]);
+      tl.fromTo('#stamp', { opacity: 0, y: 30, scale: 0.9 }, { opacity: 1, y: 0, scale: 1, duration: 0.35, ease: 'back.out(2)', immediateRender: false }, A[LAST] + 0.8);
+      // accroche : visible dès la 1re image, disparaît juste avant la 1re réponse
+      if (document.getElementById('hook')) {
+        tl.fromTo('#hook', { opacity: 1, scale: 1.06 }, { opacity: 1, scale: 1, duration: 0.35, ease: 'expo.out', immediateRender: true }, 0);
+        tl.to('#hook', { opacity: 0, y: -30, duration: 0.3, ease: 'power2.in' }, T_HOOK);
+      }
+      // transition vers la finale
+      tl.to('#chat', { y: -160, opacity: 0, duration: 0.3, ease: 'power2.in' }, T_F - 0.35);
+      tl.to('#stamp, #cap', { opacity: 0, duration: 0.2 }, T_F - 0.35);
+
+tl.fromTo("#logo", {"opacity": 0, "scale": 0.4}, {"opacity": 1, "scale": 1, "duration": 0.5, "ease": "back.out(2.2)", "immediateRender": false}, 21.875);
+tl.fromTo(".w3", {"yPercent": 115}, {"yPercent": 0, "duration": 0.35, "stagger": 0.14, "ease": "expo.out", "immediateRender": false}, 22.025);
+tl.fromTo("#cta", {"opacity": 0, "y": 50}, {"opacity": 1, "y": 0, "duration": 0.35, "ease": "back.out(2)", "immediateRender": false}, 22.48);
+tl.fromTo("#cta", {"scale": 1}, {"scale": 1.05, "duration": 0.15, "yoyo": true, "repeat": 3, "ease": "sine.inOut", "immediateRender": false}, 22.73);
+tl.fromTo("#cshine", {"x": 0}, {"x": 900, "duration": 0.6, "ease": "power2.inOut", "immediateRender": false}, 22.73);
+tl.fromTo("#url", {"opacity": 0}, {"opacity": 1, "duration": 0.3, "ease": "power1.out", "immediateRender": false}, 22.58);
+tl.to("#s3", {"opacity": 0, "duration": 0.25}, 24.95);
+tl.set('.later', { opacity: 0 }, 24.94); tl.set('#msgs', { y: 0 }, 24.94); tl.set('#b4', { boxShadow: 'none', scale: 1 }, 24.94);
+tl.fromTo("#chat", {"opacity": 0, "y": 0}, {"opacity": 1, "duration": 0.3, "immediateRender": false}, 25.18);
+tl.fromTo("#cap", {"opacity": 0}, {"opacity": 1, "duration": 0.3, "immediateRender": false}, 25.18);
+tl.fromTo("#hook", {"opacity": 0, "y": -30}, {"opacity": 1, "y": 0, "duration": 0.3, "immediateRender": false}, 25.18);
+window.__timelines["main"] = tl;
+    </script>
+  </body>
+</html>

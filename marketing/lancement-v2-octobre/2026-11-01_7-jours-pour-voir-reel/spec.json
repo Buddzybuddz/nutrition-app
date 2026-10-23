@@ -1,0 +1,24 @@
+{
+  "cards": [
+    { "text": "7 JOURS\nGRATUITS", "bg": "#10201A", "color": "ink", "size": 168, "beats": 3, "drop": true },
+    { "text": "Sans carte bancaire.", "small": true, "size": 92, "beats": 3, "ticks": 1 },
+    { "text": "0 CARTE\nBANCAIRE", "bg": "#2D6A4F", "size": 150, "beats": 3, "hit": true },
+    { "text": "SANS\nENGAGEMENT", "bg": "#B9553A", "size": 132, "beats": 2.5, "hit": true },
+    { "text": "ANNULATION\nIMMÉDIATE", "bg": "#10201A", "size": 112, "beats": 3, "hit": true },
+    { "text": "Ensuite…", "small": true, "size": 96, "beats": 1.5, "ticks": 2 },
+    { "text": "5,99 €\nPAR MOIS", "bg": "#F7F8F3", "color": "#10201A", "size": 190, "beats": 3, "hit": true },
+    { "text": "Résiliable à tout moment.", "small": true, "size": 68, "beats": 3, "ticks": 1 },
+    { "kind": "reveal", "text": "TESTE\nNUTRIDASH", "sub": "à ton rythme.", "beats": 6, "drop": true, "riser": true },
+    { "kind": "titlecard", "title": "NutriDash", "subtitle": "7 JOURS GRATUITS", "beats": 4 },
+    { "kind": "cta", "beats": 6 }
+  ],
+  "decor": "neutre",
+  "palette": {
+    "bg": "#10201A", "bg2": "#10201A", "ink": "#F7F8F3", "ink2": "#B9CFC2",
+    "accent": "#E07A5F", "accent_dark": "#B9553A", "on_accent": "#FFFFFF"
+  },
+  "music": { "file": "assets/music/bed.mp3", "bpm": 112, "first_beat": 0.0, "media_start": 0.0, "volume": 0.9 },
+  "brand": { "logo": "assets/img/logo.png" },
+  "finale": { "title": ["", ""], "cta": "Lien en bio", "url": "nutridash.fr", "duration": 3.6 },
+  "loop": true
+}
