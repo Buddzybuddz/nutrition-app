@@ -6144,3 +6144,119 @@ details[open] .advice-accordion-summary::after {
 .wk-legend .wk-dot:first-child { margin-left: 0; }
 .wk-day:focus-visible, .wk-cal-day:focus-visible, .wk-arrow:focus-visible, .wk-month:focus-visible, .wk-today:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 2px; }
 @media (max-width: 767px) { .wk-day { padding: 7px 0 6px; border-radius: 12px; } .wk-days { gap: 4px; } }
+
+/* ============================================================
+   ANIMATIONS — compteurs, entrées en cascade, indicateurs glissants, loader « aliments »
+   (animations.js pose les variables --ind-x / --pill-x / --pill-w et les classes .num-bump / .is-celebrate)
+   ============================================================ */
+
+/* Loader « aliments » : un aliment qui change toutes les ~700 ms ; n'apparaît qu'après 300 ms d'attente */
+.food-loader { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 28px 16px; color: var(--color-primary); }
+.food-loader-icons { position: relative; width: 44px; height: 44px; }
+.food-loader-icons svg { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; }
+.food-loader-icons svg:first-child { opacity: 1; }
+.food-loader-text { font-size: 13.5px; font-weight: 600; color: var(--color-text-2); }
+.food-loader--overlay { position: fixed; inset: 0; z-index: 90; justify-content: center; pointer-events: none; padding: 0; }
+.pv-sub-desc.is-pending { opacity: 0.7; }
+
+@media (prefers-reduced-motion: no-preference) {
+    .food-loader { animation: fl-in 0.25s ease-out 0.3s backwards; }
+    .food-loader-icons svg, .food-loader-icons svg:first-child { opacity: 0; animation: fl-cycle 4.9s infinite backwards; animation-delay: calc(var(--n) * 0.7s); }
+    @keyframes fl-in { from { opacity: 0; } }
+    @keyframes fl-cycle {
+        0%     { opacity: 0; transform: translateY(8px) scale(0.6); }
+        4%     { opacity: 1; transform: translateY(-4px) scale(1.1); }
+        8%     { opacity: 1; transform: translateY(0) scale(1); }
+        12%    { opacity: 1; transform: translateY(0) scale(1); }
+        14.28% { opacity: 0; transform: translateY(-4px) scale(0.8); }
+        100%   { opacity: 0; }
+    }
+    .pv-sub-desc.is-pending { animation: text-pulse 1.2s ease-in-out infinite; }
+    @keyframes text-pulse { 0%, 100% { opacity: 0.45; } 50% { opacity: 1; } }
+
+    /* Accueil : écran estompé pendant le chargement d'un autre jour */
+    .view.is-loading { opacity: 0.4; transition: opacity 0.2s ease-out; }
+
+    /* Compteurs et anneaux */
+    .num-bump { display: inline-block; animation: num-bump 0.45s cubic-bezier(0.34, 1.56, 0.64, 1); }
+    @keyframes num-bump { 0% { transform: scale(1); } 40% { transform: scale(1.22); } 100% { transform: scale(1); } }
+    .view:not(.hidden) .is-celebrate.is-celebrate { animation: celebrate 0.9s ease-out; }
+    @keyframes celebrate {
+        0%   { box-shadow: 0 0 0 0 rgba(45, 106, 79, 0.45); transform: scale(1); }
+        30%  { transform: scale(1.025); }
+        100% { box-shadow: 0 0 0 18px rgba(45, 106, 79, 0); transform: scale(1); }
+    }
+    .view:not(.hidden) .db-progress-fill { animation: bar-reveal 0.9s cubic-bezier(0.22, 1, 0.36, 1) 0.15s backwards; }
+    @keyframes bar-reveal { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
+
+    /* Entrée des cartes en cascade (chaque affichage d'un écran ou d'un onglet) */
+    .view:not(.hidden) :is(.card, .pg-card, .db-progress-card) { animation: card-in 0.5s cubic-bezier(0.22, 1, 0.36, 1) backwards; }
+    .view:not(.hidden) :is(.card, .pg-card, .db-progress-card):nth-child(2) { animation-delay: 0.06s; }
+    .view:not(.hidden) :is(.card, .pg-card, .db-progress-card):nth-child(3) { animation-delay: 0.12s; }
+    .view:not(.hidden) :is(.card, .pg-card, .db-progress-card):nth-child(4) { animation-delay: 0.18s; }
+    .view:not(.hidden) :is(.card, .pg-card, .db-progress-card):nth-child(5) { animation-delay: 0.24s; }
+    .view:not(.hidden) :is(.card, .pg-card, .db-progress-card):nth-child(6) { animation-delay: 0.3s; }
+    .view:not(.hidden) :is(.card, .pg-card, .db-progress-card):nth-child(n+7) { animation-delay: 0.36s; }
+    @keyframes card-in { from { opacity: 0; transform: translateY(14px); } }
+    .pg-panel:not([hidden]) { animation: panel-in 0.3s ease-out; }
+    @keyframes panel-in { from { opacity: 0; } }
+
+    /* Navigation du bas : l'indicateur glisse, l'icône active rebondit */
+    .bottom-nav.has-ind .bottom-nav-item.active::before { display: none; }
+    .bottom-nav::after { content: ''; position: absolute; top: 0; left: 0; width: 24px; height: 3px; border-radius: 0 0 3px 3px; background: var(--color-primary); opacity: 0; transform: translateX(calc(var(--ind-x, 0px) - 12px)); pointer-events: none; }
+    .bottom-nav.has-ind::after { opacity: 1; transition: transform 0.38s cubic-bezier(0.34, 1.3, 0.64, 1); }
+    .bottom-nav-item.active .bottom-nav-icon { animation: nav-pop 0.45s cubic-bezier(0.34, 1.56, 0.64, 1); }
+    @keyframes nav-pop { 0% { transform: scale(0.8) translateY(2px); } 100% { transform: scale(1) translateY(0); } }
+
+    /* Bouton « + » : rotation en ressort, options du menu en cascade */
+    .bottom-nav-add-btn svg { transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); }
+    .bottom-nav-add-menu.is-open .bottom-nav-add-option { animation: opt-in 0.3s cubic-bezier(0.34, 1.3, 0.64, 1) backwards; }
+    .bottom-nav-add-menu.is-open .bottom-nav-add-option:nth-child(2) { animation-delay: 0.05s; }
+    @keyframes opt-in { from { opacity: 0; transform: translateY(10px) scale(0.95); } }
+
+    /* Onglets Objectifs / Poids / Favoris : la pastille blanche glisse sous le texte */
+    .pg-tabs { position: relative; }
+    .pg-tab { position: relative; z-index: 1; transition: color 0.2s ease-out; }
+    .pg-tabs.has-pill::before { content: ''; position: absolute; top: 4px; bottom: 4px; left: 0; width: var(--pill-w); border-radius: 11px; background: var(--color-surface); box-shadow: 0 1px 4px rgba(26, 46, 34, 0.12); transform: translateX(var(--pill-x)); transition: transform 0.35s cubic-bezier(0.34, 1.2, 0.64, 1), width 0.35s cubic-bezier(0.34, 1.2, 0.64, 1); }
+    .pg-tabs.has-pill .pg-tab.is-active { background: transparent; box-shadow: none; }
+
+    /* Fenêtres : ouverture en ressort (feuille montante sur mobile) */
+    .modal-content { transition: transform 0.5s cubic-bezier(0.34, 1.25, 0.64, 1), opacity 0.25s ease-out; }
+    @media (max-width: 767px) {
+        /* ombre pleine sous la feuille : masque l'écart quand le ressort dépasse sa position finale */
+        .modal-content { box-shadow: 0 20px 48px rgba(45, 106, 79, 0.16), 0 8px 16px rgba(45, 106, 79, 0.08), 0 40px 0 0 var(--color-surface); }
+    }
+
+    /* Assistant IA : les messages apparaissent en zoom léger, la réponse se révèle mot à mot */
+    .ia-msg { animation: msg-in 0.3s cubic-bezier(0.22, 1, 0.36, 1); }
+    .ia-msg--user { transform-origin: bottom right; }
+    .ia-msg--model { transform-origin: bottom left; }
+    @keyframes msg-in { from { opacity: 0; transform: translateY(8px) scale(0.96); } }
+    .ia-word { animation: word-in 0.35s ease-out backwards; }
+    @keyframes word-in { from { opacity: 0; } }
+
+    /* Bandeau de la semaine */
+    .wk-days.wk-slide-next { animation: wk-next 0.35s cubic-bezier(0.22, 1, 0.36, 1); }
+    .wk-days.wk-slide-prev { animation: wk-prev 0.35s cubic-bezier(0.22, 1, 0.36, 1); }
+    @keyframes wk-next { from { opacity: 0; transform: translateX(28px); } }
+    @keyframes wk-prev { from { opacity: 0; transform: translateX(-28px); } }
+    .wk-day.is-pop { animation: wk-pop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); }
+    @keyframes wk-pop { 0% { transform: scale(0.88); } 100% { transform: scale(1); } }
+
+    /* Étoile des favoris */
+    .fav-star.is-on { animation: star-pop 0.45s cubic-bezier(0.34, 1.56, 0.64, 1); }
+    @keyframes star-pop { 0% { transform: scale(1); } 35% { transform: scale(1.18) rotate(-4deg); } 100% { transform: scale(1) rotate(0); } }
+
+    /* Appui : léger enfoncement des boutons (spécificité nulle : n'écrase aucun style existant) */
+    :where(button:not(:disabled):not(.bottom-nav-add-btn)) { transition-property: transform, background-color, color, border-color, box-shadow, opacity; transition-duration: 0.12s; transition-timing-function: ease-out; }
+    :where(button:not(:disabled):not(.bottom-nav-add-btn):not(.ai-link):not(.pg-tab)):active { transform: scale(0.97); }
+}
+
+/* Assistant IA : bulle d'attente avec les étapes de réflexion */
+.ia-msg.ia-thinking { display: flex; align-items: center; gap: 10px; }
+.ia-thinking .ia-typing { padding: 0; flex: none; }
+.ia-step { font-size: 13.5px; line-height: 1.4; color: var(--color-text-2); }
+@media (prefers-reduced-motion: no-preference) {
+    .ia-step { animation: ia-step-in 0.4s cubic-bezier(0.22, 1, 0.36, 1); }
+    @keyframes ia-step-in { from { opacity: 0; transform: translateY(6px); } }
+}

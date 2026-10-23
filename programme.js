@@ -277,7 +277,7 @@
 
     function renderFavoris() {
         var box = $('pg-panel-favoris'), token = ++favToken;
-        box.innerHTML = '<p class="pg-muted pg-intro">Chargement de vos repas…</p>';
+        box.innerHTML = window.foodLoader('Chargement de vos repas…');
         var saved = typeof window.loadFavorites === 'function' ? window.loadFavorites(true) : Promise.resolve([]);
         Promise.all([allMeals().catch(function () { return memoryMeals(); }), saved]).then(function (res) {
             if (token !== favToken) return; /* un rendu plus récent a pris le relais */

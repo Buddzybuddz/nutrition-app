@@ -196,6 +196,77 @@
         }
     }
 
+    /* ── Étapes affichées pendant la réflexion ────────────────
+       Chaque phrase correspond à une donnée que le serveur envoie réellement à l'assistant (buildContext) :
+       la journée, les 13 jours précédents, les goûts, les pesées. Les chiffres viennent de l'état local. */
+
+    function localToday() { return today || formatISOLocal(new Date()); }
+
+    function recentDaysLogged() {
+        var n = 0, d = new Date();
+        for (var i = 1; i <= 13; i++) {
+            d.setDate(d.getDate() - 1);
+            var log = (state.history || {})[formatISOLocal(d)];
+            if (log && log.consumedCals > 0) n++;
+        }
+        return n;
+    }
+
+    function thinkingSteps(question) {
+        var q = String(question).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+        var p = typeof state !== 'undefined' ? state.profile : null;
+        var steps = ['Je lis votre question…'];
+        var wantsWeek = /semaine|bilan|hier|jours|tendance|evolu/.test(q);
+        var wantsMeal = /manger|repas|recette|idee|soir|midi|dejeuner|diner|petit|collation|menu|cuisin/.test(q);
+        var wantsWeight = /poids|pesee|kg|maigr|perdre|grossir|objectif/.test(q);
+
+        if (p) {
+            var log = (state.history || {})[localToday()] || {};
+            var coef = p.goal === 'loss' ? 0.9 : (p.goal === 'gain' ? 1.1 : 1);
+            var weight = getLatestWeight();
+            var cals = Math.round(log.consumedCals || 0), prot = Math.round(log.consumedProtein || 0);
+            var calGoal = Math.round((p.tdee || 0) * coef + (log.bonusTDEE || 0)), protGoal = Math.round(weight * 2);
+            if (calGoal) {
+                steps.push('Je regarde votre journée : ' + cals + ' kcal sur ' + calGoal + ', ' + prot + ' g de protéines sur ' + protGoal + '.');
+                if (wantsMeal) {
+                    var left = calGoal - cals;
+                    steps.push(left > 0 ? 'Il vous reste ' + left + ' kcal et ' + Math.max(0, protGoal - prot) + ' g de protéines à répartir.' : 'Votre objectif de calories du jour est déjà atteint.');
+                }
+            }
+            if (wantsWeight && weight) {
+                var target = Number(p.targetWeight);
+                steps.push('Je regarde vos pesées : ' + String(weight).replace('.', ',') + ' kg' + (target ? ', cible ' + String(target).replace('.', ',') + ' kg' : '') + '.');
+            }
+        }
+        if (wantsMeal) steps.push('Je repense à vos repas favoris et aux aliments que vous mangez le plus.');
+        if (wantsWeek || steps.length < 3) {
+            var n = recentDaysLogged();
+            steps.push(n ? 'Je compare avec vos 13 derniers jours (' + n + ' avec des repas saisis).' : 'Je regarde vos 13 derniers jours (aucun repas saisi pour l’instant).');
+        }
+        steps.push('Je prépare ma réponse…');
+        return steps.length > 5 ? steps.slice(0, 4).concat(steps[steps.length - 1]) : steps;
+    }
+
+    /* Remplit la bulle d'attente (points + phrase qui change toutes les ~2 s) ; renvoie la fonction d'arrêt. */
+    function startThinking(bubble, question) {
+        var steps = thinkingSteps(question), i = 0;
+        bubble.classList.add('ia-thinking');
+        bubble.innerHTML = '<span class="ia-typing" aria-hidden="true"><span></span><span></span><span></span></span><span class="ia-step"></span>';
+        var line = bubble.querySelector('.ia-step');
+        function show() {
+            var el = line.cloneNode(false);
+            el.textContent = steps[i];
+            line.replaceWith(el); /* nouvel élément : l'animation d'entrée se rejoue */
+            line = el;
+            scrollDown();
+        }
+        show();
+        var timer = setInterval(function () {
+            if (i < steps.length - 1) { i++; show(); } else clearInterval(timer);
+        }, 2000);
+        return function () { clearInterval(timer); };
+    }
+
     async function send(text) {
         text = String(text || '').trim();
         if (!text || busy) return;
@@ -205,16 +276,17 @@
         $('ia-input').value = '';
         addBubble('user', text);
         var typing = addBubble('model', '');
-        typing.classList.add('ia-typing');
-        typing.innerHTML = '<span></span><span></span><span></span>';
+        var stopThinking = startThinking(typing, text);
         try {
             var r = await pb.send('/api/ai/chat', { method: 'POST', body: { message: text } });
+            stopThinking();
             typing.remove();
-            addBubble('model', r.reply);
+            window.animReveal(addBubble('model', r.reply));
             busy = false;
             setUsage(r.usage);
             if (!days.some(function (d) { return d.day === today; })) { days.unshift({ day: today, count: 2, first: text.slice(0, 80) }); renderDays(); }
         } catch (err) {
+            stopThinking();
             typing.remove();
             var resp = (err && err.response) || {};
             busy = false;

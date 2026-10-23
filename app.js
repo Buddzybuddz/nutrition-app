@@ -724,6 +724,7 @@ function updateDashboard() {
         const processPercVal = Math.round((completedItems.length / mandatorySequence.length) * 100);
         progressFill.style.width = processPercVal + '%';
         progressPerc.textContent = processPercVal + '%';
+        animCelebrate(document.getElementById('daily-progress-container'), processPercVal === 100, dateStr);
 
         // 4. Generate dynamic status text
         const nextStep = mandatorySequence.find(s => !completedItems.includes(s));
@@ -838,8 +839,8 @@ function updateDashboard() {
     const targetTdee = (baseTdee * goalMultiplier) + actLog.bonusTDEE;
     const remaining = targetTdee - actLog.consumedCals;
     
-    if (calsGoal) calsGoal.textContent = Math.round(targetTdee);
-    if (calsConsumed) calsConsumed.textContent = Math.round(actLog.consumedCals);
+    if (calsGoal) animNum(calsGoal, targetTdee);
+    if (calsConsumed) animNum(calsConsumed, actLog.consumedCals);
     
     // Protein Logic : 2g par kg de poids de corps actuel
     const currentWeight = getLatestWeight();
@@ -849,8 +850,8 @@ function updateDashboard() {
     
     const pGoalEl = document.getElementById('protein-goal');
     const pConsEl = document.getElementById('protein-consumed');
-    if (pGoalEl) pGoalEl.textContent = Math.round(targetProtein);
-    if (pConsEl) pConsEl.textContent = Math.round(consumedProtein);
+    if (pGoalEl) animNum(pGoalEl, targetProtein);
+    if (pConsEl) animNum(pConsEl, consumedProtein);
     
     const proteinCircle = document.getElementById('protein-progress');
     const proteinRemainingEl = document.getElementById('protein-remaining');
@@ -861,12 +862,13 @@ function updateDashboard() {
         let degProtein = percProtein * 360;
         
         if (remainingProtein <= 0) {
-            proteinRemainingEl.textContent = "0";
-            proteinCircle.style.background = `conic-gradient(var(--color-primary) 360deg, var(--color-surface) 0deg)`;
+            animNum(proteinRemainingEl, 0);
+            animRing(proteinCircle, 360, 'var(--color-primary)');
         } else {
-            proteinRemainingEl.textContent = Math.round(Math.abs(remainingProtein));
-            proteinCircle.style.background = `conic-gradient(var(--color-primary) ${degProtein}deg, var(--color-surface) ${degProtein}deg)`;
+            animNum(proteinRemainingEl, Math.abs(remainingProtein));
+            animRing(proteinCircle, degProtein, 'var(--color-primary)');
         }
+        animCelebrate(proteinCircle.closest('.progress-card'), remainingProtein <= 0, dateStr);
     }
 
     // Progress circle (0 to 360 deg) for calories
@@ -876,14 +878,14 @@ function updateDashboard() {
     
     if (remaining < 0) {
         progressCircle.classList.add('danger');
-        calsRemaining.textContent = Math.round(Math.abs(remaining));
+        animNum(calsRemaining, Math.abs(remaining));
         document.querySelector('.remaining-label').innerHTML = 'dépassement<br>kcal';
-        progressCircle.style.background = `conic-gradient(#C0392B 360deg, var(--color-surface) 0deg)`;
+        animRing(progressCircle, 360, '#C0392B');
     } else {
         progressCircle.classList.remove('danger');
-        calsRemaining.textContent = Math.round(remaining);
+        animNum(calsRemaining, remaining);
         document.querySelector('.remaining-label').innerHTML = 'kcal';
-        progressCircle.style.background = `conic-gradient(var(--color-accent) ${degrees}deg, var(--color-surface) ${degrees}deg)`;
+        animRing(progressCircle, degrees, 'var(--color-accent)');
     }
 
     // Render history
@@ -950,10 +952,8 @@ window.changeDate = async function(offset) {
 
     // Charger les données du jour si non présentes
     if (typeof currentUser !== 'undefined' && currentUser && typeof loadDayData === 'function') {
-        const dashboardView = document.getElementById('dashboard-view');
-        if (dashboardView) dashboardView.style.opacity = '0.5'; // Feedback visuel de chargement
-        await loadDayData(newDateStr);
-        if (dashboardView) dashboardView.style.opacity = '1';
+        animDashLoading(true); // Feedback de chargement : écran estompé + loader
+        try { await loadDayData(newDateStr); } finally { animDashLoading(false); }
     }
 
     updateDashboard();

@@ -27,17 +27,15 @@
         if (!dateStr || dateStr === state.currentViewDate) return;
         state.currentViewDate = dateStr;
         if (typeof currentUser !== 'undefined' && currentUser && typeof loadDayData === 'function') {
-            var view = document.getElementById('dashboard-view');
-            if (view) view.style.opacity = '0.5';
-            await loadDayData(dateStr);
-            if (view) view.style.opacity = '1';
+            animDashLoading(true);
+            try { await loadDayData(dateStr); } finally { animDashLoading(false); }
         }
         updateDashboard();
     };
 
-    function dayButton(d, selectedStr, todayStr) {
+    function dayButton(d, selectedStr, todayStr, popDate) {
         var s = iso(d), st = statusOf(s);
-        var cls = 'wk-day' + (s === selectedStr ? ' is-selected' : '') + (s === todayStr ? ' is-today' : '') + (s > todayStr ? ' is-future' : '');
+        var cls = 'wk-day' + (s === selectedStr ? ' is-selected' : '') + (s === popDate ? ' is-pop' : '') + (s === todayStr ? ' is-today' : '') + (s > todayStr ? ' is-future' : '');
         var label = cap(d.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })) +
             (s === todayStr ? ' (aujourd’hui)' : '') + ' : ' + STATUS_LABEL[st];
         return '<button type="button" class="' + cls + '" data-date="' + s + '" aria-label="' + label + '"' +
@@ -51,10 +49,19 @@
         var box = document.getElementById('week-strip');
         if (!box || !state.currentViewDate) return;
         var sel = parseDateFR(state.currentViewDate), selStr = iso(sel), todayStr = iso(new Date());
-        var mon = mondayOf(sel), html = '';
-        for (var i = 0; i < 7; i++) html += dayButton(addDays(mon, i), selStr, todayStr);
+        var mon = mondayOf(sel), html = '', monStr = iso(mon);
+        /* Jour choisi dans la même semaine : le jour sélectionné « pop » ; autre semaine : la rangée glisse */
+        var prevWeek = box.dataset.week, prevSel = box.dataset.sel;
+        var popDate = prevSel && prevSel !== selStr && prevWeek === monStr ? selStr : '';
+        var slide = prevWeek && prevWeek !== monStr ? (monStr > prevWeek ? 'wk-slide-next' : 'wk-slide-prev') : '';
+        box.dataset.week = monStr; box.dataset.sel = selStr;
+        for (var i = 0; i < 7; i++) html += dayButton(addDays(mon, i), selStr, todayStr, popDate);
         var days = document.getElementById('week-days');
-        if (days) days.innerHTML = html;
+        if (days) {
+            days.classList.remove('wk-slide-next', 'wk-slide-prev');
+            days.innerHTML = html;
+            if (slide) { void days.offsetWidth; days.classList.add(slide); }
+        }
         var label = document.getElementById('week-month');
         if (label) label.firstChild.nodeValue = cap(sel.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' }));
         var today = document.getElementById('week-today');
