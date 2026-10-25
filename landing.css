@@ -101,7 +101,7 @@ body:has(.landing-page:not(.hidden)) { overflow-x: clip; overflow-y: visible; }
 .lx-type { display: block; overflow: hidden; white-space: nowrap; width: 0; font-weight: 600; animation: lx-typing 12s steps(32) infinite; }
 
 /* Bandeau d'exemples */
-.lx-tick { position: relative; z-index: 3; border-top: 1px solid #24392f; overflow: hidden; background: rgba(16, 32, 26, .85); }
+.lx-tick { position: relative; z-index: 3; margin: 0 -20px; border-top: 1px solid #24392f; overflow: hidden; background: rgba(16, 32, 26, .85); }
 .lx-tick-track { display: flex; gap: 44px; width: max-content; padding: 16px 0; animation: lx-marq 36s linear infinite; }
 .lx-tick-track span { display: flex; align-items: center; gap: 44px; font-family: 'DM Sans', sans-serif; font-size: 1.125rem; color: #B9CFC2; white-space: nowrap; }
 .lx-tick-track span::after { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--lx-salmon); }
@@ -262,7 +262,6 @@ body:has(.landing-page:not(.hidden)) { overflow-x: clip; overflow-y: visible; }
     .lx-story-ph .lx-screen img:nth-child(1) { animation-name: lx-s1; }
     .lx-story-ph .lx-screen img:nth-child(2) { animation-name: lx-s2; }
     .lx-story-ph .lx-screen img:nth-child(3) { animation-name: lx-s3; }
-    .lx-scrolled { animation-timeline: view(); animation-range: entry 10% cover 40%; }
 }
 
 /* ---- Tablette et mobile ---- */
@@ -320,3 +319,67 @@ body:has(.landing-page:not(.hidden)) { overflow-x: clip; overflow-y: visible; }
     .lx-num.n-prot { --lx-n: 99; }
     .lx-st--done i { background: var(--color-primary); border: 2px solid var(--color-primary); }
 }
+
+/* ============================================================
+   Mouvement : bandeau, arrière-plan vivant, tuiles, frise, progression
+   ============================================================ */
+
+/* Bandeau de mots-clés (défile en boucle, s'arrête au survol) */
+.lx-band { overflow: hidden; background: var(--lx-mint); border-block: 1px solid #B7E4C7; margin: 24px 0 8px; }
+.lx-band-track { display: flex; width: max-content; padding: 18px 0; animation: lx-marq 44s linear infinite; }
+.lx-band-track span { display: flex; align-items: center; font-family: 'DM Sans', sans-serif; font-weight: 700; font-size: clamp(1.25rem, 2.6vw, 1.75rem); letter-spacing: -.02em; color: #1B4332; white-space: nowrap; }
+.lx-band-track span::after { content: ""; width: 9px; height: 9px; margin: 0 32px; border-radius: 50%; background: var(--lx-salmon); }
+.lx-band:hover .lx-band-track { animation-play-state: paused; }
+
+/* Arrière-plan : deux grandes taches floues qui dérivent derrière le contenu */
+.lx-aurora { position: relative; isolation: isolate; overflow: clip; }
+.lx-aurora::before, .lx-aurora::after { content: ""; position: absolute; z-index: -1; width: 520px; height: 520px; border-radius: 50%; filter: blur(90px); pointer-events: none; animation: lx-drift 24s ease-in-out infinite alternate; }
+.lx-aurora::before { top: -120px; left: -160px; background: rgba(149, 213, 178, .45); }
+.lx-aurora::after { bottom: -140px; right: -180px; background: rgba(224, 122, 95, .22); animation-delay: -12s; animation-duration: 30s; }
+@keyframes lx-drift { from { transform: translate3d(0, 0, 0) scale(1); } to { transform: translate3d(70px, 50px, 0) scale(1.15); } }
+
+/* Tuiles : inclinaison et reflet qui suivent le curseur (ajoutés par landing-motion.js) */
+.lx-bento .lx-tile::after { content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; opacity: 0; transition: opacity .3s; background: radial-gradient(340px circle at var(--mx, 50%) var(--my, 50%), rgba(255, 255, 255, .6), transparent 62%); }
+.lx-bento .lx-tile--dark::after { background: radial-gradient(340px circle at var(--mx, 50%) var(--my, 50%), rgba(149, 213, 178, .2), transparent 62%); }
+.lx-bento .lx-tile.lx-live:hover::after { opacity: 1; }
+.lx-bento .lx-tile.lx-live { transform: perspective(900px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)) translateY(var(--ty, 0)); transition: transform .18s ease-out, box-shadow .35s, opacity .55s; transition-delay: 0s; }
+.lx-bento .lx-tile.lx-live:hover { --ty: -4px; }
+
+/* Frise « Mon histoire » : la ligne se remplit et les points s'allument au fil du défilement */
+.lx-hist-steps.is-live::after { content: ""; position: absolute; left: 7px; top: 12px; bottom: 12px; width: 2px; border-radius: 2px; background: var(--color-primary); transform-origin: top; transform: scaleY(var(--p, 0)); }
+.lx-hist-steps.is-live .lx-hist-item::before { border-color: var(--color-border); transition: border-color .3s, transform .4s cubic-bezier(.3, 1.6, .5, 1); }
+.lx-hist-steps.is-live .lx-hist-item.is-on::before { border-color: var(--color-primary); transform: scale(1.25); }
+.lx-hist-steps.is-live .lx-hist-item:last-child.is-on::before { border-color: var(--lx-salmon); }
+
+/* Rail des 7 jours : la ligne et les points se jouent au défilement quand le navigateur le permet */
+@supports (animation-timeline: view()) {
+    .lx-rail::after { animation: lx-grow linear both; animation-timeline: view(); animation-range: entry 25% cover 45%; }
+    .lx-day::before { animation: lx-dot linear both; animation-timeline: view(); animation-range: entry calc(20% + var(--i) * 4%) entry calc(45% + var(--i) * 4%); }
+}
+
+/* Barre de progression de lecture et bouton flottant (desktop) */
+.lx-progress { position: fixed; top: 0; left: 0; right: 0; height: 3px; z-index: 200; pointer-events: none; }
+.lx-progress i { display: block; height: 100%; background: linear-gradient(90deg, var(--color-primary), var(--lx-salmon)); transform: scaleX(0); transform-origin: left; }
+@media (min-width: 901px) {
+    .lx-sticky-cta { display: block; position: fixed; right: 28px; bottom: 28px; z-index: 90; opacity: 0; transform: translateY(20px); pointer-events: none; transition: opacity .35s, transform .35s cubic-bezier(.2, .7, .2, 1); }
+    .lx-sticky-cta.is-visible { opacity: 1; transform: none; pointer-events: auto; }
+}
+@media (max-width: 900px) {
+    @supports (animation-timeline: view()) { .lx-rail::after { animation-name: lx-growy; } }
+    .lx-aurora::before, .lx-aurora::after { width: 320px; height: 320px; filter: blur(60px); }
+}
+@media (prefers-reduced-motion: reduce) {
+    .lx-band-track, .lx-aurora::before, .lx-aurora::after { animation: none; }
+    .lx-sticky-cta { transition: none; }
+}
+
+/* Chiffres, anneaux, courbe et conversation : la lecture démarre quand ils entrent à l'écran
+   (classe is-play posée par landing-motion.js ; sans JS ils jouent au chargement) */
+.lx-motion-on .lx-ring-fill, .lx-motion-on .lx-num, .lx-motion-on .lx-st--done i,
+.lx-motion-on .lx-chat div, .lx-motion-on .lx-cnt, .lx-motion-on .lx-draw, .lx-motion-on .lx-end { animation-play-state: paused; }
+.lx-motion-on .is-play .lx-ring-fill, .lx-motion-on .is-play .lx-num, .lx-motion-on .is-play .lx-st--done i,
+.lx-motion-on .is-play.lx-chat div, .lx-motion-on .is-play .lx-cnt, .lx-motion-on .is-play .lx-draw, .lx-motion-on .is-play .lx-end { animation-play-state: running; }
+.lx-end { transform-box: fill-box; transform-origin: center; animation: lx-end-pop .5s 2.4s cubic-bezier(.3, 1.6, .5, 1) both; }
+@keyframes lx-end-pop { from { opacity: 0; transform: scale(0); } to { opacity: 1; transform: scale(1); } }
+.lx-chat div { transform-origin: bottom left; }
+.lx-chat .u { transform-origin: bottom right; }

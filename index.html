@@ -73,7 +73,7 @@
 
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css?v=14">
-<link rel="stylesheet" href="landing.css?v=1">
+<link rel="stylesheet" href="landing.css?v=3">
     <link rel="icon" type="image/png" href="Images/Logos/icon-192.png?v=2">
     <link rel="apple-touch-icon" sizes="180x180" href="Images/Logos/apple-touch-icon.png?v=2">
     <link rel="manifest" href="manifest.json">
@@ -171,7 +171,13 @@
         </section>
 
         <!-- Fonctionnalités -->
-        <section class="lx-sec" style="padding-top:24px">
+        <!-- Bandeau de mots-clés -->
+        <div class="lx-band" aria-hidden="true"><div class="lx-band-track">
+            <span>Une phrase</span><span>Vos calories</span><span>Vos protéines</span><span>Votre poids</span><span>Vos favoris</span><span>Votre assistant</span><span>Votre rythme</span>
+            <span>Une phrase</span><span>Vos calories</span><span>Vos protéines</span><span>Votre poids</span><span>Vos favoris</span><span>Votre assistant</span><span>Votre rythme</span>
+        </div></div>
+
+        <section class="lx-sec lx-aurora" style="padding-top:24px">
             <div class="lx-wrap">
                 <div class="lp-reveal">
                     <span class="lx-eyebrow">Tout ce qu'il faut, rien de plus</span>
@@ -179,14 +185,14 @@
                 </div>
                 <div class="lx-bento">
                     <div class="lx-tile lx-t7 lp-reveal"><h3>Vos anneaux du jour</h3><p>Calories et protéines d'un coup d'œil, avec les étapes de la journée : petit-déjeuner, déjeuner, collation, dîner.</p>
-                        <div class="lx-today" aria-hidden="true"><div class="lx-today-top"><strong>Aujourd'hui</strong><span>Exemple illustratif</span></div><div class="lx-rings"><div class="lx-ring-box"><div class="lx-ring"><svg viewBox="0 0 120 120" aria-hidden="true"><circle cx="60" cy="60" r="52" fill="none" stroke="#E2E8DF" stroke-width="11"/><circle class="lx-ring-fill r-cal lx-scrolled" cx="60" cy="60" r="52" fill="none" stroke="#2D6A4F" stroke-width="11" stroke-linecap="round" pathLength="100" transform="rotate(-90 60 60)"/></svg><div class="lx-ring-c"><strong class="lx-num n-cal lx-scrolled"></strong><span>kcal restantes</span></div></div><span class="lx-ring-sub">710 / 1896 kcal</span></div><div class="lx-ring-box"><div class="lx-ring"><svg viewBox="0 0 120 120" aria-hidden="true"><circle cx="60" cy="60" r="52" fill="none" stroke="#E2E8DF" stroke-width="11"/><circle class="lx-ring-fill r-prot lx-scrolled" cx="60" cy="60" r="52" fill="none" stroke="#E07A5F" stroke-width="11" stroke-linecap="round" pathLength="100" transform="rotate(-90 60 60)"/></svg><div class="lx-ring-c"><strong class="lx-num n-prot lx-scrolled"></strong><span>g restants</span></div></div><span class="lx-ring-sub">33 / 132 g prot.</span></div></div><div class="lx-steps-row"><span class="lx-steps-t">Étapes du jour</span><div class="lx-sts"><span class="lx-st lx-st--done" style="--k:0"><i></i>Pesée</span><span class="lx-st lx-st--done" style="--k:1"><i></i>Petit-déj.</span><span class="lx-st" style="--k:2"><i></i>Déjeuner</span><span class="lx-st lx-st--done" style="--k:3"><i></i>Collation</span><span class="lx-st" style="--k:4"><i></i>Dîner</span></div></div></div></div>
+                        <div class="lx-today" aria-hidden="true"><div class="lx-today-top"><strong>Aujourd'hui</strong><span>Exemple illustratif</span></div><div class="lx-rings"><div class="lx-ring-box"><div class="lx-ring"><svg viewBox="0 0 120 120" aria-hidden="true"><circle cx="60" cy="60" r="52" fill="none" stroke="#E2E8DF" stroke-width="11"/><circle class="lx-ring-fill r-cal" cx="60" cy="60" r="52" fill="none" stroke="#2D6A4F" stroke-width="11" stroke-linecap="round" pathLength="100" transform="rotate(-90 60 60)"/></svg><div class="lx-ring-c"><strong class="lx-num n-cal"></strong><span>kcal restantes</span></div></div><span class="lx-ring-sub">710 / 1896 kcal</span></div><div class="lx-ring-box"><div class="lx-ring"><svg viewBox="0 0 120 120" aria-hidden="true"><circle cx="60" cy="60" r="52" fill="none" stroke="#E2E8DF" stroke-width="11"/><circle class="lx-ring-fill r-prot" cx="60" cy="60" r="52" fill="none" stroke="#E07A5F" stroke-width="11" stroke-linecap="round" pathLength="100" transform="rotate(-90 60 60)"/></svg><div class="lx-ring-c"><strong class="lx-num n-prot"></strong><span>g restants</span></div></div><span class="lx-ring-sub">33 / 132 g prot.</span></div></div><div class="lx-steps-row"><span class="lx-steps-t">Étapes du jour</span><div class="lx-sts"><span class="lx-st lx-st--done" style="--k:0"><i></i>Pesée</span><span class="lx-st lx-st--done" style="--k:1"><i></i>Petit-déj.</span><span class="lx-st" style="--k:2"><i></i>Déjeuner</span><span class="lx-st lx-st--done" style="--k:3"><i></i>Collation</span><span class="lx-st" style="--k:4"><i></i>Dîner</span></div></div></div></div>
                     <div class="lx-tile lx-t5 lx-tile--dark lp-reveal lp-reveal-d1"><h3>Un assistant qui connaît vos repas</h3><p>Posez vos questions, il répond avec vos vraies données.</p>
                         <div class="lx-chat" aria-hidden="true"><div class="u">Une idée pour ce soir ?</div><div class="a">Il vous reste de la place pour des protéines : saumon grillé, riz et brocoli.</div><div class="u u2">Et pour la semaine ?</div><div class="a a2">Vous êtes régulier, il manque surtout des protéines au dîner.</div></div>
                         <span class="lx-note">Exemple de conversation. Conseils généraux, ne remplace pas un professionnel de santé.</span></div>
                     <div class="lx-tile lx-t4 lp-reveal"><h3>Suivi du poids</h3><p>Une pesée par semaine, une courbe qui se dessine.</p>
-                        <svg viewBox="0 0 240 110" width="100%" style="margin-top:18px" aria-hidden="true"><path d="M0 100H240M0 60H240M0 20H240" stroke="#E2E8DF" stroke-width="1"/><path class="lx-draw lx-scrolled" pathLength="1" d="M4 22 C34 28 44 40 70 44 S112 58 136 62 S190 80 236 88" fill="none" stroke="#2D6A4F" stroke-width="3.5" stroke-linecap="round"/><circle cx="236" cy="88" r="5" fill="#E07A5F"/></svg></div>
+                        <svg viewBox="0 0 240 110" width="100%" style="margin-top:18px" aria-hidden="true"><path d="M0 100H240M0 60H240M0 20H240" stroke="#E2E8DF" stroke-width="1"/><path class="lx-draw" pathLength="1" d="M4 22 C34 28 44 40 70 44 S112 58 136 62 S190 80 236 88" fill="none" stroke="#2D6A4F" stroke-width="3.5" stroke-linecap="round"/><circle class="lx-end" cx="236" cy="88" r="5" fill="#E07A5F"/></svg></div>
                     <div class="lx-tile lx-t4 lx-tile--mint lp-reveal lp-reveal-d1"><h3>Votre budget calculé</h3><p>Âge, poids, taille, objectif : NutriDash en tire vos calories et vos protéines.</p>
-                        <div class="lx-big" aria-hidden="true"><span class="lx-cnt lx-scrolled"></span><small>kcal / jour</small></div><span class="lx-note" style="color:#1B4332">Exemple illustratif.</span></div>
+                        <div class="lx-big" aria-hidden="true"><span class="lx-cnt"></span><small>kcal / jour</small></div><span class="lx-note" style="color:#1B4332">Exemple illustratif.</span></div>
                     <div class="lx-tile lx-t4 lp-reveal lp-reveal-d2"><h3>Favoris en un geste</h3><p>Vos repas et activités habituels, réutilisés sans rien retaper.</p>
                         <div class="lx-chips" aria-hidden="true"><span>Porridge banane</span><span>Salade poulet</span><span>Vélo 45 min</span><span>Yaourt grec</span></div></div>
                 </div>
@@ -218,7 +224,7 @@
         </section>
 
         <!-- Mon histoire -->
-        <section class="lx-sec lx-histoire" id="lx-histoire">
+        <section class="lx-sec lx-histoire lx-aurora" id="lx-histoire">
             <div class="lx-wrap">
                 <div class="lx-hist-g">
                     <div class="lx-hist-intro lp-reveal">
@@ -360,6 +366,8 @@
                 </div>
             </div>
         </footer>
+
+        <div class="lx-progress" aria-hidden="true"><i></i></div>
 
         <div class="lx-sticky-cta"><button class="lx-btn" onclick="showAuthPage(true)">Essayer 7 jours gratuits</button></div>
 
@@ -1228,6 +1236,7 @@
     <script defer src="auth-pb.js"></script>
     <script defer src="admin.js"></script>
     <script defer src="ai-estimate.js"></script>
+    <script defer src="landing-motion.js?v=2"></script>
     <script defer src="cheat-meal.js"></script>
     <script defer src="quick-add.js"></script>
     <script defer src="ia.js"></script>
