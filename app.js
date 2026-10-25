@@ -595,6 +595,9 @@ window.editEntry = function(id) {
         typeSelect.dispatchEvent(new Event('change', { bubbles: true }));
         document.getElementById('meal-cals').value = entry.cals;
         document.getElementById('meal-protein').value = Math.round(Number(entry.prot) || 0);
+        // Repas estimé par l'IA : la composition saisie/estimée préremplit le champ de description
+        const aiText = document.getElementById('meal-ai-text');
+        if (aiText) aiText.value = entry.desc || '';
         document.getElementById('meal-form').dataset.editingId = id;
         document.getElementById('meal-form').querySelector('button[type="submit"]').textContent = 'Enregistrer la modification';
         if(window.openMealModal) window.openMealModal(true);
