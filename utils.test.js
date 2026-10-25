@@ -6,7 +6,8 @@ import {
     formatISOLocal,
     parseDateFR,
     sortDatesFR,
-    formatDateFR
+    formatDateFR,
+    computeWeekBalance
 } from './utils.js';
 
 describe('Utils Functions', () => {
@@ -117,4 +118,42 @@ describe('Utils Functions', () => {
         });
     });
 
+
+    describe('computeWeekBalance', () => {
+        const day = (cals, prot, extra = {}) => ({ consumedCals: cals, consumedProtein: prot, baseTDEE: 2000, goalMultiplier: 1, bonusTDEE: 0, ...extra });
+
+        it('renvoie un bilan vide sans historique', () => {
+            expect(computeWeekBalance({}, '2026-10-25', 130, 2000))
+                .toEqual({ daysLogged: 0, daysOk: 0, surplus: 0, kg: 0, maxGap: null });
+        });
+
+        it('exclut aujourd\'hui et les jours au-delà de 7 jours', () => {
+            const h = { '2026-10-25': day(3000, 130), '2026-10-17': day(3000, 130), '2026-10-24': day(2000, 130), '2026-10-18': day(2000, 130) };
+            const r = computeWeekBalance(h, '2026-10-25', 130, 2000);
+            expect(r.daysLogged).toBe(2);
+            expect(r.surplus).toBe(0);
+        });
+
+        it('valide un jour entre 90 et 105 % des kcal avec 90 % des protéines', () => {
+            const h = { '2026-10-24': day(1800, 117), '2026-10-23': day(2100, 130), '2026-10-22': day(1799, 130), '2026-10-21': day(2101, 130), '2026-10-20': day(2000, 116) };
+            const r = computeWeekBalance(h, '2026-10-25', 130, 2000);
+            expect(r.daysLogged).toBe(5);
+            expect(r.daysOk).toBe(2);
+        });
+
+        it('cumule l\'écart, retient le plus gros excédent et estime l\'impact en kg', () => {
+            const h = { '2026-10-24': day(2650, 130), '2026-10-23': day(1500, 130), '2026-10-22': day(2500, 130) };
+            const r = computeWeekBalance(h, '2026-10-25', 130, 2000);
+            expect(r.surplus).toBe(650);
+            expect(r.maxGap).toEqual({ date: '2026-10-24', kcal: 650 });
+            expect(r.kg).toBe(0.08);
+        });
+
+        it('inclut les activités dans la cible et utilise le TDEE de repli', () => {
+            const h = { '2026-10-24': { consumedCals: 2300, consumedProtein: 130, bonusTDEE: 300 } };
+            const r = computeWeekBalance(h, '2026-10-25', 130, 2000);
+            expect(r.surplus).toBe(0);
+            expect(r.daysOk).toBe(1);
+        });
+    });
 });

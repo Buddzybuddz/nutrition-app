@@ -63,12 +63,15 @@
                 '<span class="pg-note">2 g par kg de poids (' + fmtKg(weight) + ')</span>') +
             '</div>';
 
+        html += '<div class="pg-duo">';
         html += '<section class="pg-card pg-card-wide"><h3 class="pg-h">Mon objectif</h3>' +
             '<p class="pg-goal">' + esc(GOAL_LABELS[goal] || goal) + '</p>' +
             '<div class="pg-kv"><div><span>Poids actuel</span><strong>' + esc(fmtKg(weight)) + '</strong></div>' +
             '<div><span>Poids cible</span><strong>' + (target > 0 ? esc(fmtKg(target)) : '—') + '</strong></div></div>' +
             (gap ? '<p class="pg-gap">' + esc(gap) + '</p>' : '') +
             '<button type="button" class="ai-link" onclick="navigateTo(\'profil\')">Modifier dans mon profil</button></section>';
+
+        html += renderRegularite(tdee, protGoal) + '</div>';
 
         var gh = (state.goalHistory || []).slice().sort(function (a, b) { return b.date.localeCompare(a.date); });
         html += '<section class="pg-card pg-card-wide"><h3 class="pg-h">Historique de mes objectifs</h3>' +
@@ -77,6 +80,29 @@
             }).join('') + '</ul>' : '<p class="pg-muted">Aucun changement d\'objectif enregistré.</p>') + '</section>';
 
         box.innerHTML = html;
+    }
+
+    /* Régularité : bilan des 7 derniers jours complets (calcul dans utils.js) */
+    function renderRegularite(tdee, protGoal) {
+        var r = computeWeekBalance(state.history || {}, todayISO(), protGoal, tdee);
+        var head = '<section class="pg-card pg-card-wide"><h3 class="pg-h">Ma régularité</h3>';
+        if (!r.daysLogged) {
+            return head + '<p class="pg-muted">Saisissez vos repas quelques jours pour voir votre bilan des 7 derniers jours.</p></section>';
+        }
+        var sign = r.surplus > 0 ? '+' : (r.surplus < 0 ? '−' : '');
+        var kcal = sign + Math.abs(r.surplus).toLocaleString('fr-FR') + ' kcal';
+        var kgAbs = Math.abs(r.kg);
+        var impact = kgAbs < 0.05 ? 'Impact estimé sur le poids : négligeable' :
+            'Impact estimé sur le poids : environ ' + sign + String(kgAbs.toFixed(2)).replace('.', ',') + ' kg';
+        var gap = r.maxGap ? '+' + r.maxGap.kcal + ' kcal le ' + fmtDate(r.maxGap.date) : 'Aucun excédent';
+        var pct = Math.round(r.daysOk / r.daysLogged * 100);
+        return head + '<p class="pg-value">' + pct + ' %</p>' +
+            '<p class="pg-sub">' + r.daysOk + ' jour' + (r.daysOk > 1 ? 's' : '') + ' sur ' + r.daysLogged + ' dans l\'objectif (7 derniers jours complets, aujourd\'hui exclu)</p>' +
+            '<div class="pg-kv"><div><span>Bilan calorique</span><strong>' + esc(kcal) + '</strong></div>' +
+            '<div><span>Plus gros écart</span><strong>' + esc(gap) + '</strong></div></div>' +
+            '<p class="pg-gap">' + esc(impact) + '</p>' +
+            '<p class="pg-note">Dans l\'objectif : calories entre 90 et 105 % de la cible du jour et protéines à 90 % au moins. ' +
+            'Sur 1 semaine, un petit écart se voit peu : c\'est le cumul qui compte.</p></section>';
     }
 
     /* ── Poids ────────────────────────────────────────────── */
