@@ -532,7 +532,7 @@ async function loadFullHistory() {
                     ...data.meals.map(m => ({ id: m.id, type: 'Repas', name: m.name, cals: m.calories, prot: m.protein, mealType: m.mealType, desc: m.description || '' })),
                     ...data.acts.map(a => ({ id: a.id, type: 'Activité', name: a.name, cals: a.calories }))
                 ],
-                baseTDEE: data.stats ? data.stats.baseTDEE : (state.profile ? (state.profile.weight * 33) : 0),
+                baseTDEE: data.stats ? data.stats.baseTDEE : (state.profile ? (state.profile.tdee || state.profile.weight * 33) : 0),
                 goal: resolvedGoal,
                 goalMultiplier: resolvedMultiplier
             };
@@ -582,7 +582,7 @@ async function loadDayData(dateStr) {
                 ...meals.map(m => ({ id: m.id, type: 'Repas', name: m.name, cals: m.calories, prot: m.protein, mealType: m.mealType, desc: m.description || '' })),
                 ...activities.map(a => ({ id: a.id, type: 'Activité', name: a.name, cals: a.calories }))
             ],
-            baseTDEE: stats ? stats.baseTDEE : (state.profile ? (state.profile.weight * 33) : 0),
+            baseTDEE: stats ? stats.baseTDEE : (state.profile ? (state.profile.tdee || state.profile.weight * 33) : 0),
             goal: resolvedGoal,
             goalMultiplier: resolvedMultiplier
         };
