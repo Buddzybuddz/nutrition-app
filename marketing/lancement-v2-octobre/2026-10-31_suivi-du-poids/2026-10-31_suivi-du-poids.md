@@ -4,7 +4,7 @@
 Fond blanc cassé (#F7F8F3) avec une courbe décorative douce vert forêt (#2D6A4F) qui traverse la composition de haut en bas à gauche, terminée par un point saumon (#E07A5F), et un grand arc menthe (#D8F3DC) en bas. Zone sûre haute et basse (≈ 250 px) libre pour l'interface des stories.
 
 [SUJET]
-Mockup téléphone droit, de face, centré, présentant l'écran « Mon programme », onglet « Poids » (courbe de pesées).
+Mockup téléphone droit, de face, centré, présentant l’écran « Mon suivi », onglet « Poids » (courbe de pesées).
 - Logo NutriDash (monogramme N) visible en haut, hors zone sûre.
 
 [IDENTITÉ VISUELLE — TOUJOURS ISSUE DES SOURCES PROJET]
@@ -12,7 +12,7 @@ Mockup téléphone droit, de face, centré, présentant l'écran « Mon programm
 - Typographies : DM Sans (accroche), Inter (texte secondaire).
 
 [COHÉRENCE VISUELLE AVEC FICHIER(S) FOURNI(S) EN PJ]
-- Images/Screenshot app/V2/Mon programme/Mobile-Poids.png → élément principal, dans un mockup cadre téléphone, de face, non déformé, écran droit et lisible.
+- Images/Screenshot app/V2/Mon suivi/Mobile-Poids.png → élément principal, dans un mockup cadre téléphone, de face, non déformé, écran droit et lisible.
 - Images/Logos/logo-nutridash-monogramme-N - transparent.png → logo.
 - Intégrer le screenshot non déformé, de face, sans inclinaison ni perspective.
 

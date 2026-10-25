@@ -4,7 +4,7 @@
 Fond blanc cassé (#F7F8F3) avec une grande forme étoile douce stylisée (clin d'œil à l'icône « favori ») en menthe (#D8F3DC) derrière le téléphone, et une forme organique saumon pâle (#FAE8E4) en bas. Composition verticale légèrement aérée : accroche en haut, mockup centré.
 
 [SUJET]
-Mockup téléphone droit, de face, centré, présentant l'écran « Mon programme », onglet « Favoris » (repas et activités favoris).
+Mockup téléphone droit, de face, centré, présentant l’écran « Mon suivi », onglet « Favoris » (repas et activités favoris).
 - Logo NutriDash (monogramme N) visible en haut à gauche.
 
 [IDENTITÉ VISUELLE — TOUJOURS ISSUE DES SOURCES PROJET]
@@ -12,7 +12,7 @@ Mockup téléphone droit, de face, centré, présentant l'écran « Mon programm
 - Typographies : DM Sans (accroche), Inter (texte secondaire).
 
 [COHÉRENCE VISUELLE AVEC FICHIER(S) FOURNI(S) EN PJ]
-- Images/Screenshot app/V2/Mon programme/Mobile-Favoris.png → élément principal, dans un mockup cadre téléphone, de face, non déformé, écran droit et lisible.
+- Images/Screenshot app/V2/Mon suivi/Mobile-Favoris.png → élément principal, dans un mockup cadre téléphone, de face, non déformé, écran droit et lisible.
 - Images/Logos/logo-nutridash-monogramme-N - transparent.png → logo.
 - Intégrer le screenshot non déformé, de face, sans inclinaison ni perspective.
 
