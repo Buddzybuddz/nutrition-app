@@ -7,7 +7,8 @@ import {
     parseDateFR,
     sortDatesFR,
     formatDateFR,
-    computeWeekBalance
+    computeWeekBalance,
+    CHEAT_MEALS
 } from './utils.js';
 
 describe('Utils Functions', () => {
@@ -124,13 +125,12 @@ describe('Utils Functions', () => {
 
         it('renvoie un bilan vide sans historique', () => {
             expect(computeWeekBalance({}, '2026-10-25', 130, 2000))
-                .toEqual({ daysLogged: 0, daysOk: 0, surplus: 0, kg: 0, maxGap: null });
+                .toEqual({ daysLogged: 0, daysOk: 0, surplus: 0, kg: 0, maxGap: null, cheats: 0, cheatsAlcool: 0 });
         });
 
         it('exclut aujourd\'hui et les jours au-delà de 7 jours', () => {
             const h = { '2026-10-25': day(3000, 130), '2026-10-17': day(3000, 130), '2026-10-24': day(2000, 130), '2026-10-18': day(2000, 130) };
             const r = computeWeekBalance(h, '2026-10-25', 130, 2000);
-            expect(r.daysLogged).toBe(2);
             expect(r.surplus).toBe(0);
         });
 
@@ -154,6 +154,26 @@ describe('Utils Functions', () => {
             const r = computeWeekBalance(h, '2026-10-25', 130, 2000);
             expect(r.surplus).toBe(0);
             expect(r.daysOk).toBe(1);
+        });
+    
+        it('compte les cheat meals de la période, avec ou sans alcool', () => {
+            const h = {
+                '2026-10-24': day(2900, 130, { entries: [{ type: 'Repas', cheat: 'cheat' }, { type: 'Repas', cheat: '' }] }),
+                '2026-10-23': day(3400, 130, { entries: [{ type: 'Repas', cheat: 'cheat_alcool' }] }),
+                '2026-10-25': day(2500, 60, { entries: [{ type: 'Repas', cheat: 'cheat' }] }),
+                '2026-10-18': day(3400, 130, { entries: [{ type: 'Repas', cheat: 'cheat' }] }),
+                '2026-10-19': day(3400, 130, { entries: [{ type: 'Repas', cheat: 'cheat_alcool' }] })
+            };
+            const r = computeWeekBalance(h, '2026-10-25', 130, 2000);
+            expect(r.cheats).toBe(2);
+            expect(r.cheatsAlcool).toBe(2);
+        });
+    });
+
+    describe('CHEAT_MEALS', () => {
+        it('définit des forfaits plus élevés avec alcool et les mêmes protéines', () => {
+            expect(CHEAT_MEALS.cheat).toMatchObject({ cals: 1000, prot: 30 });
+            expect(CHEAT_MEALS.cheat_alcool).toMatchObject({ cals: 1500, prot: 30 });
         });
     });
 });

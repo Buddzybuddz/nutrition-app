@@ -968,6 +968,18 @@
                         </div>
                     </div>
 
+                    <div class="meal-modes" id="meal-nature" role="radiogroup" aria-label="Nature du repas">
+                        <button type="button" class="meal-mode is-active" role="radio" aria-checked="true" data-nature="">Repas normal</button>
+                        <button type="button" class="meal-mode" role="radio" aria-checked="false" data-nature="cheat">Cheat meal</button>
+                        <button type="button" class="meal-mode" role="radio" aria-checked="false" data-nature="cheat_alcool">Cheat + alcool</button>
+                    </div>
+
+                    <div class="meal-cheat" id="meal-cheat-panel" hidden>
+                        <p class="meal-cheat-info" id="meal-cheat-info"></p>
+                        <label for="meal-cheat-note">Précision (facultatif)</label>
+                        <input type="text" id="meal-cheat-note" maxlength="100" placeholder="ex : mariage de Léa, buffet, anniversaire">
+                    </div>
+
                     <div class="meal-modes" id="meal-modes" role="tablist" aria-label="Mode de saisie">
                         <button type="button" class="meal-mode is-active" role="tab" aria-selected="true" aria-controls="meal-mode-new" data-mode="new">Nouveau repas</button>
                         <button type="button" class="meal-mode" role="tab" aria-selected="false" aria-controls="meal-mode-fav" data-mode="fav">Mes favoris <span class="meal-mode-count" id="meal-fav-count" hidden></span></button>
@@ -1162,6 +1174,7 @@
     <script defer src="auth-pb.js"></script>
     <script defer src="admin.js"></script>
     <script defer src="ai-estimate.js"></script>
+    <script defer src="cheat-meal.js"></script>
     <script defer src="quick-add.js"></script>
     <script defer src="ia.js"></script>
     <script defer src="programme.js"></script>

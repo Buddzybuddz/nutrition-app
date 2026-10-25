@@ -445,8 +445,12 @@ function populateProfileForm() {
 document.getElementById('meal-form').addEventListener('submit', (e) => {
     e.preventDefault();
     const type = document.getElementById('meal-type').options[document.getElementById('meal-type').selectedIndex].text;
-    const cals = parseInt(document.getElementById('meal-cals').value);
-    const prot = Math.round(parseFloat(document.getElementById('meal-protein').value));
+    // Cheat meal : forfait fixe à la place de la saisie (voir CHEAT_MEALS dans utils.js)
+    const nature = window.getMealNature ? window.getMealNature() : '';
+    const cheat = CHEAT_MEALS[nature];
+    const cals = cheat ? cheat.cals : parseInt(document.getElementById('meal-cals').value);
+    const prot = cheat ? cheat.prot : Math.round(parseFloat(document.getElementById('meal-protein').value));
+    const cheatNote = cheat ? window.getMealCheatNote() : '';
 
     const editId = e.target.dataset.editingId;
     const actLog = getActiveLog();
@@ -459,8 +463,11 @@ document.getElementById('meal-form').addEventListener('submit', (e) => {
             entry.name = type; // Nom d'affichage
             entry.mealType = mealType;
             // La description (composition estimée par l'IA) ne vaut que pour les valeurs d'origine
-            if (window.__aiMealDesc) entry.desc = window.__aiMealDesc;
-            else if (entry.cals !== cals || entry.prot !== prot) entry.desc = '';
+            const wasCheat = entry.cheat;
+            entry.cheat = nature;
+            if (cheat) entry.desc = cheatNote;
+            else if (window.__aiMealDesc) entry.desc = window.__aiMealDesc;
+            else if (wasCheat || entry.cals !== cals || entry.prot !== prot) entry.desc = '';
             entry.cals = cals;
             entry.prot = prot;
             actLog.consumedCals += cals;
@@ -477,11 +484,11 @@ document.getElementById('meal-form').addEventListener('submit', (e) => {
         e.target.querySelector('button[type="submit"]').textContent = 'Ajouter le repas';
     } else {
         const mealType = document.getElementById('meal-type').value;
-        const newEntry = { id: Date.now() + Math.random(), type: 'Repas', name: type, mealType, cals, prot, desc: window.__aiMealDesc || '' };
+        const newEntry = { id: Date.now() + Math.random(), type: 'Repas', name: type, mealType, cals, prot, desc: cheat ? cheatNote : (window.__aiMealDesc || ''), cheat: nature };
         actLog.consumedCals += cals;
         actLog.consumedProtein += prot;
         actLog.entries.push(newEntry);
-        if (window.maybeSaveFavorite) window.maybeSaveFavorite(newEntry);
+        if (!cheat && window.maybeSaveFavorite) window.maybeSaveFavorite(newEntry);
         
         // Sync individuel immédiat si connecté
         if (typeof pb_saveMeal === 'function' && currentUser) {
@@ -597,7 +604,8 @@ window.editEntry = function(id) {
         document.getElementById('meal-protein').value = Math.round(Number(entry.prot) || 0);
         // Repas estimé par l'IA : la composition saisie/estimée préremplit le champ de description
         const aiText = document.getElementById('meal-ai-text');
-        if (aiText) aiText.value = entry.desc || '';
+        if (aiText) aiText.value = entry.cheat ? '' : (entry.desc || '');
+        if (window.setMealNature) window.setMealNature(entry.cheat || '', entry.desc);
         document.getElementById('meal-form').dataset.editingId = id;
         document.getElementById('meal-form').querySelector('button[type="submit"]').textContent = 'Enregistrer la modification';
         if(window.openMealModal) window.openMealModal(true);
@@ -927,6 +935,7 @@ function updateDashboard() {
             let details = '';
             if (entry.type === 'Repas') {
                 details = `<strong>${escapeHtml(entry.cals)} kcal</strong> | ${escapeHtml(Math.round(Number(entry.prot) || 0))}g prot`;
+                if (CHEAT_MEALS[entry.cheat]) details = `<span class="cheat-badge cheat-badge--${entry.cheat === 'cheat_alcool' ? 'alcool' : 'seul'}">${CHEAT_MEALS[entry.cheat].label}</span> ${details} <span class="cheat-forfait">(forfait)</span>`;
             } else if (entry.type === 'Activité') {
                 details = `<strong>+${escapeHtml(entry.cals)} kcal</strong> brulées`;
             } else if (entry.type === 'Objectif') {

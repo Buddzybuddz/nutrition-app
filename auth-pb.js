@@ -529,7 +529,7 @@ async function loadFullHistory() {
                 consumedProtein: data.meals.reduce((acc, m) => acc + (m.protein || 0), 0),
                 bonusTDEE: data.acts.reduce((acc, a) => acc + (a.calories || 0), 0),
                 entries: [
-                    ...data.meals.map(m => ({ id: m.id, type: 'Repas', name: m.name, cals: m.calories, prot: m.protein, mealType: m.mealType, desc: m.description || '' })),
+                    ...data.meals.map(m => ({ id: m.id, type: 'Repas', name: m.name, cals: m.calories, prot: m.protein, mealType: m.mealType, desc: m.description || '', cheat: m.cheat || '' })),
                     ...data.acts.map(a => ({ id: a.id, type: 'Activité', name: a.name, cals: a.calories }))
                 ],
                 baseTDEE: data.stats ? data.stats.baseTDEE : (state.profile ? (state.profile.tdee || state.profile.weight * 33) : 0),
@@ -579,7 +579,7 @@ async function loadDayData(dateStr) {
             consumedProtein: meals.reduce((acc, m) => acc + (m.protein || 0), 0),
             bonusTDEE: activities.reduce((acc, a) => acc + (a.calories || 0), 0),
             entries: [
-                ...meals.map(m => ({ id: m.id, type: 'Repas', name: m.name, cals: m.calories, prot: m.protein, mealType: m.mealType, desc: m.description || '' })),
+                ...meals.map(m => ({ id: m.id, type: 'Repas', name: m.name, cals: m.calories, prot: m.protein, mealType: m.mealType, desc: m.description || '', cheat: m.cheat || '' })),
                 ...activities.map(a => ({ id: a.id, type: 'Activité', name: a.name, cals: a.calories }))
             ],
             baseTDEE: stats ? stats.baseTDEE : (state.profile ? (state.profile.tdee || state.profile.weight * 33) : 0),
@@ -712,7 +712,8 @@ window.pb_saveMeal = async (meal) => {
         name: meal.name,
         calories: meal.cals || 0,
         protein: meal.prot || 0,
-        description: String(meal.desc || '').slice(0, 200)
+        description: String(meal.desc || '').slice(0, 200),
+        cheat: meal.cheat || ''
     };
     
     if (typeof meal.id === 'string' && meal.id.length > 5) {

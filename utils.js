@@ -66,11 +66,18 @@ function formatDateFR(date, short = false) {
     return d.toLocaleDateString('fr-FR');
 }
 
+/* Cheat meals : repas impossibles à compter (buffet, soirée, mariage…). Forfaits fixes en kcal et protéines,
+   identiques en protéines avec ou sans alcool. */
+const CHEAT_MEALS = {
+    cheat: { label: 'Cheat meal', cals: 1000, prot: 30 },
+    cheat_alcool: { label: 'Cheat meal + alcool', cals: 1500, prot: 30 }
+};
+
 /* Régularité sur les 7 derniers jours complets (hier et les 6 précédents, aujourd'hui exclu car en cours).
    Un jour compte s'il a des calories saisies. « Dans l'objectif » : kcal entre 90 et 105 % de la cible du jour
    et protéines à 90 % au moins de la cible. 7 700 kcal ≈ 1 kg de masse grasse (approximation). */
 function computeWeekBalance(history, todayStr, proteinTarget, fallbackTdee) {
-    const res = { daysLogged: 0, daysOk: 0, surplus: 0, kg: 0, maxGap: null };
+    const res = { daysLogged: 0, daysOk: 0, surplus: 0, kg: 0, maxGap: null, cheats: 0, cheatsAlcool: 0 };
     const [y, m, d] = todayStr.split('-').map(Number);
     for (let i = 1; i <= 7; i++) {
         const date = formatISOLocal(new Date(y, m - 1, d - i));
@@ -85,6 +92,14 @@ function computeWeekBalance(history, todayStr, proteinTarget, fallbackTdee) {
         const protOk = !(proteinTarget > 0) || (log.consumedProtein || 0) >= proteinTarget * 0.9;
         if (kcalOk && protOk) res.daysOk++;
         if (gap > 0 && (!res.maxGap || gap > res.maxGap.kcal)) res.maxGap = { date, kcal: Math.round(gap) };
+    }
+    // Les cheat meals sont des événements ponctuels : comptés sur 7 jours, aujourd'hui inclus
+    for (let i = 0; i <= 6; i++) {
+        const log = history && history[formatISOLocal(new Date(y, m - 1, d - i))];
+        ((log && log.entries) || []).forEach(e => {
+            if (e.cheat === 'cheat') res.cheats++;
+            else if (e.cheat === 'cheat_alcool') res.cheatsAlcool++;
+        });
     }
     res.surplus = Math.round(res.surplus);
     res.kg = Math.round((res.surplus / 7700) * 100) / 100;
@@ -101,6 +116,7 @@ if (typeof module !== 'undefined' && module.exports) {
         parseDateFR,
         sortDatesFR,
         formatDateFR,
-        computeWeekBalance
+        computeWeekBalance,
+        CHEAT_MEALS
     };
 }

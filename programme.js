@@ -86,8 +86,13 @@
     function renderRegularite(tdee, protGoal) {
         var r = computeWeekBalance(state.history || {}, todayISO(), protGoal, tdee);
         var head = '<section class="pg-card pg-card-wide"><h3 class="pg-h">Ma régularité</h3>';
+        var nCheat = r.cheats + r.cheatsAlcool, cheatLine = '';
+        if (nCheat) {
+            cheatLine = '<p class="pg-gap">' + nCheat + ' cheat meal' + (nCheat > 1 ? 's' : '') +
+                (r.cheatsAlcool ? ' dont ' + r.cheatsAlcool + ' avec alcool' : '') + ' sur les 7 derniers jours (aujourd\'hui inclus), comptés au forfait.</p>';
+        }
         if (!r.daysLogged) {
-            return head + '<p class="pg-muted">Saisissez vos repas quelques jours pour voir votre bilan des 7 derniers jours.</p></section>';
+            return head + '<p class="pg-muted">Saisissez vos repas quelques jours pour voir votre bilan des 7 derniers jours.</p>' + cheatLine + '</section>';
         }
         var sign = r.surplus > 0 ? '+' : (r.surplus < 0 ? '−' : '');
         var kcal = sign + Math.abs(r.surplus).toLocaleString('fr-FR') + ' kcal';
@@ -100,7 +105,7 @@
             '<p class="pg-sub">' + r.daysOk + ' jour' + (r.daysOk > 1 ? 's' : '') + ' sur ' + r.daysLogged + ' dans l\'objectif (7 derniers jours complets, aujourd\'hui exclu)</p>' +
             '<div class="pg-kv"><div><span>Bilan calorique</span><strong>' + esc(kcal) + '</strong></div>' +
             '<div><span>Plus gros écart</span><strong>' + esc(gap) + '</strong></div></div>' +
-            '<p class="pg-gap">' + esc(impact) + '</p>' +
+            '<p class="pg-gap">' + esc(impact) + '</p>' + cheatLine +
             '<p class="pg-note">Dans l\'objectif : calories entre 90 et 105 % de la cible du jour et protéines à 90 % au moins. ' +
             'Sur 1 semaine, un petit écart se voit peu : c\'est le cumul qui compte.</p></section>';
     }
