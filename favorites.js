@@ -3,7 +3,7 @@
    « Utiliser ce favori » (remplit le formulaire, l'utilisateur valide), et une étoile « Favori » (dans le
    récapitulatif de l'estimation, ou près des calories en saisie manuelle) pour enregistrer le repas ajouté.
    Aucun appel IA : aucun crédit consommé. Favoris stockés dans PocketBase (favorite_meals, 10 max par moment).
-   Le journal de l'accueil et l'onglet Favoris de « Mon programme » ne font que les afficher. */
+   Le journal de l'accueil et l'onglet Favoris de « Mon suivi » ne font que les afficher. */
 
 (function () {
     var TYPE_LABELS = { breakfast: 'Petit-déjeuner', lunch: 'Déjeuner', snack: 'Collation', dinner: 'Dîner' };
