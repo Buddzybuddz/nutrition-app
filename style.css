@@ -74,6 +74,11 @@ html, body {
     width: 100%;
 }
 
+/* « clip » sur le body : « hidden » en ferait un conteneur de scroll et casserait le sticky de la sidebar desktop */
+body {
+    overflow-x: clip;
+}
+
 body {
     font-family: var(--font-main);
     background-color: var(--bg-main);
