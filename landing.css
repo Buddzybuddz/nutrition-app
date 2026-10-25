@@ -383,3 +383,14 @@ body:has(.landing-page:not(.hidden)) { overflow-x: clip; overflow-y: visible; }
 @keyframes lx-end-pop { from { opacity: 0; transform: scale(0); } to { opacity: 1; transform: scale(1); } }
 .lx-chat div { transform-origin: bottom left; }
 .lx-chat .u { transform-origin: bottom right; }
+
+/* Mon histoire : tuile « résultat » avec compteur */
+.lx-tile--salmon { background: #FBE9E2; border-color: #F3CFC2; }
+.lx-tile--salmon .lx-hist-n, .lx-tile--salmon .lx-note { color: #8F3B22; }
+.lx-tile--salmon p { color: #5A2A1B; }
+.lx-hist-steps .lx-tile--salmon p.lx-hist-big { margin: 0 0 4px; font-family: 'DM Sans', sans-serif; font-weight: 700; font-size: clamp(3.5rem, 9vw, 5rem); line-height: 1; letter-spacing: -.04em; color: var(--lx-cta); }
+.lx-cnt9 { --lx-n: 9; counter-reset: lxn var(--lx-n); animation: lx-count-9 1.6s .2s cubic-bezier(.2, .7, .2, 1) both; }
+.lx-cnt9::after { content: "\2212\00a0" counter(lxn) "\00a0kg"; }
+@keyframes lx-count-9 { from { --lx-n: 0; } to { --lx-n: 9; } }
+.lx-motion-on .lx-cnt9 { animation-play-state: paused; }
+.lx-motion-on .is-play .lx-cnt9 { animation-play-state: running; }

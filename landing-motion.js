@@ -51,7 +51,7 @@
     function playOnView() {
         var landing = $('#landing-page');
         if (still || !('IntersectionObserver' in window) || !landing) return;
-        var targets = Array.prototype.slice.call(document.querySelectorAll('.lx-today, .lx-chat, .lx-big'));
+        var targets = Array.prototype.slice.call(document.querySelectorAll('.lx-today, .lx-chat, .lx-big, .lx-hist-big'));
         document.querySelectorAll('.lx-draw').forEach(function (p) { targets.push(p.parentNode); });
         landing.classList.add('lx-motion-on');
         var io = new IntersectionObserver(function (entries) {
