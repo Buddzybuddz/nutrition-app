@@ -1,5 +1,5 @@
 /* landing-motion.js — mouvement de la landing : barre de progression, bouton flottant desktop,
-   tuiles qui réagissent au curseur, frise « Mon histoire » qui se dessine au défilement.
+   tuiles qui réagissent au curseur, frise « Mon histoire » qui se dessine au défilement, prix qui se compte.
    Tout est coupé si le visiteur demande moins de mouvement. */
 (function () {
     var still = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -62,8 +62,34 @@
         targets.forEach(function (t) { io.observe(t); });
     }
 
+    /* Prix du tarif : compte de 0,00 à la valeur finale (data-count) quand il entre à l'écran.
+       Le texte final reste dans le HTML (sans JS, mouvement réduit, moteurs de recherche) ; la largeur est figée avant de compter. */
+    function countPrice() {
+        var el = $('.lp-price-amount[data-count]');
+        if (still || !el || !('IntersectionObserver' in window)) return;
+        var target = parseFloat(el.dataset.count), suffix = el.dataset.suffix || '', DURATION = 1500;
+        if (!(target > 0)) return;
+        function fmt(v) { return v.toFixed(2).replace('.', ',') + suffix; }
+        var io = new IntersectionObserver(function (entries) {
+            if (!entries[0].isIntersecting) return;
+            io.disconnect();
+            el.style.minWidth = el.getBoundingClientRect().width + 'px';
+            var t0 = null;
+            el.textContent = fmt(0);
+            requestAnimationFrame(function tick(now) {
+                if (t0 === null) t0 = now;
+                var p = clamp((now - t0) / DURATION), eased = p === 1 ? 1 : 1 - Math.pow(2, -10 * p); /* ease-out expo */
+                el.textContent = fmt(target * eased);
+                if (p < 1) requestAnimationFrame(tick);
+                else { el.textContent = fmt(target); el.classList.add('is-done'); }
+            });
+        }, { threshold: 0.8 });
+        io.observe(el);
+    }
+
     document.addEventListener('DOMContentLoaded', function () {
         playOnView();
+        countPrice();
         tiles();
         if (steps && !still) steps.classList.add('is-live');
         window.addEventListener('scroll', onScroll, { passive: true });

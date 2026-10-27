@@ -73,7 +73,7 @@
 
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css?v=14">
-<link rel="stylesheet" href="landing.css?v=5">
+<link rel="stylesheet" href="landing.css?v=6">
     <link rel="icon" type="image/png" href="Images/Logos/icon-192.png?v=2">
     <link rel="apple-touch-icon" sizes="180x180" href="Images/Logos/apple-touch-icon.png?v=2">
     <link rel="manifest" href="manifest.json">
@@ -198,15 +198,57 @@
                     <h2 class="lx-h2">Sept jours pour voir si ça change vos habitudes.</h2>
                     <p class="lx-lead">Un parcours simple, à votre rythme. Au bout d'une semaine, l'assistant vous fait le bilan, et vous décidez.</p>
                 </div>
-                <div class="lx-rail">
-                    <div class="lx-day" data-d="J1" style="--i:0"><h4>Créez votre profil</h4><p>Objectif et budget calculés.</p></div>
-                    <div class="lx-day" data-d="J2" style="--i:1"><h4>Décrivez un repas</h4><p>Une phrase, une estimation.</p></div>
-                    <div class="lx-day" data-d="J3" style="--i:2"><h4>Notez une activité</h4><p>Vélo, marche, sport.</p></div>
-                    <div class="lx-day" data-d="J4" style="--i:3"><h4>Ajoutez vos favoris</h4><p>Vos habitudes en un geste.</p></div>
-                    <div class="lx-day" data-d="J5" style="--i:4"><h4>Première pesée</h4><p>Le suivi démarre.</p></div>
-                    <div class="lx-day" data-d="J6" style="--i:5"><h4>Questions à l'IA</h4><p>Idées de repas, bilans.</p></div>
-                    <div class="lx-day lx-day--last" data-d="J7" style="--i:6"><h4>Bilan de la semaine</h4><p>Vous décidez de continuer.</p></div>
+                <div class="lx-car-scroll"><div class="lx-car-pin">
+                <div class="lx-car" id="lx-car">
+                    <div class="lx-car-rail" role="tablist" aria-label="Étapes de la semaine">
+                        <span class="lx-car-fill" aria-hidden="true"></span>
+                        <button type="button" role="tab" aria-controls="lx-slide-0" aria-selected="true"><span class="lx-car-dot">J1</span><span class="lx-car-lbl">Profil</span></button>
+                        <button type="button" role="tab" aria-controls="lx-slide-1" aria-selected="false"><span class="lx-car-dot">J2</span><span class="lx-car-lbl">Repas</span></button>
+                        <button type="button" role="tab" aria-controls="lx-slide-2" aria-selected="false"><span class="lx-car-dot">J3</span><span class="lx-car-lbl">Activité</span></button>
+                        <button type="button" role="tab" aria-controls="lx-slide-3" aria-selected="false"><span class="lx-car-dot">J4</span><span class="lx-car-lbl">Favoris</span></button>
+                        <button type="button" role="tab" aria-controls="lx-slide-4" aria-selected="false"><span class="lx-car-dot">J5</span><span class="lx-car-lbl">Pesée</span></button>
+                        <button type="button" role="tab" aria-controls="lx-slide-5" aria-selected="false"><span class="lx-car-dot">J6</span><span class="lx-car-lbl">Assistant</span></button>
+                        <button type="button" role="tab" aria-controls="lx-slide-6" aria-selected="false"><span class="lx-car-dot">J7</span><span class="lx-car-lbl">Bilan</span></button>
+                    </div>
+                    <div class="lx-car-view" role="region" aria-roledescription="carrousel" aria-label="Votre première semaine avec NutriDash">
+                        <div class="lx-car-track" tabindex="0">
+                        <article class="lx-slide" id="lx-slide-0" role="group" aria-roledescription="étape" aria-label="J1 sur 7 : Créez votre profil">
+                            <div class="lx-slide-copy"><span class="lx-slide-day">J1 · sur 7</span><h3>Créez votre profil</h3><p>Âge, taille, poids, objectif : l’app calcule votre budget calorique et vos protéines du jour.</p></div>
+                            <div class="lx-car-phone"><img src="Images/landing/semaine/j1-profil.webp" alt="Capture de l’app : l’écran Profil avec l’âge, la taille, le poids et l’objectif" width="540" height="1168" loading="lazy" decoding="async"></div>
+                        </article>
+                        <article class="lx-slide" id="lx-slide-1" role="group" aria-roledescription="étape" aria-label="J2 sur 7 : Décrivez un repas">
+                            <div class="lx-slide-copy"><span class="lx-slide-day">J2 · sur 7</span><h3>Décrivez un repas</h3><p>Écrivez ce que vous avez mangé, même au restaurant. L’IA décompose le plat et estime calories et protéines.</p></div>
+                            <div class="lx-car-phone"><img src="Images/landing/semaine/j2-repas-restaurant.webp" alt="Capture de l’app : l’estimation d’un repas au restaurant à partir de son intitulé" width="540" height="1168" loading="lazy" decoding="async"></div>
+                        </article>
+                        <article class="lx-slide" id="lx-slide-2" role="group" aria-roledescription="étape" aria-label="J3 sur 7 : Notez une activité">
+                            <div class="lx-slide-copy"><span class="lx-slide-day">J3 · sur 7</span><h3>Notez une activité</h3><p>Vélo, marche, sport : 30 minutes de course à pied, et les calories brûlées s’ajoutent à votre budget.</p></div>
+                            <div class="lx-car-phone"><img src="Images/landing/semaine/j3-activite.webp" alt="Capture de l’app : l’estimation des calories brûlées par une activité" width="540" height="1168" loading="lazy" decoding="async"></div>
+                        </article>
+                        <article class="lx-slide" id="lx-slide-3" role="group" aria-roledescription="étape" aria-label="J4 sur 7 : Ajoutez vos favoris">
+                            <div class="lx-slide-copy"><span class="lx-slide-day">J4 · sur 7</span><h3>Ajoutez vos favoris</h3><p>Un repas que vous refaites souvent se retrouve en un geste, avec ses calories et ses protéines.</p></div>
+                            <div class="lx-car-phone"><img src="Images/landing/semaine/j4-favoris.webp" alt="Capture de l’app : la liste des repas favoris à réutiliser en un geste" width="540" height="1168" loading="lazy" decoding="async"></div>
+                        </article>
+                        <article class="lx-slide" id="lx-slide-4" role="group" aria-roledescription="étape" aria-label="J5 sur 7 : Première pesée">
+                            <div class="lx-slide-copy"><span class="lx-slide-day">J5 · sur 7</span><h3>Première pesée</h3><p>Le suivi démarre. Votre courbe se dessine dès la deuxième pesée, avec l’écart à votre poids cible.</p></div>
+                            <div class="lx-car-phone"><img src="Images/landing/semaine/j5-pesee.webp" alt="Capture de l’app : le suivi du poids avec la courbe et les dernières pesées" width="540" height="1168" loading="lazy" decoding="async"></div>
+                        </article>
+                        <article class="lx-slide" id="lx-slide-5" role="group" aria-roledescription="étape" aria-label="J6 sur 7 : Posez vos questions à l’IA">
+                            <div class="lx-slide-copy"><span class="lx-slide-day">J6 · sur 7</span><h3>Posez vos questions à l’IA</h3><p>Idées de repas, bilans : l’assistant connaît votre journée et répond avec vos chiffres.</p></div>
+                            <div class="lx-car-phone"><img src="Images/landing/semaine/j6-assistant.webp" alt="Capture de l’app : une conversation avec l’assistant IA" width="540" height="1168" loading="lazy" decoding="async"></div>
+                        </article>
+                        <article class="lx-slide" id="lx-slide-6" role="group" aria-roledescription="étape" aria-label="J7 sur 7 : Le bilan de la semaine">
+                            <div class="lx-slide-copy"><span class="lx-slide-day">J7 · sur 7</span><h3>Le bilan de la semaine</h3><p>Votre régularité jour par jour. Vous voyez ce qui a changé, et vous décidez de continuer.</p></div>
+                            <div class="lx-car-phone"><img src="Images/landing/semaine/j7-bilan.webp" alt="Capture de l’app : la régularité des 7 derniers jours en pastilles" width="540" height="1168" loading="lazy" decoding="async"></div>
+                        </article>
+                        </div>
+                    </div>
+                    <div class="lx-car-nav">
+                        <button type="button" class="lx-car-btn" data-dir="-1" aria-label="Étape précédente"><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 3 5 9l6 6"/></svg></button>
+                        <span class="lx-car-count" aria-live="polite">1 / 7</span>
+                        <button type="button" class="lx-car-btn" data-dir="1" aria-label="Étape suivante"><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m7 3 6 6-6 6"/></svg></button>
+                    </div>
                 </div>
+                </div></div>
                 <div class="lx-days-cta">
                     <button class="lx-btn" data-click="showAuthPage" data-args='[true]'>Démarrer mon essai gratuit <span class="lx-arr" aria-hidden="true">&rarr;</span></button>
                     <span>Aucune carte bancaire à l'inscription.</span>
@@ -284,7 +326,7 @@
                 <div class="lp-pricing-card lp-reveal lp-reveal-d1">
                     <div class="lp-pricing-badge">7 jours gratuits</div>
                     <div class="lp-pricing-price">
-                        <span class="lp-price-amount">5,99€</span>
+                        <span class="lp-price-amount" data-count="5.99" data-suffix="€">5,99€</span>
                         <span class="lp-price-period">/ mois</span>
                     </div>
                     <div class="lp-pricing-divider"></div>
@@ -1165,7 +1207,8 @@
     <script defer src="auth-pb.js"></script>
     <script defer src="admin.js"></script>
     <script defer src="ai-estimate.js"></script>
-    <script defer src="landing-motion.js?v=3"></script>
+    <script defer src="landing-motion.js?v=4"></script>
+    <script defer src="landing-carousel.js"></script>
     <script defer src="cheat-meal.js"></script>
     <script defer src="quick-add.js"></script>
     <script defer src="ia.js"></script>
