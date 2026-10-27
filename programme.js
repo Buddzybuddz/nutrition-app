@@ -27,7 +27,7 @@
 
     function emptyState(msg) {
         return '<div class="pg-card pg-card-wide pg-empty"><p>' + esc(msg) + '</p>' +
-            '<button type="button" class="ai-link" onclick="navigateTo(\'profil\')">Compléter mon profil</button></div>';
+            '<button type="button" class="ai-link" data-click="navigateTo" data-arg="profil">Compléter mon profil</button></div>';
     }
 
     function card(label, value, sub, extra) {
@@ -69,7 +69,7 @@
             '<div class="pg-kv"><div><span>Poids actuel</span><strong>' + esc(fmtKg(weight)) + '</strong></div>' +
             '<div><span>Poids cible</span><strong>' + (target > 0 ? esc(fmtKg(target)) : '—') + '</strong></div></div>' +
             (gap ? '<p class="pg-gap">' + esc(gap) + '</p>' : '') +
-            '<button type="button" class="ai-link" onclick="navigateTo(\'profil\')">Modifier dans mon profil</button></section>';
+            '<button type="button" class="ai-link" data-click="navigateTo" data-arg="profil">Modifier dans mon profil</button></section>';
 
         html += renderRegularite(tdee, protGoal) + '</div>';
 

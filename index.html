@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; connect-src 'self' https://nutridash-pb.fly.dev http://127.0.0.1:8090 https://cdn.jsdelivr.net; font-src https://fonts.googleapis.com https://fonts.gstatic.com; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; connect-src 'self' https://nutridash-pb.fly.dev http://127.0.0.1:8090 https://cdn.jsdelivr.net; font-src https://fonts.googleapis.com https://fonts.gstatic.com; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;">
     <meta http-equiv="X-Content-Type-Options" content="nosniff">
     <title>NutriDash — Calories et protéines estimées par IA</title>
     <meta name="description" content="NutriDash calcule vos besoins caloriques réels et estime par IA les calories et les protéines de vos repas : décrivez votre assiette, c’est noté. Assistant IA inclus. Essai gratuit 7 jours, sans carte bancaire.">
@@ -90,7 +90,7 @@
 
         <!-- Header sticky -->
         <header class="lp-header" id="lp-header">
-            <span class="lp-logo" onclick="window.scrollTo({top:0,behavior:'smooth'})" style="cursor:pointer">Nutri<span>Dash</span></span>
+            <span class="lp-logo" data-click="scrollTop" style="cursor:pointer">Nutri<span>Dash</span></span>
             <div class="lp-nav">
                 <a class="lp-nav-social" href="https://www.instagram.com/nutridash.app/" target="_blank" rel="noopener" aria-label="NutriDash sur Instagram">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
@@ -99,21 +99,12 @@
                         <circle cx="17.2" cy="6.8" r="1.1" fill="currentColor"/>
                     </svg>
                 </a>
-                <button class="lp-btn-ghost" onclick="showAuthPage(false)">Connexion</button>
+                <button class="lp-btn-ghost" data-click="showAuthPage" data-args='[false]'>Connexion</button>
             </div>
         </header>
 
         <!-- Script scroll header -->
-        <script>
-            (function() {
-                var header = document.getElementById('lp-header');
-                if (header) {
-                    window.addEventListener('scroll', function() {
-                        header.classList.toggle('lp-header--scrolled', window.scrollY > 50);
-                    }, { passive: true });
-                }
-            })();
-        </script>
+        <script src="landing-header.js"></script>
 
         <!-- Hero -->
         <section class="lx-hero">
@@ -126,7 +117,7 @@
                 </h1>
                 <p class="lx-sub">Dites-nous votre objectif, puis votre âge, votre poids et votre taille. NutriDash calcule vos calories et vos protéines, puis vous aide à les tenir.</p>
                 <div class="lx-hero-cta">
-                    <button class="lx-btn" onclick="showAuthPage(true)">Commencer mes 7 jours gratuits <span class="lx-arr" aria-hidden="true">&rarr;</span></button>
+                    <button class="lx-btn" data-click="showAuthPage" data-args='[true]'>Commencer mes 7 jours gratuits <span class="lx-arr" aria-hidden="true">&rarr;</span></button>
                 </div>
                 <p class="lx-micro">Sans carte bancaire &nbsp;&middot;&nbsp; Sans engagement &nbsp;&middot;&nbsp; Annulation immédiate</p>
             </div>
@@ -217,7 +208,7 @@
                     <div class="lx-day lx-day--last" data-d="J7" style="--i:6"><h4>Bilan de la semaine</h4><p>Vous décidez de continuer.</p></div>
                 </div>
                 <div class="lx-days-cta">
-                    <button class="lx-btn" onclick="showAuthPage(true)">Démarrer mon essai gratuit <span class="lx-arr" aria-hidden="true">&rarr;</span></button>
+                    <button class="lx-btn" data-click="showAuthPage" data-args='[true]'>Démarrer mon essai gratuit <span class="lx-arr" aria-hidden="true">&rarr;</span></button>
                     <span>Aucune carte bancaire à l'inscription.</span>
                 </div>
             </div>
@@ -237,7 +228,7 @@
                             <div><dt>1 phrase</dt><dd>pour décrire un repas aujourd'hui</dd></div>
                         </dl>
                         <div class="lx-histoire-cta">
-                            <button class="lx-btn" onclick="showAuthPage(true)">Essayer 7 jours gratuitement <span class="lx-arr" aria-hidden="true">&rarr;</span></button>
+                            <button class="lx-btn" data-click="showAuthPage" data-args='[true]'>Essayer 7 jours gratuitement <span class="lx-arr" aria-hidden="true">&rarr;</span></button>
                             <span>Sans carte bancaire.</span>
                         </div>
                     </div>
@@ -320,7 +311,7 @@
                         </li>
                     </ul>
                     <div class="lp-pricing-divider"></div>
-                    <button class="lp-btn-primary lp-btn-full" onclick="showAuthPage(true)">Commencer l'essai &rarr;</button>
+                    <button class="lp-btn-primary lp-btn-full" data-click="showAuthPage" data-args='[true]'>Commencer l'essai &rarr;</button>
                     <p class="lp-pricing-note">Aucune carte bancaire requise à l'inscription. Après 7 jours, l'accès est bloqué : abonnez-vous à 5,99&nbsp;€/mois via Stripe pour continuer. Résiliable à tout moment depuis votre profil.</p>
                 </div>
             </div>
@@ -349,7 +340,7 @@
             <div class="lp-cta-final-inner lp-reveal">
                 <h2 class="lp-cta-final-title">Prêt à reprendre le contrôle&nbsp;?</h2>
                 <p class="lp-cta-final-subtitle">Rejoignez les utilisateurs qui pilotent leur alimentation avec précision, en une phrase par repas.</p>
-                <button class="lp-btn-white" onclick="showAuthPage(true)">Démarrer gratuitement &rarr;</button>
+                <button class="lp-btn-white" data-click="showAuthPage" data-args='[true]'>Démarrer gratuitement &rarr;</button>
                 <p class="lp-cta-final-meta"><span class="lp-meta-check-white">&#10003;</span> 7 jours gratuits &nbsp;&middot;&nbsp; <span class="lp-meta-check-white">&#10003;</span> Sans engagement &nbsp;&middot;&nbsp; <span class="lp-meta-check-white">&#10003;</span> Annulation immédiate</p>
             </div>
         </section>
@@ -378,30 +369,10 @@
 
         <div class="lx-progress" aria-hidden="true"><i></i></div>
 
-        <div class="lx-sticky-cta"><button class="lx-btn" onclick="showAuthPage(true)">Essayer 7 jours gratuits</button></div>
+        <div class="lx-sticky-cta"><button class="lx-btn" data-click="showAuthPage" data-args='[true]'>Essayer 7 jours gratuits</button></div>
 
         <!-- Script animations au scroll — placé après tous les éléments .lp-reveal -->
-        <script>
-            (function() {
-                if (!('IntersectionObserver' in window)) {
-                    document.querySelectorAll('.lp-reveal').forEach(function(el) {
-                        el.classList.add('lp-revealed');
-                    });
-                    return;
-                }
-                var io = new IntersectionObserver(function(entries) {
-                    entries.forEach(function(e) {
-                        if (e.isIntersecting) {
-                            e.target.classList.add('lp-revealed');
-                            io.unobserve(e.target);
-                        }
-                    });
-                }, { threshold: 0.10 });
-                document.querySelectorAll('.lp-reveal').forEach(function(el) {
-                    io.observe(el);
-                });
-            })();
-        </script>
+        <script src="landing-reveal.js"></script>
 
     </div>
 
@@ -410,7 +381,7 @@
         <div class="auth-container">
 
             <!-- Lien retour -->
-            <button class="auth-back-btn" onclick="window.showLandingPage()">
+            <button class="auth-back-btn" data-click="showLandingPage">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
                 Retour à l'accueil
             </button>
@@ -422,7 +393,7 @@
             <div id="auth-error" class="auth-error hidden" role="alert"></div>
 
             <!-- ==================== LOGIN FORM ==================== -->
-            <form id="login-form" onsubmit="event.preventDefault(); if(window.handleLoginSubmit) window.handleLoginSubmit(event);">
+            <form id="login-form" data-prevent data-submit="handleLoginSubmit">
 
                 <div class="auth-form-header">
                     <h2 class="auth-form-title">Bon retour !</h2>
@@ -441,7 +412,7 @@
                     <svg class="auth-input-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
                     <input type="password" id="login-password" name="password" required minlength="8" autocomplete="current-password" placeholder=" ">
                     <label for="login-password">Mot de passe</label>
-                    <button type="button" class="auth-eye-btn" aria-label="Afficher le mot de passe" onclick="togglePasswordVisibility('login-password', this)">
+                    <button type="button" class="auth-eye-btn" aria-label="Afficher le mot de passe" data-click="togglePasswordVisibility" data-arg="login-password" data-pass-this>
                         <svg class="eye-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
                         <svg class="eye-off-icon hidden" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
                     </button>
@@ -449,7 +420,7 @@
 
                 <!-- Lien mot de passe oublié -->
                 <div class="auth-forgot-wrap">
-                    <a href="#" id="show-reset" class="auth-link-small" onclick="event.preventDefault(); window.showResetForm();">Mot de passe oublié ?</a>
+                    <a href="#" id="show-reset" class="auth-link-small" data-prevent data-click="showResetForm">Mot de passe oublié ?</a>
                 </div>
 
                 <!-- CTA principal -->
@@ -464,12 +435,12 @@
 
                 <!-- CTA secondaire -->
                 <p class="auth-switch-text">Pas encore de compte ?</p>
-                <button type="button" class="auth-btn-secondary" id="show-signup" onclick="window.showSignupForm()">Créer un compte</button>
+                <button type="button" class="auth-btn-secondary" id="show-signup" data-click="showSignupForm">Créer un compte</button>
 
             </form>
 
             <!-- ==================== SIGNUP FORM ==================== -->
-            <form id="signup-form" class="hidden" onsubmit="event.preventDefault(); if(window.handleSignupSubmit) window.handleSignupSubmit(event);">
+            <form id="signup-form" class="hidden" data-prevent data-submit="handleSignupSubmit">
 
                 <div class="auth-form-header">
                     <h2 class="auth-form-title">Créez votre compte gratuitement.</h2>
@@ -502,7 +473,7 @@
                     <svg class="auth-input-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
                     <input type="password" id="signup-password" name="password" required minlength="8" autocomplete="new-password" placeholder=" ">
                     <label for="signup-password">Mot de passe</label>
-                    <button type="button" class="auth-eye-btn" aria-label="Afficher le mot de passe" onclick="togglePasswordVisibility('signup-password', this)">
+                    <button type="button" class="auth-eye-btn" aria-label="Afficher le mot de passe" data-click="togglePasswordVisibility" data-arg="signup-password" data-pass-this>
                         <svg class="eye-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
                         <svg class="eye-off-icon hidden" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
                     </button>
@@ -513,7 +484,7 @@
                     <svg class="auth-input-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
                     <input type="password" id="signup-confirm" name="confirm" required minlength="8" autocomplete="new-password" placeholder=" ">
                     <label for="signup-confirm">Confirmer le mot de passe</label>
-                    <button type="button" class="auth-eye-btn" aria-label="Afficher le mot de passe" onclick="togglePasswordVisibility('signup-confirm', this)">
+                    <button type="button" class="auth-eye-btn" aria-label="Afficher le mot de passe" data-click="togglePasswordVisibility" data-arg="signup-confirm" data-pass-this>
                         <svg class="eye-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
                         <svg class="eye-off-icon hidden" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
                     </button>
@@ -529,7 +500,7 @@
                             </span>
                         </span>
                         <span class="auth-rgpd-text">
-                            J'ai lu et j'accepte les <a href="cgu.html" target="_blank" rel="noopener" class="auth-rgpd-link" onclick="event.stopPropagation()">Conditions Générales d'Utilisation</a> et la <a href="confidentialite.html" target="_blank" rel="noopener" class="auth-rgpd-link" onclick="event.stopPropagation()">Politique de confidentialité</a>.
+                            J'ai lu et j'accepte les <a href="cgu.html" target="_blank" rel="noopener" class="auth-rgpd-link" data-stop>Conditions Générales d'Utilisation</a> et la <a href="confidentialite.html" target="_blank" rel="noopener" class="auth-rgpd-link" data-stop>Politique de confidentialité</a>.
                             <span class="auth-rgpd-note">Obligatoire pour créer votre compte.</span>
                         </span>
                     </label>
@@ -540,13 +511,13 @@
 
                 <!-- Lien connexion -->
                 <p class="auth-switch-text" style="text-align:center; margin-top:16px;">
-                    Déjà un compte ? <a href="#" id="show-login" class="auth-link-inline" onclick="event.preventDefault(); window.showLoginForm();">Me connecter</a>
+                    Déjà un compte ? <a href="#" id="show-login" class="auth-link-inline" data-prevent data-click="showLoginForm">Me connecter</a>
                 </p>
 
             </form>
 
             <!-- ==================== RESET FORM ==================== -->
-            <form id="reset-form" class="hidden" onsubmit="event.preventDefault(); if(window.handleResetSubmit) window.handleResetSubmit(event);">
+            <form id="reset-form" class="hidden" data-prevent data-submit="handleResetSubmit">
 
                 <div class="auth-form-header">
                     <h2 class="auth-form-title">Mot de passe oublié ?</h2>
@@ -571,7 +542,7 @@
 
                 <!-- Retour connexion -->
                 <div style="text-align:center; margin-top:20px;">
-                    <a href="#" id="show-login-from-reset" class="auth-link-back" onclick="event.preventDefault(); window.showLoginForm();">
+                    <a href="#" id="show-login-from-reset" class="auth-link-back" data-prevent data-click="showLoginForm">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
                         Retour à la connexion
                     </a>
@@ -582,48 +553,7 @@
         </div>
     </div>
 
-    <script>
-    function escapeHtml(str) {
-        return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
-    }
-
-    /* Toggle visibilité mot de passe */
-    function togglePasswordVisibility(inputId, btn) {
-        var input = document.getElementById(inputId);
-        var eyeOn = btn.querySelector('.eye-icon');
-        var eyeOff = btn.querySelector('.eye-off-icon');
-        if (input.type === 'password') {
-            input.type = 'text';
-            eyeOn.classList.add('hidden');
-            eyeOff.classList.remove('hidden');
-            btn.setAttribute('aria-label', 'Masquer le mot de passe');
-        } else {
-            input.type = 'password';
-            eyeOn.classList.remove('hidden');
-            eyeOff.classList.add('hidden');
-            btn.setAttribute('aria-label', 'Afficher le mot de passe');
-        }
-    }
-
-    /* Activation bouton inscription selon checkbox RGPD */
-    document.addEventListener('DOMContentLoaded', function() {
-        var rgpdCheckbox = document.getElementById('rgpd-consent');
-        var signupBtn = document.getElementById('signup-submit-btn');
-        if (rgpdCheckbox && signupBtn) {
-            function updateSignupBtn() {
-                if (rgpdCheckbox.checked) {
-                    signupBtn.disabled = false;
-                    signupBtn.classList.remove('btn-disabled');
-                } else {
-                    signupBtn.disabled = true;
-                    signupBtn.classList.add('btn-disabled');
-                }
-            }
-            rgpdCheckbox.addEventListener('change', updateSignupBtn);
-            updateSignupBtn();
-        }
-    });
-    </script>
+    <script src="auth-ui.js"></script>
     <div id="app" class="dashboard-layout hidden">
         <!-- Sidebar / Header -->
         <header class="sidebar">
@@ -671,7 +601,7 @@
                 </div>
 
                 <!-- Bouton debug caché -->
-                <button id="btn-fix-profile" onclick="window.forceProfileLink()" class="btn hidden" style="display:none;margin-bottom:12px;font-size:12px;background:var(--color-accent,#E07A5F);color:#fff;border:none;border-radius:10px;padding:8px 14px;">Rattacher mon profil</button>
+                <button id="btn-fix-profile" data-click="forceProfileLink" class="btn hidden" style="display:none;margin-bottom:12px;font-size:12px;background:var(--color-accent,#E07A5F);color:#fff;border:none;border-radius:10px;padding:8px 14px;">Rattacher mon profil</button>
 
                 <!-- Carte abonnement -->
                 <div class="pv-subscription-card" id="pv-subscription-card">
@@ -889,7 +819,7 @@
                 <header class="advice-header">
                     <h2 class="advice-title">Administration</h2>
                     <p class="advice-subtitle">Comptes et abonnements</p>
-                    <button type="button" class="ai-link admin-back" onclick="navigateTo('tableaudebord')">← Retour à l'accueil</button>
+                    <button type="button" class="ai-link admin-back" data-click="navigateTo" data-arg="tableaudebord">← Retour à l'accueil</button>
                 </header>
                 <div id="admin-content" class="admin-content" aria-live="polite"></div>
             </section>
@@ -905,7 +835,7 @@
                     <div class="db-nav-days">
                         <button type="button" class="wk-today" id="week-today" hidden>Aujourd’hui</button>
                         <!-- Accès à l'administration : pictogramme réservé aux comptes admin (affiché par admin.js) -->
-                        <button type="button" class="db-day-btn db-admin-btn" id="dashboard-admin-btn" hidden onclick="navigateTo('admin')" aria-label="Administration" title="Administration">
+                        <button type="button" class="db-day-btn db-admin-btn" id="dashboard-admin-btn" hidden data-click="navigateTo" data-arg="admin" aria-label="Administration" title="Administration">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
                         </button>
                     </div>
@@ -987,14 +917,14 @@
                                 <input type="number" id="weigh-input" step="0.1" min="10" max="300" placeholder="75,5" aria-label="Poids en kilogrammes">
                                 <span aria-hidden="true">kg</span>
                             </label>
-                            <button type="button" class="weigh-in-btn" onclick="saveWeighIn()">Valider</button>
+                            <button type="button" class="weigh-in-btn" data-click="saveWeighIn">Valider</button>
                         </div>
                     </div>
 
                     <!-- Actions -->
                     <div class="card add-actions-card">
-                        <button type="button" class="btn btn-primary" onclick="openMealModal()">+ Ajouter un repas</button>
-                        <button type="button" class="btn btn-secondary" onclick="openActivityModal()">+ Ajouter une activité</button>
+                        <button type="button" class="btn btn-primary" data-click="openMealModal">+ Ajouter un repas</button>
+                        <button type="button" class="btn btn-secondary" data-click="openActivityModal">+ Ajouter une activité</button>
                     </div>
 
                     <!-- History List -->
@@ -1018,7 +948,7 @@
             <div class="modal-drag-handle"></div>
             <div class="modal-header">
                 <h3 class="modal-title">Saisie Journalière</h3>
-                <button type="button" class="modal-close-btn" onclick="closeMealModal()" aria-label="Fermer">
+                <button type="button" class="modal-close-btn" data-click="closeMealModal" aria-label="Fermer">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                         <line x1="18" y1="6" x2="6" y2="18"></line>
                         <line x1="6" y1="6" x2="18" y2="18"></line>
@@ -1111,7 +1041,7 @@
             <div class="modal-drag-handle"></div>
             <div class="modal-header">
                 <h3 class="modal-title">Activité supplémentaire</h3>
-                <button type="button" class="modal-close-btn" onclick="closeActivityModal()" aria-label="Fermer">
+                <button type="button" class="modal-close-btn" data-click="closeActivityModal" aria-label="Fermer">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                         <line x1="18" y1="6" x2="6" y2="18"></line>
                         <line x1="6" y1="6" x2="18" y2="18"></line>
@@ -1174,11 +1104,11 @@
                 Félicitations ! Tu as atteint ton objectif de poids. Quel est ton prochain défi ?
             </p>
             <div style="display:flex;flex-direction:column;gap:10px;">
-                <button type="button" onclick="redirectToProfile()"
+                <button type="button" data-click="redirectToProfile"
                     style="height:52px;background:var(--color-accent);color:white;border:none;border-radius:var(--lp-radius-full);font-family:'DM Sans',sans-serif;font-size:16px;font-weight:600;cursor:pointer;transition:background 0.18s;">
                     Fixer un nouvel objectif
                 </button>
-                <button type="button" onclick="closeGoalReachedModal()"
+                <button type="button" data-click="closeGoalReachedModal"
                     style="height:44px;background:transparent;color:var(--color-text-2);border:1px solid var(--color-border);border-radius:var(--lp-radius-full);font-family:'Inter',sans-serif;font-size:15px;font-weight:500;cursor:pointer;">
                     Continuer en maintien
                 </button>
@@ -1225,23 +1155,9 @@
             </div>
         </nav>
 
-    <script>
-    /* Synchronisation bottom nav — active state uniquement (avant app.js) */
-    (function() {
-        window._syncBottomNav = function(targetId) {
-            document.querySelectorAll('.bottom-nav-item').forEach(function(btn) {
-                btn.classList.toggle('active', btn.dataset.target === targetId);
-            });
-        };
-        document.addEventListener('click', function(e) {
-            var btn = e.target.closest('.bottom-nav-item, .nav-btn');
-            if (btn && btn.dataset.target) {
-                window._syncBottomNav(btn.dataset.target);
-            }
-        });
-    })();
-    </script>
+    <script src="bottom-nav.js"></script>
 
+    <script defer src="ui-actions.js"></script>
     <script defer src="pb-config.js"></script>
     <script defer src="utils.js"></script>
     <script defer src="animations.js"></script>
@@ -1258,408 +1174,7 @@
 <script defer src="favorite-activities.js"></script>
 <script defer src="week-strip.js"></script>
 
-    <script>
-    /* ============================================================
-       PATCH 1 — deleteEntry / editEntry
-       Fixes :
-       - Coercion d'ID (number local vs string PocketBase)
-       - Rafraîchissement du dashboard après remplacement async de l'ID
-         par PocketBase (pb_saveActivity/.then remplace newEntry.id)
-       - Suppression sans confirm() (bloqué sur iOS PWA)
-    ============================================================ */
-    (function() {
-        function waitForApp(cb) {
-            if (typeof window.deleteEntry === 'function' && typeof window.editEntry === 'function') {
-                cb();
-            } else {
-                setTimeout(function() { waitForApp(cb); }, 50);
-            }
-        }
-
-        waitForApp(function() {
-            var _origEdit = window.editEntry;
-
-            /* deleteEntry : sans confirm(), résolution d'ID par String() */
-            window.deleteEntry = function(id) {
-                if (typeof getActiveLog !== 'function') return;
-                var actLog = getActiveLog();
-                var idx = actLog.entries.findIndex(function(e) {
-                    return String(e.id) === String(id);
-                });
-                if (idx === -1) return;
-                var entry = actLog.entries[idx];
-                if (entry.type === 'Repas') {
-                    actLog.consumedCals -= entry.cals;
-                    actLog.consumedProtein -= entry.prot;
-                } else if (entry.type === 'Activité') {
-                    actLog.bonusTDEE -= entry.cals;
-                }
-                actLog.entries.splice(idx, 1);
-                if (typeof currentUser !== 'undefined' && currentUser &&
-                    typeof pb_deleteEntry === 'function' &&
-                    typeof entry.id === 'string' && entry.id.length > 5) {
-                    pb_deleteEntry(entry.id, entry.type);
-                }
-                if (typeof saveState === 'function') saveState();
-                if (typeof updateDashboard === 'function') updateDashboard();
-            };
-
-            /* editEntry : résolution d'ID par String() */
-            window.editEntry = function(id) {
-                if (typeof getActiveLog === 'function') {
-                    var actLog = getActiveLog();
-                    var entry = actLog.entries.find(function(e) {
-                        return String(e.id) === String(id);
-                    });
-                    if (entry) { _origEdit(entry.id); return; }
-                }
-                _origEdit(id);
-            };
-        });
-
-        /* Patch pb_saveActivity + pb_saveMeal : après sauvegarde PB,
-           re-render le dashboard pour que les boutons onclick portent
-           le nouvel ID PocketBase (remplacé de façon async dans app.js) */
-        function patchPbSaves() {
-            var ready = typeof window.pb_saveActivity === 'function'
-                     && typeof window.pb_saveMeal === 'function';
-            if (!ready) { setTimeout(patchPbSaves, 100); return; }
-
-            function wrapWithRefresh(fn) {
-                return function() {
-                    var result = fn.apply(this, arguments);
-                    if (result && typeof result.then === 'function') {
-                        result.then(function() {
-                            setTimeout(function() {
-                                if (typeof updateDashboard === 'function') updateDashboard();
-                            }, 100);
-                        });
-                    }
-                    return result;
-                };
-            }
-
-            window.pb_saveActivity = wrapWithRefresh(window.pb_saveActivity);
-            window.pb_saveMeal     = wrapWithRefresh(window.pb_saveMeal);
-        }
-        patchPbSaves();
-    })();
-
-    /* ============================================================
-       Navigation bottom nav — couvre TOUS les .bottom-nav-item
-       app.js écoute seulement .nav-btn ; ce listener comble le manque
-       en résolvant le slug via window.routes (même logique qu'app.js)
-    ============================================================ */
-    (function() {
-        document.addEventListener('click', function(e) {
-            /* Navigation bottom nav générique */
-            var bottomBtn = e.target.closest('.bottom-nav-item');
-            if (bottomBtn && bottomBtn.dataset.target) {
-                var targetView = bottomBtn.dataset.target;
-                if (typeof window.routes === 'object' && typeof navigateTo === 'function') {
-                    var slug = Object.keys(window.routes).find(function(s) {
-                        return window.routes[s].view === targetView;
-                    });
-                    if (slug) {
-                        navigateTo(slug);
-                    }
-                }
-                return;
-            }
-        });
-    })();
-
-    /* ============================================================
-       PATCH 2 — Custom select dropdown (remplace le picker natif mobile)
-       Transforme les <select> dans .select-wrapper en dropdown CSS/JS
-       identique visuellement sur desktop et mobile.
-    ============================================================ */
-    (function() {
-        function buildCustomSelect(wrapper) {
-            var select = wrapper.querySelector('select');
-            if (!select || wrapper.querySelector('.cs-trigger')) return;
-
-            /* Cacher le select natif tout en gardant sa valeur accessible */
-            select.style.cssText = 'position:absolute;opacity:0;pointer-events:none;width:1px;height:1px;';
-
-            /* Bouton déclencheur */
-            var trigger = document.createElement('button');
-            trigger.type = 'button';
-            trigger.className = 'cs-trigger';
-            trigger.setAttribute('aria-haspopup', 'listbox');
-            trigger.setAttribute('aria-expanded', 'false');
-
-            var triggerText = document.createElement('span');
-            triggerText.className = 'cs-trigger-text';
-
-            var triggerArrow = document.createElement('span');
-            triggerArrow.className = 'cs-trigger-arrow';
-            triggerArrow.innerHTML = '<svg width="18" height="18" viewBox="0 0 20 20" fill="none"><path d="M5 7.5L10 12.5L15 7.5" stroke="#2D6A4F" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-
-            trigger.appendChild(triggerText);
-            trigger.appendChild(triggerArrow);
-            wrapper.appendChild(trigger);
-
-            /* Liste dropdown */
-            var dropdown = document.createElement('ul');
-            dropdown.className = 'cs-dropdown';
-            dropdown.setAttribute('role', 'listbox');
-            wrapper.appendChild(dropdown);
-
-            function syncLabel() {
-                var opt = select.options[select.selectedIndex];
-                triggerText.textContent = (opt && opt.value !== '') ? opt.text : (select.options[0] ? select.options[0].text : '');
-            }
-
-            function buildOptions() {
-                dropdown.innerHTML = '';
-                /* Parcourt les enfants directs du select : optgroup ou option */
-                Array.from(select.children).forEach(function(child) {
-                    if (child.tagName === 'OPTGROUP') {
-                        /* Label de groupe */
-                        var groupLabel = document.createElement('li');
-                        groupLabel.className = 'cs-optgroup-label';
-                        groupLabel.textContent = child.label;
-                        dropdown.appendChild(groupLabel);
-                        /* Options du groupe */
-                        Array.from(child.children).forEach(function(opt) {
-                            if (opt.disabled) return;
-                            dropdown.appendChild(makeOption(opt));
-                        });
-                    } else if (child.tagName === 'OPTION') {
-                        if (!child.disabled) dropdown.appendChild(makeOption(child));
-                    }
-                });
-            }
-
-            function makeOption(opt) {
-                var li = document.createElement('li');
-                li.className = 'cs-option' + (opt.value === select.value ? ' cs-selected' : '');
-                li.setAttribute('role', 'option');
-                li.setAttribute('data-value', opt.value);
-                li.textContent = opt.text;
-                li.addEventListener('click', function() {
-                    select.value = opt.value;
-                    select.dispatchEvent(new Event('change', { bubbles: true }));
-                    closeDropdown();
-                    syncLabel();
-                    buildOptions();
-                });
-                return li;
-            }
-
-            function openDropdown() {
-                /* Ferme tous les autres dropdowns ouverts */
-                document.querySelectorAll('.cs-trigger[aria-expanded="true"]').forEach(function(t) {
-                    if (t !== trigger) t.click();
-                });
-                /* Détecte si on ouvre vers le haut ou le bas */
-                if (!wrapper.hasAttribute('data-force-down')) {
-                    var rect = wrapper.getBoundingClientRect();
-                    var spaceBelow = window.innerHeight - rect.bottom;
-                    var dropdownH = Math.min(220, dropdown.scrollHeight || 220);
-                    if (spaceBelow < dropdownH + 8) {
-                        wrapper.classList.add('cs-dropup');
-                    } else {
-                        wrapper.classList.remove('cs-dropup');
-                    }
-                } else {
-                    wrapper.classList.remove('cs-dropup');
-                }
-                wrapper.classList.add('cs-open');
-                trigger.setAttribute('aria-expanded', 'true');
-                buildOptions();
-            }
-
-            function closeDropdown() {
-                wrapper.classList.remove('cs-open');
-                trigger.setAttribute('aria-expanded', 'false');
-            }
-
-            trigger.addEventListener('click', function(e) {
-                e.stopPropagation();
-                wrapper.classList.contains('cs-open') ? closeDropdown() : openDropdown();
-            });
-
-            /* Ferme si clic hors du dropdown */
-            document.addEventListener('click', function(e) {
-                if (!wrapper.contains(e.target)) closeDropdown();
-            });
-
-            /* Observe les mutations du select (renderActivityOptions recharge les options) */
-            var mo = new MutationObserver(function() {
-                syncLabel();
-                if (wrapper.classList.contains('cs-open')) buildOptions();
-            });
-            mo.observe(select, { childList: true, subtree: true });
-
-            /* Sync quand le select change depuis le JS (editEntry pré-sélectionne) */
-            select.addEventListener('change', syncLabel);
-
-            syncLabel();
-        }
-
-        function initCustomSelects() {
-            document.querySelectorAll('.select-wrapper').forEach(buildCustomSelect);
-        }
-
-        /* Lance après chargement DOM + scripts */
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', initCustomSelects);
-        } else {
-            initCustomSelects();
-        }
-
-        /* Re-init quand une modale s'ouvre (au cas où les options ont changé) */
-        document.addEventListener('click', function(e) {
-            var btn = e.target.closest('[onclick*="openMealModal"], [onclick*="openActivityModal"]');
-            if (btn) setTimeout(initCustomSelects, 50);
-        });
-    })();
-
-    /* ============================================================
-       E-07 — RGPD : Export JSON, Export CSV, Suppression de compte
-    ============================================================ */
-    (function() {
-        function downloadBlob(content, filename, type) {
-            var blob = new Blob([content], { type: type });
-            var url = URL.createObjectURL(blob);
-            var a = document.createElement('a');
-            a.href = url;
-            a.download = filename;
-            document.body.appendChild(a);
-            a.click();
-            setTimeout(function() { document.body.removeChild(a); URL.revokeObjectURL(url); }, 100);
-        }
-
-        function exportJSON() {
-            if (typeof state === 'undefined') { alert('Données non disponibles.'); return; }
-            var data = JSON.stringify(state, null, 2);
-            var now = new Date().toISOString().slice(0,10);
-            downloadBlob(data, 'nutridash-export-' + now + '.json', 'application/json');
-        }
-
-        function exportCSV() {
-            if (typeof state === 'undefined') { alert('Données non disponibles.'); return; }
-            var rows = [['Date','Type','Nom','Calories','Protéines']];
-            (state.logs || []).forEach(function(log) {
-                (log.entries || []).forEach(function(entry) {
-                    rows.push([
-                        log.date || '',
-                        entry.type || '',
-                        (entry.name || entry.food || '').replace(/"/g, '""'),
-                        entry.cals || 0,
-                        entry.prot || 0
-                    ]);
-                });
-            });
-            var csv = rows.map(function(r) {
-                return r.map(function(c) { return '"' + c + '"'; }).join(',');
-            }).join('\r\n');
-            var now = new Date().toISOString().slice(0,10);
-            downloadBlob(csv, 'nutridash-export-' + now + '.csv', 'text/csv');
-        }
-
-        function openDeleteModal() {
-            var modal = document.getElementById('modal-delete-account');
-            var input = document.getElementById('delete-confirm-input');
-            if (modal) {
-                input.value = '';
-                document.getElementById('btn-delete-confirm').disabled = true;
-                modal.classList.remove('hidden');
-            }
-        }
-
-        function closeDeleteModal() {
-            var modal = document.getElementById('modal-delete-account');
-            if (modal) modal.classList.add('hidden');
-        }
-
-        async function deleteAccount() {
-            if (typeof pb !== 'undefined' && pb.authStore && pb.authStore.isValid) {
-                /* Annuler l'abonnement Stripe AVANT de supprimer le compte —
-                   une fois le compte PocketBase supprimé, l'utilisateur ne
-                   peut plus se connecter pour l'annuler lui-même et
-                   continuerait à être facturé indéfiniment. */
-                var token = getToken();
-                if (token) {
-                    try {
-                        var cancelRes = await fetch(getPbUrl() + '/api/stripe/cancel-subscription', {
-                            method: 'POST',
-                            headers: { 'Authorization': token }
-                        });
-                        var cancelData = await cancelRes.json();
-                        if (!cancelRes.ok || cancelData.ok === false) {
-                            var proceed = confirm('Nous n\'avons pas pu annuler automatiquement votre abonnement Stripe. Continuer la suppression du compte quand même ? Vous devrez alors annuler l\'abonnement vous-même depuis Stripe ou nous contacter.');
-                            if (!proceed) return;
-                        }
-                    } catch(e) {
-                        var proceedErr = confirm('Nous n\'avons pas pu contacter Stripe pour annuler votre abonnement. Continuer la suppression du compte quand même ?');
-                        if (!proceedErr) return;
-                    }
-                }
-            }
-
-            /* Efface localStorage */
-            var STORAGE_KEY = 'nutridash_state';
-            try { localStorage.removeItem(STORAGE_KEY); } catch(e) {}
-            if (typeof pb !== 'undefined' && pb.authStore && pb.authStore.isValid) {
-                try {
-                    var userId = pb.authStore.model.id;
-                    /* Supprimer toutes les données utilisateur (RGPD — droit à l'effacement) */
-                    var collections = ['profiles', 'meals', 'favorite_meals', 'favorite_activities', 'daily_stats', 'activities_log', 'weigh_ins', 'goal_history', 'user_data'];
-                    for (var i = 0; i < collections.length; i++) {
-                        try {
-                            var items = await pb.collection(collections[i]).getFullList({ filter: 'user="' + userId + '"' });
-                            for (var j = 0; j < items.length; j++) {
-                                await pb.collection(collections[i]).delete(items[j].id);
-                            }
-                        } catch(e) { /* collection inexistante ou déjà vide */ }
-                    }
-                    /* Supprimer le compte utilisateur */
-                    await pb.collection('users').delete(userId);
-                } catch(e) { console.warn('Erreur suppression PB:', e); }
-                pb.authStore.clear();
-            }
-            /* Redirige vers landing */
-            closeDeleteModal();
-            if (typeof navigateTo === 'function') navigateTo('landingpage');
-        }
-
-        function initRGPD() {
-            var btnJSON = document.getElementById('btn-export-json');
-            var btnCSV = document.getElementById('btn-export-csv');
-            var btnDelete = document.getElementById('btn-delete-account');
-            var btnCancel = document.getElementById('btn-delete-cancel');
-            var btnConfirm = document.getElementById('btn-delete-confirm');
-            var confirmInput = document.getElementById('delete-confirm-input');
-            var overlay = document.getElementById('modal-delete-account');
-
-            if (btnJSON) btnJSON.addEventListener('click', exportJSON);
-            if (btnCSV) btnCSV.addEventListener('click', exportCSV);
-            if (btnDelete) btnDelete.addEventListener('click', openDeleteModal);
-            if (btnCancel) btnCancel.addEventListener('click', closeDeleteModal);
-
-            if (overlay) overlay.addEventListener('click', function(e) {
-                if (e.target === overlay) closeDeleteModal();
-            });
-
-            if (confirmInput) confirmInput.addEventListener('input', function() {
-                if (btnConfirm) btnConfirm.disabled = (confirmInput.value.trim() !== 'SUPPRIMER');
-            });
-
-            if (btnConfirm) btnConfirm.addEventListener('click', function() {
-                if (confirmInput && confirmInput.value.trim() === 'SUPPRIMER') deleteAccount();
-            });
-        }
-
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', initRGPD);
-        } else {
-            initRGPD();
-        }
-    })();
-    </script>
+    <script src="entry-patches.js"></script>
 
     <!-- ============================================================
          PAYWALL — Overlay bloquant fin de période d'essai
@@ -1693,399 +1208,8 @@
     <!-- ============================================================
          PATCH — Paywall : check d'accès avant affichage de l'app
     ============================================================ -->
-    <script>
-    (function() {
-        var TRIAL_DAYS = 7;
+    <script src="paywall.js"></script>
 
-        /* Vérifie si l'utilisateur a accès (essai actif OU exempté OU abonnement actif) */
-        async function checkAccess() {
-            if (typeof pb === 'undefined' || !pb.authStore.isValid) return false;
-            var user = pb.authStore.model;
-
-            /* Calcul fin de période d'essai */
-            var created  = new Date(user.created);
-            var trialEnd = new Date(created.getTime() + TRIAL_DAYS * 24 * 60 * 60 * 1000);
-            if (new Date() <= trialEnd) return true;
-
-            /* Essai expiré → rafraîchir le profil pour avoir les données à jour */
-            try {
-                var res    = await pb.collection('users').authRefresh();
-                var record = res.record;
-                if (record.is_exempt) return true;
-                var status = record.subscription_status;
-                return status === 'active' || status === 'trialing';
-            } catch(e) {
-                return false;
-            }
-        }
-
-        function showPaywall() {
-            var overlay = document.getElementById('paywall-overlay');
-            if (overlay) overlay.classList.remove('hidden');
-        }
-
-        function hidePaywall() {
-            var overlay = document.getElementById('paywall-overlay');
-            if (overlay) overlay.classList.add('hidden');
-        }
-
-        function initPaywall() {
-            /* Wrap window.showApp pour intercepter l'accès */
-            var _orig = window.showApp;
-            window._paywallOrig = _orig; // exposé pour le polling post-Stripe
-            window.showApp = async function() {
-                var hasAccess = await checkAccess();
-                if (hasAccess) {
-                    hidePaywall();
-                    if (_orig) _orig();
-                } else {
-                    showPaywall();
-                }
-            };
-
-            /* Bouton S'abonner */
-            var subBtn = document.getElementById('paywall-subscribe-btn');
-            if (subBtn) {
-                subBtn.addEventListener('click', async function() {
-                    subBtn.disabled    = true;
-                    subBtn.textContent = 'Redirection…';
-                    if (typeof window.stripeStartCheckout === 'function') {
-                        await window.stripeStartCheckout();
-                    }
-                    subBtn.disabled    = false;
-                    subBtn.textContent = 'S\'abonner — 5,99 €/mois';
-                });
-            }
-
-            /* Bouton Déconnexion */
-            var logoutBtn = document.getElementById('paywall-logout-btn');
-            if (logoutBtn) {
-                logoutBtn.addEventListener('click', function() {
-                    if (typeof pb !== 'undefined') pb.authStore.clear();
-                    if (typeof window.clearLocalData === 'function') window.clearLocalData();
-                    window.location.reload();
-                });
-            }
-
-            /* Retour de Stripe avec succès → polling jusqu'à activation (max 30s) */
-            var params = new URLSearchParams(window.location.search);
-            if (params.get('stripe') === 'success') {
-                window.history.replaceState({}, '', window.location.pathname);
-                var overlay = document.getElementById('paywall-overlay');
-                var card    = overlay && overlay.querySelector('.paywall-card');
-                if (card) {
-                    card.innerHTML = '<div class="paywall-logo">Nutri<span>Dash</span></div>'
-                        + '<p style="margin:2rem 0;font-size:1.1rem;color:var(--color-text)">Activation de votre abonnement…</p>'
-                        + '<p style="color:var(--color-text-muted);font-size:.9rem">Merci de patienter quelques secondes.</p>';
-                }
-                var attempts = 0;
-                var maxAttempts = 15;
-                var _origRef = window._paywallOrig;
-
-                async function tryActivate() {
-                    attempts++;
-                    var hasAccess = await checkAccess();
-                    if (hasAccess) {
-                        clearInterval(poll);
-                        hidePaywall();
-                        if (typeof _origRef === 'function') _origRef();
-                        if (typeof renderSubscriptionCard === 'function') renderSubscriptionCard();
-                    } else if (attempts >= maxAttempts) {
-                        clearInterval(poll);
-                        if (card) {
-                            card.innerHTML = '<div class="paywall-logo">Nutri<span>Dash</span></div>'
-                                + '<p style="margin:2rem 0;color:var(--color-text)">L\'activation prend plus de temps que prévu.</p>'
-                                + '<button id="retry-activation-btn" class="paywall-btn-primary">Réessayer</button>';
-                            var retryBtn = document.getElementById('retry-activation-btn');
-                            if (retryBtn) retryBtn.addEventListener('click', function() {
-                                retryBtn.textContent = 'Vérification…';
-                                retryBtn.disabled = true;
-                                attempts = 0;
-                                poll = setInterval(tryActivate, 2000);
-                            });
-                        }
-                    }
-                }
-
-                /* Délai initial de 3s pour laisser le webhook arriver */
-                var poll = setTimeout(function() {
-                    tryActivate();
-                    poll = setInterval(tryActivate, 2000);
-                }, 3000);
-            }
-        }
-
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', initPaywall);
-        } else {
-            initPaywall();
-        }
-    })();
-    </script>
-
-    <script>
-    (function() {
-        /* Libellés et couleurs selon le statut */
-        var STATUS_LABELS = {
-            'none':       'Aucun abonnement',
-            'trialing':   'Période d\'essai',
-            'active':     'Actif',
-            'past_due':   'Paiement en retard',
-            'canceled':   'Résilié',
-            'incomplete': 'Incomplet',
-        };
-        var STATUS_CLASSES = {
-            'trialing': 'trialing',
-            'active':   'active',
-            'past_due': 'past_due',
-            'canceled': 'canceled',
-        };
-
-        function getToken() {
-            return typeof pb !== 'undefined' && pb.authStore && pb.authStore.isValid
-                ? pb.authStore.token : null;
-        }
-        function getPbUrl() {
-            return typeof PB_URL !== 'undefined' ? PB_URL : 'https://nutridash-pb.fly.dev';
-        }
-
-        var TRIAL_DAYS = 7;
-
-        function getTrialInfo() {
-            if (typeof pb === 'undefined' || !pb.authStore.isValid) return null;
-            var created  = new Date(pb.authStore.model.created);
-            var trialEnd = new Date(created.getTime() + TRIAL_DAYS * 24 * 60 * 60 * 1000);
-            var now      = new Date();
-            var msLeft   = trialEnd - now;
-            return {
-                active:    msLeft > 0,
-                daysLeft:  Math.max(0, Math.ceil(msLeft / (24 * 60 * 60 * 1000))),
-                endDate:   trialEnd,
-            };
-        }
-
-        /* Rendu de la carte abonnement */
-        async function renderSubscriptionCard() {
-            var badge   = document.getElementById('pv-sub-badge');
-            var desc    = document.getElementById('pv-sub-desc');
-            var actions = document.getElementById('pv-sub-actions');
-            if (!badge || !desc || !actions) return;
-
-            var token = getToken();
-            if (!token) {
-                desc.textContent = 'Connectez-vous pour voir votre abonnement.';
-                actions.innerHTML = '';
-                return;
-            }
-
-            var status = 'none';
-            var subEnd = null;
-            var subCancelAt = null;
-            var isExempt = false;
-            try {
-                var refreshRes = await fetch(getPbUrl() + '/api/collections/users/auth-refresh', {
-                    method: 'POST',
-                    headers: { 'Authorization': token }
-                });
-                var refreshData = await refreshRes.json();
-                if (refreshData.record) {
-                    status      = refreshData.record.subscription_status || 'none';
-                    subEnd      = refreshData.record.subscription_end || null;
-                    subCancelAt = refreshData.record.subscription_cancel_at || null;
-                    isExempt    = !!refreshData.record.is_exempt;
-                }
-            } catch(e) { /* silencieux */ }
-
-            var trial = getTrialInfo();
-
-            /* Cas exempté */
-            if (isExempt) {
-                badge.textContent = 'Accès offert';
-                badge.className   = 'pv-sub-badge active';
-                desc.textContent  = 'Vous bénéficiez d\'un accès gratuit accordé par l\'équipe NutriDash.';
-                actions.innerHTML = '';
-                return;
-            }
-
-            /* Cas essai en cours (pas encore d'abonnement Stripe) */
-            if ((status === 'none' || !status) && trial && trial.active) {
-                badge.textContent = 'Essai gratuit';
-                badge.className   = 'pv-sub-badge trialing';
-                var endFmt = trial.endDate.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' });
-                desc.textContent = trial.daysLeft <= 1
-                    ? 'Votre essai se termine aujourd\'hui. Abonnez-vous pour continuer.'
-                    : 'Il vous reste ' + trial.daysLeft + ' jours d\'essai gratuit (jusqu\'au ' + endFmt + '). Puis 5,99 €/mois.';
-                actions.innerHTML = '';
-                return;
-            }
-
-            /* Résiliation programmée (annulée depuis le portail, accès conservé jusqu'à subCancelAt) */
-            var willCancel = subCancelAt && (status === 'active' || status === 'trialing');
-
-            /* Badge Stripe */
-            if (willCancel) {
-                badge.textContent = 'Se termine bientôt';
-                badge.className   = 'pv-sub-badge ending';
-            } else {
-                badge.textContent = STATUS_LABELS[status] || status;
-                badge.className   = 'pv-sub-badge ' + (STATUS_CLASSES[status] || '');
-            }
-
-            /* Description Stripe */
-            var endFmt2 = subEnd ? new Date(subEnd).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : null;
-            var cancelFmt = subCancelAt ? new Date(subCancelAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : null;
-            if (willCancel) {
-                desc.textContent = 'Abonnement annulé — accès maintenu jusqu\'au ' + cancelFmt + ', puis non renouvelé. Vous pouvez réactiver le renouvellement automatique à tout moment.';
-            } else if (status === 'none' || !status) {
-                desc.textContent = 'Votre essai est terminé. Abonnez-vous pour continuer à utiliser NutriDash.';
-            } else if (status === 'trialing') {
-                desc.textContent = 'Période d\'essai Stripe' + (endFmt2 ? ' jusqu\'au ' + endFmt2 : '') + '. La facturation démarrera automatiquement à son terme.';
-            } else if (status === 'active') {
-                desc.textContent = 'Abonnement actif à 5,99 €/mois.' + (endFmt2 ? ' Prochain renouvellement le ' + endFmt2 + '.' : '');
-            } else if (status === 'past_due') {
-                desc.textContent = 'Votre dernier paiement a échoué. Mettez à jour votre moyen de paiement.';
-            } else if (status === 'canceled') {
-                desc.textContent = 'Abonnement résilié.' + (endFmt2 ? ' Accès jusqu\'au ' + endFmt2 + '.' : '');
-            }
-
-            /* Boutons d'action */
-            actions.innerHTML = '';
-            if (status === 'none' || status === 'canceled' || !status) {
-                var btn = document.createElement('button');
-                btn.className = 'pv-sub-btn-primary';
-                btn.textContent = 'S\'abonner — 5,99 €/mois';
-                btn.addEventListener('click', startCheckout);
-                actions.appendChild(btn);
-            } else if (status === 'trialing' || status === 'active' || status === 'past_due') {
-                var btn2 = document.createElement('button');
-                btn2.className = 'pv-sub-btn-secondary';
-                btn2.textContent = 'Gérer mon abonnement';
-                btn2.addEventListener('click', openPortal);
-                actions.appendChild(btn2);
-            }
-        }
-
-        /* Redirection vers Stripe Checkout */
-        window.stripeStartCheckout = async function() { return startCheckout(); };
-        async function startCheckout() {
-            var token = getToken();
-            if (!token) return;
-            var btn = document.querySelector('.pv-sub-btn-primary');
-            if (btn) { btn.disabled = true; btn.textContent = 'Redirection…'; }
-            try {
-                var res = await fetch(getPbUrl() + '/api/stripe/create-checkout-session', {
-                    method: 'POST',
-                    headers: { 'Authorization': token }
-                });
-                var data = await res.json();
-                if (data.url) {
-                    window.location.href = data.url;
-                } else if (res.status === 409) {
-                    alert('Vous avez déjà un abonnement actif. Gérez-le depuis votre profil.');
-                    if (btn) { btn.disabled = false; btn.textContent = 'S\'abonner — 5,99 €/mois'; }
-                } else {
-                    alert('Erreur : ' + (data.error || 'Réessayez.'));
-                    if (btn) { btn.disabled = false; btn.textContent = 'S\'abonner — 5,99 €/mois'; }
-                }
-            } catch(e) {
-                alert('Erreur réseau. Réessayez.');
-                if (btn) { btn.disabled = false; btn.textContent = '🚀 Commencer l\'essai gratuit'; }
-            }
-        }
-
-        /* Redirection vers Stripe Customer Portal */
-        async function openPortal() {
-            var token = getToken();
-            if (!token) return;
-            var btn = document.querySelector('.pv-sub-btn-secondary');
-            if (btn) { btn.disabled = true; btn.textContent = 'Redirection…'; }
-            try {
-                var res = await fetch(getPbUrl() + '/api/stripe/portal', {
-                    method: 'POST',
-                    headers: { 'Authorization': token }
-                });
-                var data = await res.json();
-                if (data.url) {
-                    window.location.href = data.url;
-                } else {
-                    alert('Erreur lors de l\'ouverture du portail. Réessayez.');
-                    if (btn) { btn.disabled = false; btn.textContent = 'Gérer mon abonnement'; }
-                }
-            } catch(e) {
-                alert('Erreur réseau. Réessayez.');
-                if (btn) { btn.disabled = false; btn.textContent = 'Gérer mon abonnement'; }
-            }
-        }
-
-        /* Gérer le retour de Stripe (?stripe=success ou ?stripe=cancel) */
-        function handleStripeReturn() {
-            var params = new URLSearchParams(window.location.search);
-            var stripeParam = params.get('stripe');
-            if (!stripeParam) return;
-
-            /* Nettoyer l'URL */
-            var cleanUrl = window.location.pathname;
-            window.history.replaceState({}, '', cleanUrl);
-
-            if (stripeParam === 'success') {
-                setTimeout(function() {
-                    alert('🎉 Abonnement activé ! Bienvenue dans NutriDash.');
-                    renderSubscriptionCard();
-                }, 500);
-            } else if (stripeParam === 'cancel') {
-                setTimeout(function() {
-                    alert('Vous avez annulé. Votre période d\'essai reste disponible.');
-                }, 300);
-            }
-        }
-
-        /* Initialisation */
-        function renderTrialBanner() {
-            var banner = document.getElementById('trial-banner');
-            if (!banner) return;
-            if (typeof pb === 'undefined' || !pb.authStore.isValid) { banner.style.display = 'none'; return; }
-            var trial = getTrialInfo();
-            /* N'afficher que pendant l'essai et sans abonnement Stripe actif */
-            var status = (pb.authStore.model && pb.authStore.model.subscription_status) || 'none';
-            if (!trial || !trial.active || status === 'active' || status === 'trialing') {
-                banner.style.display = 'none';
-                return;
-            }
-            var endFmt = trial.endDate.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' });
-            var msg = trial.daysLeft <= 1
-                ? 'Votre essai gratuit se termine aujourd\'hui.'
-                : 'Essai gratuit — ' + trial.daysLeft + ' jour' + (trial.daysLeft > 1 ? 's' : '') + ' restant' + (trial.daysLeft > 1 ? 's' : '') + ' (jusqu\'au ' + endFmt + ')';
-            banner.style.display = 'block';
-            banner.innerHTML = '<div class="trial-banner">'
-                + '<span class="trial-banner-text">' + msg + '</span>'
-                + '</div>';
-        }
-
-        function initStripe() {
-            handleStripeReturn();
-            /* Bannière essai sur le dashboard */
-            renderTrialBanner();
-            document.querySelectorAll('[data-target="dashboard-view"]').forEach(function(el) {
-                el.addEventListener('click', function() { setTimeout(renderTrialBanner, 100); });
-            });
-            /* Recharger la carte quand l'onglet Profil est affiché */
-            document.querySelectorAll('[data-target="profile-view"], [onclick*="profile-view"]').forEach(function(el) {
-                el.addEventListener('click', function() {
-                    setTimeout(renderSubscriptionCard, 100);
-                });
-            });
-            /* Premier rendu si on est déjà sur le profil */
-            if (!document.getElementById('profile-view').classList.contains('hidden')) {
-                renderSubscriptionCard();
-            }
-        }
-
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', initStripe);
-        } else {
-            initStripe();
-        }
-    })();
-    </script>
+    <script src="subscription-ui.js"></script>
 </body>
 </html>

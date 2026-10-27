@@ -195,7 +195,7 @@ window.closeGoalReachedModal = function() {
 
 window.redirectToProfile = function() {
     window.closeGoalReachedModal();
-    const profileBtn = document.querySelector('[onclick="switchView(\'profile-view\')"]');
+    const profileBtn = document.querySelector('[data-click="switchView"][data-arg="profile-view"]');
     if (profileBtn) profileBtn.click();
 };
 
@@ -790,8 +790,8 @@ function updateDashboard() {
                         <h3 style="border:none; margin:0; font-size:1rem; font-family:'DM Sans',sans-serif; font-weight:600; color:var(--color-text-1);">Pesée enregistrée : <strong style="color:var(--color-primary);">${escapeHtml(existingWeigh.weight)} kg ✓</strong></h3>
                     </div>
                     <div class="weigh-in-actions">
-                        <button type="button" onclick="window.editWeighIn()" style="height:40px;padding:0 16px;background:transparent;border:1.5px solid var(--color-primary);color:var(--color-primary);border-radius:10px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;cursor:pointer;transition:background 0.15s;">✎ Modifier</button>
-                        <button type="button" onclick="window.deleteWeighIn()" style="height:40px;padding:0 16px;background:transparent;border:1.5px solid #e05555;color:#e05555;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;cursor:pointer;transition:background 0.15s;">✕ Effacer</button>
+                        <button type="button" data-click="editWeighIn" style="height:40px;padding:0 16px;background:transparent;border:1.5px solid var(--color-primary);color:var(--color-primary);border-radius:10px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;cursor:pointer;transition:background 0.15s;">✎ Modifier</button>
+                        <button type="button" data-click="deleteWeighIn" style="height:40px;padding:0 16px;background:transparent;border:1.5px solid #e05555;color:#e05555;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;cursor:pointer;transition:background 0.15s;">✕ Effacer</button>
                     </div>`;
             } else {
                 weighCard.innerHTML = `
@@ -803,7 +803,7 @@ function updateDashboard() {
                             <input type="number" id="weigh-input" step="0.1" min="10" max="300" placeholder="75,5" aria-label="Poids en kilogrammes">
                             <span aria-hidden="true">kg</span>
                         </label>
-                        <button type="button" class="weigh-in-btn" onclick="window.saveWeighIn()">Valider</button>
+                        <button type="button" class="weigh-in-btn" data-click="saveWeighIn">Valider</button>
                     </div>`;
             }
         } else {
@@ -954,8 +954,8 @@ function updateDashboard() {
                     ${entry.desc ? `<div class="history-desc">${escapeHtml(entry.desc)}</div>` : ''}
                 </div>
                 <div class="history-actions">
-                    <button type="button" class="btn-edit" onclick="editEntry('${escapeHtml(entry.id)}')" title="Modifier">✎</button>
-                    <button type="button" class="btn-delete" onclick="deleteEntry('${escapeHtml(entry.id)}')" title="Supprimer">✕</button>
+                    <button type="button" class="btn-edit" data-click="editEntry" data-arg="${escapeHtml(entry.id)}" title="Modifier">✎</button>
+                    <button type="button" class="btn-delete" data-click="deleteEntry" data-arg="${escapeHtml(entry.id)}" title="Supprimer">✕</button>
                 </div>
             `;
             list.appendChild(li);
@@ -1036,7 +1036,7 @@ window.editWeighIn = function() {
         </div>
         <div class="weigh-in-actions">
             <input type="number" id="weigh-input" step="0.1" min="10" max="300" value="${existing ? existing.weight : ''}">
-            <button type="button" class="weigh-in-btn" onclick="window.saveWeighIn()">Valider</button>
+            <button type="button" class="weigh-in-btn" data-click="saveWeighIn">Valider</button>
         </div>`;
 };
 
