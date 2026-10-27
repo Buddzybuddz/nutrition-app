@@ -2399,11 +2399,16 @@ input:focus, select:focus {
     align-items: center;
     justify-content: space-between;
     padding: 0 20px;
-    background: rgba(247, 248, 243, 0.92);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
+    background: rgba(247, 248, 243, 1); /* pas de backdrop-filter : refloutir ce qui défile derrière à chaque image fait saccader le bandeau */
     border-bottom: 1px solid transparent;
-    transition: border-color 200ms ease;
+    transition: border-color 200ms ease, background-color 200ms ease, translate 250ms ease;
+    will-change: transform; /* couche propre : le bandeau n'est pas repeint à chaque image du défilement */
+    transform: translateZ(0);
+}
+
+/* Caché quand on descend la page (landing-header.js) : translate, donc composité, sans repeinture */
+.lp-header--hidden {
+    translate: 0 -100%;
 }
 
 .lp-header--scrolled {

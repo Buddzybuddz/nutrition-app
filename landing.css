@@ -5,6 +5,8 @@
    ============================================================ */
 
 @property --lx-n { syntax: "<integer>"; initial-value: 0; inherits: false; }
+/* --p (progression de la frise) : non héritée, donc sa mise à jour à chaque image ne recalcule que l'élément, pas tous ses descendants */
+@property --p { syntax: "<number>"; initial-value: 0; inherits: false; }
 
 /* body{overflow-x:hidden} en fait le conteneur de défilement : position:sticky ne fonctionnerait pas */
 body:has(.landing-page:not(.hidden)) { overflow-x: clip; overflow-y: visible; }
@@ -18,7 +20,7 @@ body:has(.landing-page:not(.hidden)) { overflow-x: clip; overflow-y: visible; }
 }
 
 /* ---- En-tête transparent sur le hero sombre ---- */
-.landing-page .lp-header:not(.lp-header--scrolled) { background: transparent; backdrop-filter: none; -webkit-backdrop-filter: none; }
+.landing-page .lp-header:not(.lp-header--scrolled) { background: rgba(247, 248, 243, 0); }
 .landing-page .lp-header:not(.lp-header--scrolled) .lp-logo { color: #fff; }
 .landing-page .lp-header:not(.lp-header--scrolled) .lp-logo span { color: var(--lx-salmon); }
 .landing-page .lp-header:not(.lp-header--scrolled) .lp-nav-social { color: #B9CFC2; }
@@ -98,7 +100,9 @@ body:has(.landing-page:not(.hidden)) { overflow-x: clip; overflow-y: visible; }
 .lx-bub.l2 { left: 50%; margin-left: -440px; top: 140px; animation: lx-pop 12s 4s infinite; }
 .lx-bub.r1 { left: 50%; margin-left: 190px; top: 60px; background: var(--lx-mint); animation: lx-pop 12s 1.6s infinite; }
 .lx-bub.r2 { left: 50%; margin-left: 190px; top: 170px; animation: lx-pop 12s 9.6s infinite; }
-.lx-type { display: block; overflow: hidden; white-space: nowrap; width: 0; font-weight: 600; animation: lx-typing 12s steps(32) infinite; }
+.lx-type { display: block; position: relative; overflow: hidden; white-space: nowrap; font-weight: 600; }
+/* Frappe : un cache blanc glisse (transform, composité) au lieu d'animer la largeur (recalcul de mise en page à chaque image) */
+.lx-type::after { content: ""; position: absolute; inset: 0; background: #fff; animation: lx-uncover 12s steps(32) infinite; }
 
 /* Bandeau d'exemples */
 .lx-tick { position: relative; z-index: 3; margin: 0 -20px; border-top: 1px solid #24392f; overflow: hidden; background: rgba(16, 32, 26, .85); }
@@ -176,7 +180,8 @@ body:has(.landing-page:not(.hidden)) { overflow-x: clip; overflow-y: visible; }
 .lx-cnt { counter-reset: lxn var(--lx-n); animation: lx-count 2.4s .2s cubic-bezier(.2,.7,.2,1) both; }
 .lx-cnt::after { content: counter(lxn); }
 .lx-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
-.lx-chips span { padding: 9px 14px; border-radius: 999px; background: var(--color-bg); border: 1px solid var(--color-border); font-size: .875rem; font-weight: 500; animation: lx-tap 5s infinite; }
+.lx-chips span { padding: 9px 14px; border-radius: 999px; background: var(--color-bg); border: 1px solid var(--color-border); font-size: .875rem; font-weight: 500; position: relative; isolation: isolate; animation: lx-tap 5s infinite; }
+.lx-chips span::before { content: ""; position: absolute; inset: -1px; border-radius: inherit; background: var(--lx-mint); opacity: 0; z-index: -1; animation: lx-tap-bg 5s infinite; animation-delay: inherit; }
 .lx-chips span:nth-child(2) { animation-delay: 1.2s; } .lx-chips span:nth-child(3) { animation-delay: 2.4s; } .lx-chips span:nth-child(4) { animation-delay: 3.6s; }
 .lx-draw { stroke-dasharray: 1; stroke-dashoffset: 1; animation: lx-draw 2.4s .3s ease-out forwards; }
 
@@ -225,13 +230,14 @@ body:has(.landing-page:not(.hidden)) { overflow-x: clip; overflow-y: visible; }
 .lx-car-scroll { --hdr: 60px; --step: 52vh; --step: 52svh; --n: 7; margin-top: 40px; }
 .lx-car-scroll.is-pin { height: calc(100vh - var(--hdr) - 100px + var(--n) * var(--step)); height: calc(100svh - var(--hdr) - 100px + var(--n) * var(--step)); }
 .lx-car-scroll.is-pin .lx-car-pin { position: sticky; top: var(--hdr); height: calc(100vh - var(--hdr) - 100px); height: calc(100svh - var(--hdr) - 100px); display: flex; align-items: center; }
-.lx-car-scroll.is-pin .lx-car-track { overflow: hidden; }
+.lx-car-scroll.is-pin .lx-car-track { overflow: hidden; scroll-snap-type: none; scroll-behavior: auto; }
+.lx-car-scroll.is-pin .lx-car.is-js .lx-slide { scroll-snap-align: none; transition: none; } /* la position, l'opacité et l'échelle suivent le défilement (landing-carousel.js) */
 .lx-car-rail { position: relative; display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); --p: 0; }
 .lx-car-rail::before, .lx-car-fill { content: ""; position: absolute; left: calc(100% / 14); height: 2px; top: 25px; }
 .lx-car-rail::before { right: calc(100% / 14); background: #2b4538; }
-.lx-car-fill { width: calc((100% - 100% / 7) * var(--p)); background: var(--lx-salmon); transition: width .45s cubic-bezier(.2, .7, .2, 1); }
+.lx-car-fill { width: calc(100% - 100% / 7); background: var(--lx-salmon); transform: scaleX(var(--p)); transform-origin: left; will-change: transform; }
 .lx-car-rail button { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; gap: 8px; min-width: 0; padding: 8px 0; background: none; border: 0; color: #B9CFC2; font: inherit; cursor: pointer; }
-.lx-car-dot { width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; background: var(--lx-deep); border: 2px solid #2b4538; font-family: 'DM Sans', sans-serif; font-weight: 700; font-size: .75rem; transition: background .25s, border-color .25s, color .25s, transform .25s; }
+.lx-car-dot { width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; background: var(--lx-deep); border: 2px solid #2b4538; font-family: 'DM Sans', sans-serif; font-weight: 700; font-size: .75rem; transition: transform .25s; }
 .lx-car-lbl { display: none; font-size: .8125rem; line-height: 1.25; text-align: center; }
 .lx-car-rail button.is-done .lx-car-dot { border-color: var(--lx-salmon); color: #fff; }
 .lx-car-rail button.is-on .lx-car-dot { background: var(--lx-salmon); border-color: var(--lx-salmon); color: var(--lx-deep); transform: scale(1.12); }
@@ -263,10 +269,11 @@ body:has(.landing-page:not(.hidden)) { overflow-x: clip; overflow-y: visible; }
     .lx-car-rail::before, .lx-car-fill { top: 29px; }
     .lx-car-dot { width: 40px; height: 40px; font-size: .875rem; }
     .lx-car-view { margin-inline: 0; }
+    /* Défilement piloté : les slides sont superposées et se fondent l'une dans l'autre */
+    .lx-car-scroll.is-pin .lx-car-track { display: grid; }
+    .lx-car-scroll.is-pin .lx-slide { grid-area: 1 / 1; width: 100%; flex: none; }
     .lx-car-track { padding-inline: 0; scroll-padding-inline: 0; gap: 0; }
     .lx-slide { flex-basis: 100%; flex-direction: row; justify-content: center; gap: 72px; text-align: left; padding-inline: 56px; }
-    .lx-car.is-js .lx-slide { opacity: 0; transform: none; }
-    .lx-car.is-js .lx-slide.is-on { opacity: 1; }
     .lx-slide-copy { flex: none; width: 380px; max-width: 100%; }
     .lx-slide h3 { font-size: 2rem; }
     .lx-slide p { font-size: 1.0625rem; }
@@ -287,10 +294,11 @@ body:has(.landing-page:not(.hidden)) { overflow-x: clip; overflow-y: visible; }
 @keyframes lx-breathe { 0%, 100% { transform: scale(1); opacity: .9; } 50% { transform: scale(1.1); opacity: 1; } }
 @keyframes lx-fade3 { 0% { opacity: 0; } 5% { opacity: 1; } 30% { opacity: 1; } 38% { opacity: 0; } 100% { opacity: 0; } }
 @keyframes lx-pop { 0%, 4% { opacity: 0; transform: translateY(14px) scale(.94); } 9%, 30% { opacity: 1; transform: none; } 36%, 100% { opacity: 0; transform: translateY(-8px); } }
-@keyframes lx-typing { 0%, 3% { width: 0; } 14%, 100% { width: 100%; } }
+@keyframes lx-uncover { 0%, 3% { transform: translateX(0); } 14%, 100% { transform: translateX(100%); } }
 @keyframes lx-marq { to { transform: translateX(-50%); } }
 @keyframes lx-count { from { --lx-n: 0; } to { --lx-n: 1853; } }
-@keyframes lx-tap { 0%, 100% { background: var(--color-bg); transform: none; } 8% { background: var(--lx-mint); transform: scale(1.06); } 18% { background: var(--color-bg); transform: none; } }
+@keyframes lx-tap { 0%, 100% { transform: none; } 8% { transform: scale(1.06); } 18% { transform: none; } }
+@keyframes lx-tap-bg { 0%, 100% { opacity: 0; } 8% { opacity: 1; } 18% { opacity: 0; } }
 @keyframes lx-draw { to { stroke-dashoffset: 0; } }
 @keyframes lx-s1 { 0%, 38% { opacity: 1; } 42%, 100% { opacity: 0; } }
 @keyframes lx-s2 { 0%, 38% { opacity: 0; } 42%, 58% { opacity: 1; } 62%, 100% { opacity: 0; } }
@@ -324,7 +332,7 @@ body:has(.landing-page:not(.hidden)) { overflow-x: clip; overflow-y: visible; }
     .lx-days { margin: 0 12px; border-radius: 28px; padding: 64px 0; }
     .lx-sticky-cta {
         display: flex; position: sticky; bottom: 0; z-index: 90; padding: 10px 16px calc(10px + env(safe-area-inset-bottom));
-        background: rgba(247, 248, 243, .94); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+        background: rgba(247, 248, 243, .98); 
         border-top: 1px solid var(--color-border);
     }
     .lx-sticky-cta .lx-btn { width: 100%; background: var(--lx-cta); color: #fff; box-shadow: none; }
@@ -346,6 +354,7 @@ body:has(.landing-page:not(.hidden)) { overflow-x: clip; overflow-y: visible; }
     .landing-page .lx-hero *, .landing-page .lx-sec *, .landing-page .lx-days *, .landing-page .lx-days *::before, .landing-page .lx-days *::after { animation: none !important; transition: none !important; }
     .lx-loop img:first-child, .lx-story-ph .lx-screen img:first-child { opacity: 1; }
     .lx-type { width: 100%; }
+    .lx-type::after { display: none; }
     .lx-bub.l1, .lx-bub.r1 { opacity: 1; }
     .lx-draw { stroke-dashoffset: 0; }
     .lx-cnt { --lx-n: 1853; }
@@ -369,9 +378,10 @@ body:has(.landing-page:not(.hidden)) { overflow-x: clip; overflow-y: visible; }
 
 /* Arrière-plan : deux grandes taches floues qui dérivent derrière le contenu */
 .lx-aurora { position: relative; isolation: isolate; overflow: clip; }
-.lx-aurora::before, .lx-aurora::after { content: ""; position: absolute; z-index: -1; width: 520px; height: 520px; border-radius: 50%; filter: blur(90px); pointer-events: none; animation: lx-drift 24s ease-in-out infinite alternate; }
-.lx-aurora::before { top: -120px; left: -160px; background: rgba(149, 213, 178, .45); }
-.lx-aurora::after { bottom: -140px; right: -180px; background: rgba(224, 122, 95, .22); animation-delay: -12s; animation-duration: 30s; }
+/* Halos : dégradé radial (pas de filter: blur, qui coûte cher à chaque image d'une animation infinie) */
+.lx-aurora::before, .lx-aurora::after { content: ""; position: absolute; z-index: -1; width: 700px; height: 700px; border-radius: 50%; pointer-events: none; will-change: transform; animation: lx-drift 24s ease-in-out infinite alternate; }
+.lx-aurora::before { top: -210px; left: -250px; background: radial-gradient(closest-side, rgba(149, 213, 178, .45), rgba(149, 213, 178, 0)); }
+.lx-aurora::after { bottom: -230px; right: -270px; background: radial-gradient(closest-side, rgba(224, 122, 95, .22), rgba(224, 122, 95, 0)); animation-delay: -12s; animation-duration: 30s; }
 @keyframes lx-drift { from { transform: translate3d(0, 0, 0) scale(1); } to { transform: translate3d(70px, 50px, 0) scale(1.15); } }
 
 /* Tuiles : inclinaison et reflet qui suivent le curseur (ajoutés par landing-motion.js) */
@@ -395,7 +405,7 @@ body:has(.landing-page:not(.hidden)) { overflow-x: clip; overflow-y: visible; }
     .lx-sticky-cta.is-visible { opacity: 1; transform: none; pointer-events: auto; }
 }
 @media (max-width: 900px) {
-    .lx-aurora::before, .lx-aurora::after { width: 320px; height: 320px; filter: blur(60px); }
+    .lx-aurora::before, .lx-aurora::after { width: 440px; height: 440px; }
 }
 @media (prefers-reduced-motion: reduce) {
     .lx-band-track, .lx-aurora::before, .lx-aurora::after { animation: none; }
@@ -429,3 +439,21 @@ body:has(.landing-page:not(.hidden)) { overflow-x: clip; overflow-y: visible; }
 .lp-price-amount.is-done { animation: lp-price-pop .55s cubic-bezier(.3, 1.6, .5, 1); }
 @keyframes lp-price-pop { 0% { transform: scale(1); } 45% { transform: scale(1.07); } 100% { transform: scale(1); } }
 @media (prefers-reduced-motion: reduce) { .lp-price-amount.is-done { animation: none; } }
+
+/* Fluidité au défilement : les éléments qui bougent pendant le défilement ont leur propre couche (pas de repeinture de l'arrière-plan) */
+.lx-story-ph, .lx-progress i, .lx-sticky-cta { will-change: transform; }
+.lx-screen, .lx-car-phone { transform: translateZ(0); }
+.lx-car-scroll.is-pin .lx-slide { will-change: transform, opacity; backface-visibility: hidden; }
+
+/* Section hors écran (classe posée par landing-motion.js) : ses animations en boucle sont suspendues */
+.lx-off, .lx-off *, .lx-off *::before, .lx-off *::after { animation-play-state: paused !important; }
+
+/* Repeinture confinée : les blocs aux chiffres, anneaux et prix animés ont leur propre couche. Quand leur contenu change à chaque image,
+   seule leur boîte est repeinte, pas toute la tuile ou la carte qui les contient. */
+.lx-ring, .lx-today, .lx-big, .lx-hist-big { contain: layout paint; will-change: transform; }
+.lp-price-amount { contain: layout paint; will-change: transform; }
+
+/* Barre « Essayer 7 jours gratuits » : se range sous le bord pendant le défilement vers le bas (landing-header.js) */
+.lx-sticky-cta { transition: opacity .35s, transform .35s cubic-bezier(.2, .7, .2, 1), translate .25s ease; }
+.lx-sticky-cta.lx-cta-away { translate: 0 130%; }
+@media (prefers-reduced-motion: reduce) { .lp-header, .lx-sticky-cta { transition: none; } }

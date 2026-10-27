@@ -10,21 +10,38 @@
     var steps = $('.lx-hist-steps'), items = steps ? steps.querySelectorAll('.lx-hist-item') : [];
     var ticking = false;
 
+    var lastBar = -1, lastCta = null, lastP = '', stepsNear = true;
+
+    /* Toutes les lectures de mise en page d'abord, puis toutes les écritures : pas de recalcul forcé à chaque image */
     function update() {
         ticking = false;
         var landing = $('#landing-page');
         if (!landing || landing.classList.contains('hidden')) return;
-        var h = document.documentElement, max = h.scrollHeight - window.innerHeight;
-        if (bar && !still) bar.style.transform = 'scaleX(' + (max > 0 ? clamp(window.scrollY / max) : 0) + ')';
-        if (cta) {
-            var past = hero && hero.getBoundingClientRect().bottom < 0;
-            var atEnd = final && final.getBoundingClientRect().top < window.innerHeight * 0.85;
-            cta.classList.toggle('is-visible', !!past && !atEnd);
+        var h = document.documentElement, vh = window.innerHeight, y = window.scrollY;
+        var max = h.scrollHeight - vh;
+        var heroBottom = hero ? hero.getBoundingClientRect().bottom : 0;
+        var finalTop = final ? final.getBoundingClientRect().top : 0;
+        var sr = null, tops = null, line = vh * 0.6;
+        if (steps && !still && stepsNear) {
+            sr = steps.getBoundingClientRect();
+            tops = Array.prototype.map.call(items, function (it) { return it.getBoundingClientRect().top; });
         }
-        if (steps && !still) {
-            var r = steps.getBoundingClientRect(), line = window.innerHeight * 0.6;
-            steps.style.setProperty('--p', clamp((line - r.top) / r.height).toFixed(3));
-            items.forEach(function (it) { it.classList.toggle('is-on', it.getBoundingClientRect().top < line); });
+
+        if (bar && !still) {
+            var sx = max > 0 ? Math.round(clamp(y / max) * 1000) / 1000 : 0;
+            if (sx !== lastBar) { lastBar = sx; bar.style.transform = 'scaleX(' + sx + ')'; }
+        }
+        if (cta) {
+            var show = heroBottom < 0 && !(finalTop < vh * 0.85);
+            if (show !== lastCta) { lastCta = show; cta.classList.toggle('is-visible', show); }
+        }
+        if (sr) {
+            var p = clamp((line - sr.top) / sr.height).toFixed(3);
+            if (p !== lastP) { lastP = p; steps.style.setProperty('--p', p); }
+            items.forEach(function (it, i) {
+                var on = tops[i] < line;
+                if (it.classList.contains('is-on') !== on) it.classList.toggle('is-on', on);
+            });
         }
     }
     function onScroll() { if (!ticking) { ticking = true; requestAnimationFrame(update); } }
@@ -87,7 +104,22 @@
         io.observe(el);
     }
 
+    /* Animations en boucle (démos, bulles, frappe…) : mises en pause tant que leur section est hors écran.
+       Sans cela elles recalculent styles et mise en page à chaque image, sur toute la page, même à l'arrêt. */
+    function pauseOffscreen() {
+        if (!('IntersectionObserver' in window)) return;
+        var io = new IntersectionObserver(function (entries) {
+            entries.forEach(function (e) { e.target.classList.toggle('lx-off', !e.isIntersecting); });
+        }, { rootMargin: '120px 0px' });
+        document.querySelectorAll('#landing-page section, #landing-page .lx-band').forEach(function (s) { io.observe(s); });
+    }
+
     document.addEventListener('DOMContentLoaded', function () {
+        pauseOffscreen();
+        /* La frise « Mon histoire » n'est recalculée que lorsqu'elle est proche de l'écran */
+        if (steps && 'IntersectionObserver' in window) {
+            new IntersectionObserver(function (es) { stepsNear = es[0].isIntersecting; if (stepsNear) onScroll(); }, { rootMargin: '200px 0px' }).observe(steps);
+        }
         playOnView();
         countPrice();
         tiles();
