@@ -1065,6 +1065,10 @@
                     <div class="ai-estimate">
                         <label for="meal-ai-text">Décrire mon repas <span class="ai-badge">Estimation IA</span></label>
                         <textarea id="meal-ai-text" rows="2" maxlength="300" placeholder="ex : 150 g de riz, 100 g de poulet, légumes vapeur"></textarea>
+                        <label class="ai-restaurant-opt" for="meal-ai-restaurant">
+                            <input type="checkbox" id="meal-ai-restaurant">
+                            <span>Repas au restaurant <small>(collez l'intitulé du plat, sans quantités)</small></span>
+                        </label>
                         <button type="button" class="btn btn-secondary ai-estimate-btn" id="meal-ai-btn">Estimer avec l'IA</button>
                         <p class="ai-estimate-usage" id="meal-ai-usage"></p>
                         <p class="ai-estimate-status" id="meal-ai-status" role="status" aria-live="polite"></p>

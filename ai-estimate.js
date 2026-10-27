@@ -69,9 +69,14 @@
 
     /* Étapes affichées pendant l'attente : elles reprennent la saisie de l'utilisateur et suivent ce que fait le serveur
        (repas : décomposition en aliments puis calcul à partir des valeurs pour 100 g ; activité : durée et poids). */
-    function waitSteps(type, text) {
+    function waitSteps(type, text, restaurant) {
         var steps = [type === 'meal' ? 'Je lis la description de votre repas…' : 'Je lis votre activité…'];
-        if (type === 'meal') {
+        if (type === 'meal' && restaurant) {
+            steps.push('Je repère les composants du plat…');
+            steps.push('J’estime une portion standard de restaurant pour chacun…');
+            steps.push('Je calcule calories et protéines à partir des valeurs pour 100 g…');
+            steps.push('Je prépare votre récapitulatif…');
+        } else if (type === 'meal') {
             var names = text.split(/,|;|\n|\bet\b|\bavec\b|\bplus\b/i).map(function (part) {
                 return part.trim().replace(/^[\d.,\s]*(?:kg|g|ml|cl|dl|l|cuill\S*|tranches?|poign\S*)?\s*(?:de |d'|d’|du |des |un |une |le |la |les )?/i, '').trim();
             }).filter(function (n) { return n.length >= 2; });
@@ -94,8 +99,8 @@
     }
 
     /* Points animés + phrase qui change toutes les ~2 s (la dernière reste affichée) ; renvoie la fonction d'arrêt. */
-    function startWait(el, type, text) {
-        var steps = waitSteps(type, text), i = 0;
+    function startWait(el, type, text, restaurant) {
+        var steps = waitSteps(type, text, restaurant), i = 0;
         el.classList.remove('is-error');
         el.classList.add('is-waiting');
         el.innerHTML = '<span class="ia-typing" aria-hidden="true"><span></span><span></span><span></span></span><span class="ia-step"></span>';
@@ -122,11 +127,14 @@
         }
         btn.disabled = true;
         if (type === 'meal') clearRecap();
-        var stopWait = startWait(statusEl, type, text);
+        var restoEl = type === 'meal' ? document.getElementById('meal-ai-restaurant') : null;
+        var restaurant = !!(restoEl && restoEl.checked);
+        var stopWait = startWait(statusEl, type, text, restaurant);
         try {
-            var r = await pb.send('/api/ai/estimate', { method: 'POST', body: { type: type, text: text } });
+            var r = await pb.send('/api/ai/estimate', { method: 'POST', body: { type: type, text: text, restaurant: restaurant } });
             stopWait();
             showUsage(type, r.usage);
+            r.restaurant = restaurant;
             var custom = apply(r);
             setStatus(statusEl, custom || ('≈ ' + apply.summary(r) + ' — confiance ' + (CONF[r.confidence] || 'faible') + '. Vérifiez et ajustez si besoin.'));
         } catch (err) {
@@ -173,6 +181,7 @@
 
     function resetMealDescription() {
         window.__aiMealDesc = '';
+        window.__aiMealResto = false;
         aiFilled = null;
     }
 
@@ -180,6 +189,7 @@
         document.getElementById('meal-cals').value = r.calories;
         document.getElementById('meal-protein').value = r.protein_g;
         window.__aiMealDesc = String(r.summary || '').slice(0, 200);
+        window.__aiMealResto = !!r.restaurant;
         aiFilled = { cals: String(r.calories), prot: String(r.protein_g) };
         renderRecap(r);
         return 'Estimation terminée (confiance ' + (CONF[r.confidence] || 'faible') + '). Vérifiez et ajustez si besoin.';
@@ -190,6 +200,7 @@
         document.getElementById('meal-cals').value = cals;
         document.getElementById('meal-protein').value = prot;
         window.__aiMealDesc = String(fav.description || '').slice(0, 200);
+        window.__aiMealResto = false;
         aiFilled = { cals: String(cals), prot: String(prot) };
         clearRecap();
         var st = document.getElementById('meal-ai-status');
@@ -234,7 +245,11 @@
         if (modal) new MutationObserver(function () {
             if (modal.classList.contains('hidden')) {
                 textEl.value = ''; setStatus(statusEl, '');
-                if (type === 'meal') { clearRecap(); resetMealDescription(); }
+                if (type === 'meal') {
+                    clearRecap(); resetMealDescription();
+                    var resto = document.getElementById('meal-ai-restaurant');
+                    if (resto) resto.checked = false;
+                }
             } else {
                 if (type === 'meal') resetMealDescription();
                 refreshUsage();

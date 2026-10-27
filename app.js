@@ -468,6 +468,10 @@ document.getElementById('meal-form').addEventListener('submit', (e) => {
             if (cheat) entry.desc = cheatNote;
             else if (window.__aiMealDesc) entry.desc = window.__aiMealDesc;
             else if (wasCheat || entry.cals !== cals || entry.prot !== prot) entry.desc = '';
+            // Badge restaurant : posé par une nouvelle estimation, retiré si les chiffres changent à la main
+            if (cheat) entry.restaurant = false;
+            else if (window.__aiMealDesc) entry.restaurant = !!window.__aiMealResto;
+            else if (entry.cals !== cals || entry.prot !== prot) entry.restaurant = false;
             entry.cals = cals;
             entry.prot = prot;
             actLog.consumedCals += cals;
@@ -484,7 +488,7 @@ document.getElementById('meal-form').addEventListener('submit', (e) => {
         e.target.querySelector('button[type="submit"]').textContent = 'Ajouter le repas';
     } else {
         const mealType = document.getElementById('meal-type').value;
-        const newEntry = { id: Date.now() + Math.random(), type: 'Repas', name: type, mealType, cals, prot, desc: cheat ? cheatNote : (window.__aiMealDesc || ''), cheat: nature };
+        const newEntry = { id: Date.now() + Math.random(), type: 'Repas', name: type, mealType, cals, prot, desc: cheat ? cheatNote : (window.__aiMealDesc || ''), cheat: nature, restaurant: !cheat && !!window.__aiMealResto };
         actLog.consumedCals += cals;
         actLog.consumedProtein += prot;
         actLog.entries.push(newEntry);
@@ -935,6 +939,7 @@ function updateDashboard() {
             let details = '';
             if (entry.type === 'Repas') {
                 details = `<strong>${escapeHtml(entry.cals)} kcal</strong> | ${escapeHtml(Math.round(Number(entry.prot) || 0))}g prot`;
+                if (entry.restaurant && !CHEAT_MEALS[entry.cheat]) details = `<span class="resto-badge" title="Portions estimées à partir de l'intitulé du plat">🍽 Restaurant</span> ${details}`;
                 if (CHEAT_MEALS[entry.cheat]) details = `<span class="cheat-badge cheat-badge--${entry.cheat === 'cheat_alcool' ? 'alcool' : 'seul'}">${CHEAT_MEALS[entry.cheat].label}</span> ${details} <span class="cheat-forfait">(forfait)</span>`;
             } else if (entry.type === 'Activité') {
                 details = `<strong>+${escapeHtml(entry.cals)} kcal</strong> brulées`;
