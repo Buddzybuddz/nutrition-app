@@ -70,7 +70,9 @@ const HISTORY = {
     1: DAY_A, 2: DAY_B, 3: withCheat(DAY_A, 'dinner', 'cheat_alcool'), 4: DAY_B,
     5: withCheat(DAY_B, 'lunch', 'cheat'), 6: DAY_A, 7: DAY_B,
 };
-const TODAY_MEALS = [DAY_A[0], DAY_B[1]];
+/* Déjeuner du jour au restaurant (badge « Restaurant » dans le journal) : 6e valeur = restaurant */
+const RESTO_LUNCH = ['lunch', 'tartare de bœuf 160 g, frites 200 g, salade verte 50 g, câpres et cornichons 20 g', 780, 45, '', true];
+const TODAY_MEALS = [DAY_A[0], RESTO_LUNCH];
 
 const FAV_MEALS = [
     ['breakfast', 'skyr 200 g, flocons d\'avoine 40 g, banane 120 g, miel 5 g', 400, 32],
@@ -137,10 +139,10 @@ async function seedDemo(token) {
     const logDay = async (n, meals, activities = []) => {
         const date = pbDate(daysAgo(n));
         await create(token, 'daily_stats', { user: u, date, baseTDEE: TDEE, goalMultiplier: 0.9 });
-        for (const [type, desc, calories, protein, cheat] of meals) {
+        for (const [type, desc, calories, protein, cheat, restaurant] of meals) {
             await create(token, 'meals', {
                 user: u, date, mealType: type, name: TYPE_LABEL[type], calories, protein,
-                description: desc.slice(0, 200), cheat: cheat || '',
+                description: desc.slice(0, 200), cheat: cheat || '', restaurant: !!restaurant,
             });
         }
         for (const [name, calories] of activities) await create(token, 'activities_log', { user: u, date, name, calories });
@@ -185,12 +187,24 @@ const MOCK_MEAL = {
     ],
     usage: { limit: 10, remaining: 9 },
 };
+const MOCK_MEAL_RESTO = {
+    calories: 780, protein_g: 45, confidence: 'medium', restaurant: true,
+    summary: 'tartare de bœuf 160 g, frites 200 g, salade verte 50 g, câpres et cornichons 20 g',
+    items: [
+        { label: 'tartare de bœuf', quantity: 'portion restaurant', amount: 160, unit: 'g', kcal: 232 },
+        { label: 'frites', quantity: 'portion restaurant', amount: 200, unit: 'g', kcal: 500 },
+        { label: 'salade verte', quantity: 'portion restaurant', amount: 50, unit: 'g', kcal: 8 },
+        { label: 'câpres et cornichons', quantity: 'portion restaurant', amount: 20, unit: 'g', kcal: 4 },
+    ],
+    usage: { limit: 10, remaining: 8 },
+};
 const MOCK_ACTIVITY = { label: 'Course à pied', minutes: 30, calories_burned: 310, confidence: 'medium', usage: { limit: 5, remaining: 4 } };
 
 async function mockEstimate(page) {
     await page.route('**/api/ai/estimate', (route) => {
-        const type = JSON.parse(route.request().postData() || '{}').type;
-        route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(type === 'activity' ? MOCK_ACTIVITY : MOCK_MEAL) });
+        const body = JSON.parse(route.request().postData() || '{}');
+        const out = body.type === 'activity' ? MOCK_ACTIVITY : (body.restaurant ? MOCK_MEAL_RESTO : MOCK_MEAL);
+        route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(out) });
     });
     await page.route('**/api/ai/usage*', (route) => route.fulfill({
         status: 200, contentType: 'application/json',
@@ -350,6 +364,17 @@ async function repas(page, P, avecIA) {
     await settle(page, 1200);
     await snap(page, F, `${P}-Ajout repas - estimation IA`);
     await closeModals(page);
+
+    // Repas au restaurant : intitulé du plat collé tel quel, sans quantités
+    await openMeal(page);
+    await page.locator('#meal-type').selectOption('lunch');
+    await page.locator('#meal-ai-restaurant').check();
+    await page.locator('#meal-ai-text').fill('Tartare de bœuf au couteau assaisonné maison, câpres, cornichons, pétales de parmesan, frites ou caponata et salade');
+    await page.locator('#meal-ai-btn').click();
+    await page.waitForFunction(() => !document.querySelector('#meal-ai-btn').disabled, null, { timeout: 60000 });
+    await settle(page, 1200);
+    await snap(page, F, `${P}-Ajout repas - restaurant`);
+    await closeModals(page);
 }
 
 async function activite(page, P, avecIA) {
@@ -401,6 +426,9 @@ async function suivi(page, P) {
         if (tab === 'objectifs') {
             await scrollToEl(page, '.pg-duo', { offset: P === 'Mobile' ? 100 : 80, wait: 800 });
             await snap(page, F, `${P}-${name} - regularite`);
+            await page.locator('.pg-details summary').click();
+            await scrollToEl(page, '.pg-details', { offset: P === 'Mobile' ? 380 : 260, wait: 500 });
+            await snap(page, F, `${P}-${name} - regularite detail`);
             await snap(page, F, `${P}-${name} - page complete`, { full: true });
         }
     }
