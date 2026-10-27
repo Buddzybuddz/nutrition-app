@@ -30,8 +30,29 @@
             '<button type="button" class="ai-link" data-click="navigateTo" data-arg="profil">Compléter mon profil</button></div>';
     }
 
-    function card(label, value, sub, extra) {
-        return '<div class="pg-card"><span class="pg-label">' + esc(label) + '</span><span class="pg-value">' + esc(value) +
+    function fmtInt(n) { return Math.round(n).toLocaleString('fr-FR'); }
+
+    /* Barre de progression consommé / cible ; passe en orange au-delà de 105 % de la cible */
+    function bar(cons, goal, unit) {
+        var pct = goal > 0 ? Math.min(100, Math.round(cons / goal * 100)) : 0;
+        var over = goal > 0 && cons > goal * 1.05;
+        return '<div class="pg-bar' + (over ? ' is-over' : '') + '" role="progressbar" aria-valuemin="0" aria-valuemax="' + goal +
+            '" aria-valuenow="' + Math.min(cons, goal) + '" aria-label="' + esc(cons + ' sur ' + goal + ' ' + unit) + '"><span style="width:' + pct + '%"></span></div>';
+    }
+
+    /* Carte du jour : le chiffre en gros est ce qu'il RESTE (ou le dépassement), la consommation est détaillée dessous */
+    function dayCard(label, cons, goal, unit, note) {
+        var left = goal - cons, over = left < 0;
+        return '<div class="pg-card"><span class="pg-label">' + esc(label) + '</span>' +
+            '<span class="pg-value' + (over ? ' is-over' : '') + '">' + esc(fmtInt(Math.abs(left)) + ' ' + unit) +
+            '<small>' + (over ? ' en trop' : ' restantes') + '</small></span>' +
+            bar(cons, goal, unit) +
+            '<span class="pg-sub">' + esc(fmtInt(cons) + ' sur ' + fmtInt(goal) + ' ' + unit + ' consommées') + '</span>' +
+            '<span class="pg-note">' + note + '</span></div>';
+    }
+
+    function card(label, value, sub, extra, tone) {
+        return '<div class="pg-card"><span class="pg-label">' + esc(label) + '</span><span class="pg-value' + (tone ? ' is-' + tone : '') + '">' + esc(value) +
             '</span><span class="pg-sub">' + esc(sub || '') + '</span>' + (extra || '') + '</div>';
     }
 
@@ -51,16 +72,17 @@
 
         var target = Number(p.targetWeight) || 0, diff = weight - target, gap = '';
         if (target > 0) {
-            gap = Math.abs(diff) < 0.1 ? 'Objectif de poids atteint' :
-                (diff > 0 ? 'Il reste ' + fmtKg(diff) + ' à perdre' : 'Il reste ' + fmtKg(-diff) + ' à prendre');
+            if (Math.abs(diff) < 0.1) gap = 'Objectif de poids atteint';
+            else if (goal === 'maintenance') gap = 'À ' + fmtKg(Math.abs(diff)) + ' de votre poids cible';
+            else if (goal === 'loss') gap = diff > 0 ? 'Il reste ' + fmtKg(diff) + ' à perdre' : 'Sous votre poids cible de ' + fmtKg(-diff);
+            else gap = diff < 0 ? 'Il reste ' + fmtKg(-diff) + ' à prendre' : 'Au-dessus de votre poids cible de ' + fmtKg(diff);
         }
 
         var html = '<div class="pg-cards">' +
-            card('Calories du jour', calGoal + ' kcal', 'Consommées : ' + calCons + ' kcal',
-                '<span class="pg-note">Métabolisme ' + Math.round(tdee) + ' kcal × ' + String(coef).replace('.', ',') +
-                (burned ? ' + ' + burned + ' kcal d\'activités' : '') + '</span>') +
-            card('Protéines du jour', protGoal + ' g', 'Consommées : ' + protCons + ' g',
-                '<span class="pg-note">2 g par kg de poids (' + fmtKg(weight) + ')</span>') +
+            dayCard('Calories du jour', calCons, calGoal, 'kcal',
+                'Métabolisme ' + Math.round(tdee) + ' kcal × ' + String(coef).replace('.', ',') +
+                (burned ? ' + ' + burned + ' kcal d\'activités' : '')) +
+            dayCard('Protéines du jour', protCons, protGoal, 'g', '2 g par kg de poids (' + fmtKg(weight) + ')') +
             '</div>';
 
         html += '<div class="pg-duo">';
@@ -73,10 +95,12 @@
 
         html += renderRegularite(tdee, protGoal) + '</div>';
 
-        var gh = (state.goalHistory || []).slice().sort(function (a, b) { return b.date.localeCompare(a.date); });
+        /* On ne garde que les changements : un objectif répété d'un jour à l'autre n'apporte rien */
+        var prev = null, gh = (state.goalHistory || []).slice().sort(function (a, b) { return a.date.localeCompare(b.date); })
+            .filter(function (g) { var keep = g.goal !== prev; prev = g.goal; return keep; }).reverse();
         html += '<section class="pg-card pg-card-wide"><h3 class="pg-h">Historique de mes objectifs</h3>' +
-            (gh.length ? '<ul class="pg-list">' + gh.slice(0, 8).map(function (g) {
-                return '<li><span>' + esc(fmtDate(g.date)) + '</span><strong>' + esc(GOAL_LABELS[g.goal] || g.goal) + '</strong></li>';
+            (gh.length ? '<ul class="pg-list">' + gh.slice(0, 8).map(function (g, i) {
+                return '<li><span>' + (i === 0 ? 'Depuis le ' : '') + esc(fmtDate(g.date)) + '</span><strong>' + esc(GOAL_LABELS[g.goal] || g.goal) + '</strong></li>';
             }).join('') + '</ul>' : '<p class="pg-muted">Aucun changement d\'objectif enregistré.</p>') + '</section>';
 
         box.innerHTML = html;
@@ -101,13 +125,23 @@
             'Impact estimé sur le poids : environ ' + sign + String(kgAbs.toFixed(2)).replace('.', ',') + ' kg';
         var gap = r.maxGap ? '+' + r.maxGap.kcal + ' kcal le ' + fmtDate(r.maxGap.date) : 'Aucun excédent';
         var pct = Math.round(r.daysOk / r.daysLogged * 100);
+        var STATE_LABEL = { ok: 'dans l\'objectif', off: 'hors objectif', none: 'non saisi' };
+        var dots = '<ol class="pg-days" aria-label="7 derniers jours complets">' + r.days.map(function (d) {
+            var letter = new Date(d.date + 'T12:00:00').toLocaleDateString('fr-FR', { weekday: 'narrow' }).toUpperCase();
+            var full = new Date(d.date + 'T12:00:00').toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
+            return '<li class="pg-day is-' + d.state + '" title="' + esc(full + ' : ' + STATE_LABEL[d.state]) + '">' +
+                '<span class="pg-day-dot" aria-hidden="true"></span><span class="pg-day-name" aria-hidden="true">' + esc(letter) + '</span>' +
+                '<span class="pg-sr">' + esc(full + ' : ' + STATE_LABEL[d.state]) + '</span></li>';
+        }).join('') + '</ol>';
         return head + '<p class="pg-value">' + pct + ' %</p>' +
-            '<p class="pg-sub">' + r.daysOk + ' jour' + (r.daysOk > 1 ? 's' : '') + ' sur ' + r.daysLogged + ' dans l\'objectif (7 derniers jours complets, aujourd\'hui exclu)</p>' +
+            '<p class="pg-sub">' + r.daysOk + ' jour' + (r.daysOk > 1 ? 's' : '') + ' sur ' + r.daysLogged + ' dans l\'objectif</p>' + dots +
+            cheatLine +
+            '<details class="pg-details"><summary>Voir le détail</summary>' +
             '<div class="pg-kv"><div><span>Bilan calorique</span><strong>' + esc(kcal) + '</strong></div>' +
             '<div><span>Plus gros écart</span><strong>' + esc(gap) + '</strong></div></div>' +
-            '<p class="pg-gap">' + esc(impact) + '</p>' + cheatLine +
-            '<p class="pg-note">Dans l\'objectif : calories entre 90 et 105 % de la cible du jour et protéines à 90 % au moins. ' +
-            'Sur 1 semaine, un petit écart se voit peu : c\'est le cumul qui compte.</p></section>';
+            '<p class="pg-gap">' + esc(impact) + '</p>' +
+            '<p class="pg-note">7 derniers jours complets, aujourd\'hui exclu. Dans l\'objectif : calories entre 90 et 105 % de la cible du jour et protéines à 90 % au moins. ' +
+            'Sur 1 semaine, un petit écart se voit peu : c\'est le cumul qui compte.</p></details></section>';
     }
 
     /* ── Poids ────────────────────────────────────────────── */
@@ -151,6 +185,17 @@
         var first = all.length ? all[0].weight : cur;
         var from = addDays(todayISO(), -period);
         var pts = all.filter(function (w) { return w.date >= from; });
+        /* Pas assez de pesées sur la période : on montre tout l'historique plutôt qu'un message vide */
+        var widened = pts.length < 2 && all.length >= 2;
+        if (widened) pts = all;
+
+        /* « Depuis le début » : vert si on va dans le sens de l'objectif, orange sinon */
+        var goal = p.goal || 'maintenance', delta = Math.round((cur - first) * 10) / 10, tone = '';
+        if (all.length > 1) {
+            if (goal === 'loss') tone = delta < 0 ? 'good' : (delta > 0 ? 'warn' : '');
+            else if (goal === 'gain') tone = delta > 0 ? 'good' : (delta < 0 ? 'warn' : '');
+            else tone = Math.abs(delta) <= 1 ? 'good' : 'warn';
+        }
 
         var chips = [30, 90, 180].map(function (n) {
             return '<button type="button" class="pg-chip' + (n === period ? ' is-active' : '') + '" data-period="' + n + '">' + n + ' j</button>';
@@ -159,7 +204,8 @@
         var html = '<div class="pg-cards pg-cards-3">' +
             card('Poids actuel', fmtKg(cur), all.length ? 'Pesée du ' + fmtDate(all[all.length - 1].date) : 'Poids du profil') +
             card('Poids cible', target > 0 ? fmtKg(target) : '—', target > 0 ? (Math.abs(cur - target) < 0.1 ? 'Atteint' : 'Écart ' + fmtKg(Math.abs(cur - target))) : 'Non défini') +
-            card('Depuis le début', (cur - first > 0 ? '+' : '') + (Math.round((cur - first) * 10) / 10).toLocaleString('fr-FR') + ' kg', all.length + (all.length > 1 ? ' pesées' : ' pesée')) +
+            card('Depuis le début', (delta > 0 ? '+' : (delta < 0 ? '−' : '')) + Math.abs(delta).toLocaleString('fr-FR') + ' kg',
+                all.length + (all.length > 1 ? ' pesées' : ' pesée') + (all.length ? ' depuis le ' + fmtDate(all[0].date) : ''), '', tone) +
             '</div>';
 
         html += '<form class="pg-card pg-card-wide pg-weigh" id="pg-weigh-form" novalidate>' +
@@ -169,12 +215,15 @@
             '<p class="pg-error" id="pg-weigh-error" role="alert"></p></form>';
 
         html += '<section class="pg-card pg-card-wide"><div class="pg-head"><h3 class="pg-h">Évolution</h3><div class="pg-chips">' + chips + '</div></div>' +
-            (pts.length >= 2 ? chart(pts, target) : '<p class="pg-muted">Ajoutez au moins deux pesées sur la période pour voir la courbe.</p>') + '</section>';
+            (pts.length >= 2 ? chart(pts, target) + (widened ? '<p class="pg-muted">Moins de deux pesées sur ' + period + ' jours : courbe étendue à tout l\'historique.</p>' : '')
+                : '<p class="pg-muted">Ajoutez au moins deux pesées pour voir la courbe.</p>') + '</section>';
 
-        var recent = all.slice().reverse().slice(0, 10);
+        var recent = all.map(function (w, i) { return { date: w.date, weight: w.weight, diff: i ? Math.round((w.weight - all[i - 1].weight) * 10) / 10 : null }; })
+            .reverse().slice(0, 10);
         html += '<section class="pg-card pg-card-wide"><h3 class="pg-h">Mes dernières pesées</h3>' +
             (recent.length ? '<ul class="pg-list">' + recent.map(function (w) {
-                return '<li><span>' + esc(fmtDate(w.date)) + '</span><strong>' + esc(fmtKg(w.weight)) + '</strong>' +
+                var d = w.diff ? '<em class="pg-diff ' + (w.diff < 0 ? 'is-down' : 'is-up') + '">' + (w.diff > 0 ? '+' : '−') + Math.abs(w.diff).toLocaleString('fr-FR') + '</em>' : '';
+                return '<li><span>' + esc(fmtDate(w.date)) + '</span>' + d + '<strong>' + esc(fmtKg(w.weight)) + '</strong>' +
                     '<button type="button" class="pg-del" data-date="' + esc(w.date) + '" aria-label="Supprimer la pesée du ' + esc(fmtDate(w.date)) + '">×</button></li>';
             }).join('') + '</ul>' : '<p class="pg-muted">Aucune pesée enregistrée.</p>') + '</section>';
 
@@ -272,7 +321,7 @@
     function foodRow(f) {
         var usual = f.qtys.length ? 'Quantité habituelle : ~' + Math.round(median(f.qtys)) + ' ' + f.unit : 'Quantité variable';
         return '<li><div class="pg-fav-main"><strong>' + esc(f.label.charAt(0).toUpperCase() + f.label.slice(1)) + '</strong><span>' + esc(usual) +
-            '</span></div><span class="pg-count">' + f.count + ' fois</span></li>';
+            '</span></div><span class="pg-count' + (f.count >= 3 ? ' is-top' : (f.count < 2 ? ' is-once' : '')) + '">' + f.count + ' fois</span></li>';
     }
 
     function savedRow(f) {
@@ -288,10 +337,15 @@
             var type = t[0], foods = top(favData[type].foods, 10), expanded = !!favMore[type];
             var shown = foods.slice(0, expanded ? 10 : 5);
             var mine = saved.filter(function (f) { return f.mealType === type; });
+            if (!mine.length && !foods.length) {
+                html += '<section class="pg-card pg-card-wide pg-card-empty"><h3 class="pg-h">' + esc(t[1]) + '</h3>' +
+                    '<p class="pg-muted">Rien pour l\'instant. Ajoutez un repas avec l\'IA, ou touchez « ☆ Favori » avant de le valider.</p></section>';
+                return;
+            }
             html += '<section class="pg-card pg-card-wide"><h3 class="pg-h">' + esc(t[1]) + '</h3>';
             html += '<h4 class="pg-sub-h">Mes repas favoris</h4>' + (mine.length
                 ? '<ul class="pg-fav">' + mine.map(savedRow).join('') + '</ul>'
-                : '<p class="pg-muted">Aucun repas favori : dans la fenêtre « Ajouter un repas », touchez « ☆ Favori » avant de valider un repas.</p>');
+                : '<p class="pg-muted">Aucun favori : touchez « ☆ Favori » en ajoutant un repas.</p>');
             html += '<h4 class="pg-sub-h">Aliments les plus fréquents</h4>';
             if (foods.length) {
                 html += '<ul class="pg-fav">' + shown.map(foodRow).join('') + '</ul>';
@@ -299,7 +353,7 @@
                     html += '<button type="button" class="ai-link pg-more" data-type="' + type + '">' + (expanded ? 'Voir moins' : 'Voir plus (' + (foods.length - 5) + ')') + '</button>';
                 }
             } else {
-                html += '<p class="pg-muted">Pas encore d\'aliments pour ce moment : ajoutez vos repas avec l\'IA pour les voir ici.</p>';
+                html += '<p class="pg-muted">Pas encore d\'aliments : ajoutez vos repas avec l\'IA.</p>';
             }
             html += '</section>';
         });

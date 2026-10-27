@@ -125,7 +125,16 @@ describe('Utils Functions', () => {
 
         it('renvoie un bilan vide sans historique', () => {
             expect(computeWeekBalance({}, '2026-10-25', 130, 2000))
-                .toEqual({ daysLogged: 0, daysOk: 0, surplus: 0, kg: 0, maxGap: null, cheats: 0, cheatsAlcool: 0 });
+                .toMatchObject({ daysLogged: 0, daysOk: 0, surplus: 0, kg: 0, maxGap: null, cheats: 0, cheatsAlcool: 0 });
+        });
+
+        it('détaille les 7 derniers jours, du plus ancien au plus récent', () => {
+            const h = { '2026-10-24': day(2000, 130), '2026-10-23': day(3000, 130) };
+            const r = computeWeekBalance(h, '2026-10-25', 130, 2000);
+            expect(r.days).toHaveLength(7);
+            expect(r.days[0]).toEqual({ date: '2026-10-18', state: 'none' });
+            expect(r.days[5]).toEqual({ date: '2026-10-23', state: 'off' });
+            expect(r.days[6]).toEqual({ date: '2026-10-24', state: 'ok' });
         });
 
         it('exclut aujourd\'hui et les jours au-delà de 7 jours', () => {

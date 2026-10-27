@@ -77,11 +77,12 @@ const CHEAT_MEALS = {
    Un jour compte s'il a des calories saisies. « Dans l'objectif » : kcal entre 90 et 105 % de la cible du jour
    et protéines à 90 % au moins de la cible. 7 700 kcal ≈ 1 kg de masse grasse (approximation). */
 function computeWeekBalance(history, todayStr, proteinTarget, fallbackTdee) {
-    const res = { daysLogged: 0, daysOk: 0, surplus: 0, kg: 0, maxGap: null, cheats: 0, cheatsAlcool: 0 };
+    const res = { daysLogged: 0, daysOk: 0, surplus: 0, kg: 0, maxGap: null, cheats: 0, cheatsAlcool: 0, days: [] };
     const [y, m, d] = todayStr.split('-').map(Number);
     for (let i = 1; i <= 7; i++) {
         const date = formatISOLocal(new Date(y, m - 1, d - i));
         const log = history && history[date];
+        res.days.unshift({ date, state: 'none' }); // du plus ancien au plus récent
         if (!log || !log.consumedCals) continue;
         const target = (log.baseTDEE || fallbackTdee || 0) * (log.goalMultiplier || 1) + (log.bonusTDEE || 0);
         if (!target) continue;
@@ -91,6 +92,7 @@ function computeWeekBalance(history, todayStr, proteinTarget, fallbackTdee) {
         const kcalOk = cals >= target * 0.9 && cals <= target * 1.05;
         const protOk = !(proteinTarget > 0) || (log.consumedProtein || 0) >= proteinTarget * 0.9;
         if (kcalOk && protOk) res.daysOk++;
+        res.days[0].state = kcalOk && protOk ? 'ok' : 'off';
         if (gap > 0 && (!res.maxGap || gap > res.maxGap.kcal)) res.maxGap = { date, kcal: Math.round(gap) };
     }
     // Les cheat meals sont des événements ponctuels : comptés sur 7 jours, aujourd'hui inclus

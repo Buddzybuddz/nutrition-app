@@ -6433,3 +6433,31 @@ details[open] .advice-accordion-summary::after {
 .ai-estimate-status.is-waiting { display: flex; align-items: center; gap: 10px; color: var(--color-text-2); }
 .ai-estimate-status.is-waiting .ia-typing { padding: 0; flex: none; }
 .ai-estimate-status.is-waiting .ia-step { font-size: inherit; }
+/* ── Mon suivi : lisibilité (barres de progression, pastilles de régularité, contrastes) ── */
+#programme-view { --color-text-3: #587263; }
+.pg-value small { margin-left: 6px; font-size: 14px; font-weight: 600; color: var(--color-text-2); }
+.pg-value.is-over, .pg-value.is-warn { color: #B4532A; }
+.pg-value.is-over small { color: #B4532A; }
+.pg-value.is-good { color: var(--color-primary); }
+.pg-bar { height: 8px; margin: 6px 0 2px; border-radius: 999px; background: var(--color-surface-2); overflow: hidden; }
+.pg-bar span { display: block; height: 100%; border-radius: 999px; background: var(--color-primary); transition: width 0.4s ease; }
+.pg-bar.is-over span { background: var(--color-accent); }
+@media (prefers-reduced-motion: reduce) { .pg-bar span { transition: none; } }
+.pg-days { list-style: none; display: flex; gap: 6px; margin: 8px 0 4px; padding: 0; }
+.pg-day { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.pg-day-dot { width: 100%; max-width: 30px; aspect-ratio: 1; border-radius: 50%; border: 2px solid var(--color-border-strong); background: transparent; }
+.pg-day.is-ok .pg-day-dot { background: var(--color-primary); border-color: var(--color-primary); }
+.pg-day.is-off .pg-day-dot { background: var(--color-accent); border-color: var(--color-accent); }
+.pg-day-name { font-size: 11.5px; font-weight: 600; color: var(--color-text-2); }
+.pg-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.pg-day { position: relative; }
+.pg-details { margin-top: 6px; }
+.pg-details summary { cursor: pointer; font-size: 13.5px; font-weight: 600; color: var(--color-primary); padding: 4px 0; }
+.pg-details[open] summary { margin-bottom: 6px; }
+.pg-card-empty { padding: 12px 16px; }
+.pg-card-empty .pg-h { margin-bottom: 0; }
+.pg-count.is-top { background: var(--color-primary); color: #fff; }
+.pg-count.is-once { background: var(--color-surface-2); color: var(--color-text-2); }
+.pg-diff { flex: none; font-style: normal; font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: 999px; }
+.pg-diff.is-down { background: var(--color-primary-xlight); color: var(--color-primary); }
+.pg-diff.is-up { background: #FCE9E1; color: #B4532A; }
