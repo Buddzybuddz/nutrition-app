@@ -321,6 +321,7 @@ body:has(.landing-page:not(.hidden)) { overflow-x: clip; overflow-y: visible; }
     .lx-bub.l2, .lx-bub.r2 { display: none; }
     .lx-story-g { grid-template-columns: 1fr; gap: 0; }
     .lx-story-ph { top: 56px; z-index: 3; background: var(--color-bg); padding: 8px 0; }
+    .lx-story-ph::before { content: ""; position: absolute; left: 0; right: 0; bottom: 100%; height: 56px; background: var(--color-bg); }
     .lx-story-ph .lx-phone { width: 176px; border-radius: 30px; padding: 6px; }
     .lx-story-ph .lx-screen { border-radius: 25px; }
     .lx-step { min-height: 52vh; }

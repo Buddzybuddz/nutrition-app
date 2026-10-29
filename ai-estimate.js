@@ -15,6 +15,17 @@
        La dernière valeur connue est réaffichée tout de suite à l'ouverture, puis rafraîchie. */
     var lastUsage = {};
 
+    /* Repas issu d'un favori : le bouton d'estimation reste masqué tant que le texte n'est pas modifié */
+    var favLockedText = null;
+    function syncMealBtn() {
+        var btn = document.getElementById('meal-ai-btn'), textEl = document.getElementById('meal-ai-text');
+        var resto = document.querySelector('.ai-restaurant-opt');
+        if (!btn || !textEl) return;
+        var locked = favLockedText !== null && textEl.value === favLockedText;
+        btn.hidden = locked;
+        if (resto) resto.hidden = locked;
+    }
+
     function showUsage(type, usage) {
         var el = document.getElementById(type + '-ai-usage'), btn = document.getElementById(type + '-ai-btn');
         if (!el || !btn || !usage) return;
@@ -202,6 +213,13 @@
         window.__aiMealDesc = String(fav.description || '').slice(0, 200);
         window.__aiMealResto = false;
         aiFilled = { cals: String(cals), prot: String(prot) };
+        var textEl = document.getElementById('meal-ai-text');
+        if (textEl) {
+            textEl.value = String(fav.description || '').slice(0, textEl.maxLength);
+            textEl.dispatchEvent(new Event('input'));
+            favLockedText = textEl.value;
+            syncMealBtn();
+        }
         clearRecap();
         var st = document.getElementById('meal-ai-status');
         if (st) setStatus(st, 'Favori « ' + fav.name + ' » appliqué. Modifiez si besoin, puis validez.');
@@ -240,11 +258,24 @@
         var statusEl = document.getElementById(prefix + '-ai-status');
         if (!btn || !textEl || !statusEl) return;
         btn.addEventListener('click', function () { estimate(type, textEl, btn, statusEl, apply); });
+        /* Compteur de caractères sous le champ */
+        var countEl = document.getElementById(prefix + '-ai-count');
+        function updateCount() {
+            if (!countEl) return;
+            var max = textEl.maxLength;
+            countEl.textContent = textEl.value.length + ' / ' + max;
+            countEl.classList.toggle('is-near', textEl.value.length >= max * 0.9);
+        }
+        textEl.addEventListener('input', updateCount);
+        if (type === 'meal') textEl.addEventListener('input', syncMealBtn);
+        updateCount();
         /* Réinitialise le bloc à la fermeture de la modale, recharge le compteur à l'ouverture */
         var modal = btn.closest('.modal-overlay');
         if (modal) new MutationObserver(function () {
             if (modal.classList.contains('hidden')) {
                 textEl.value = ''; setStatus(statusEl, '');
+                updateCount();
+                favLockedText = null; syncMealBtn();
                 if (type === 'meal') {
                     clearRecap(); resetMealDescription();
                     var resto = document.getElementById('meal-ai-restaurant');
@@ -253,6 +284,7 @@
             } else {
                 if (type === 'meal') resetMealDescription();
                 refreshUsage();
+                updateCount();
             }
         }).observe(modal, { attributes: true, attributeFilter: ['class'] });
     }

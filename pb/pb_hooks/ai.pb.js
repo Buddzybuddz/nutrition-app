@@ -30,7 +30,8 @@ routerAdd("POST", "/api/ai/estimate", (e) => {
         meal:     parseInt($os.getenv("AI_LIMIT_MEAL") || "10", 10),
         activity: parseInt($os.getenv("AI_LIMIT_ACTIVITY") || "5", 10),
     };
-    var MAX_TEXT    = 300;
+    var MAX_TEXT_MEAL     = 600;
+    var MAX_TEXT_ACTIVITY = 300;
     var MAX_ITEMS   = 15;
     var KNOWN_FOODS_IN_PROMPT = 400;
 
@@ -52,6 +53,7 @@ routerAdd("POST", "/api/ai/estimate", (e) => {
     var restaurant = body.restaurant === true && body.type === "meal";
     if (type !== "meal" && type !== "activity") return e.json(400, { error: "Type invalide." });
     if (text.length < 3) return e.json(400, { error: "Décrivez votre saisie en quelques mots." });
+    var MAX_TEXT = type === "meal" ? MAX_TEXT_MEAL : MAX_TEXT_ACTIVITY;
     if (text.length > MAX_TEXT) return e.json(400, { error: "Description trop longue (" + MAX_TEXT + " caractères max)." });
 
     var day = parisDay(Date.now());

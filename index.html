@@ -643,7 +643,7 @@
                 </div>
 
                 <!-- Bouton debug caché -->
-                <button id="btn-fix-profile" data-click="forceProfileLink" class="btn hidden" style="display:none;margin-bottom:12px;font-size:12px;background:var(--color-accent,#E07A5F);color:#fff;border:none;border-radius:10px;padding:8px 14px;">Rattacher mon profil</button>
+                <button id="btn-fix-profile" data-click="forceProfileLink" class="btn hidden" style="display:none;margin-bottom:12px;font-size:12px;background:var(--color-accent-strong,#B8553A);color:#fff;border:none;border-radius:10px;padding:8px 14px;">Rattacher mon profil</button>
 
                 <!-- Carte abonnement -->
                 <div class="pv-subscription-card" id="pv-subscription-card">
@@ -1036,7 +1036,8 @@
                     <div id="meal-mode-new" role="tabpanel">
                     <div class="ai-estimate">
                         <label for="meal-ai-text">Décrire mon repas <span class="ai-badge">Estimation IA</span></label>
-                        <textarea id="meal-ai-text" rows="2" maxlength="300" placeholder="ex : 150 g de riz, 100 g de poulet, légumes vapeur"></textarea>
+                        <textarea id="meal-ai-text" rows="2" maxlength="600" placeholder="ex : 150 g de riz, 100 g de poulet, légumes vapeur"></textarea>
+                        <p class="ai-char-count" id="meal-ai-count" aria-hidden="true">0 / 600</p>
                         <label class="ai-restaurant-opt" for="meal-ai-restaurant">
                             <input type="checkbox" id="meal-ai-restaurant">
                             <span>Repas au restaurant <small>(collez l'intitulé du plat, sans quantités)</small></span>
@@ -1108,6 +1109,7 @@
                         <textarea id="activity-ai-text" rows="2" maxlength="300" placeholder="ex : 45 min de vélo, rythme tranquille"></textarea>
                         <button type="button" class="btn btn-secondary ai-estimate-btn" id="activity-ai-btn">Estimer avec l'IA</button>
                         <p class="ai-estimate-usage" id="activity-ai-usage"></p>
+                        <p class="ai-char-count" id="activity-ai-count" aria-hidden="true">0 / 300</p>
                         <p class="ai-estimate-status" id="activity-ai-status" role="status" aria-live="polite"></p>
                     </div>
 
