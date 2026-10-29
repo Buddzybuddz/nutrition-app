@@ -4,7 +4,7 @@
    http://127.0.0.1:8090 avec toutes les migrations appliquées (dont meals.cheat).
 
    Usage :
-     PB_ADMIN_PASSWORD=... node tools/screenshots-v2.mjs [options]
+     PB_ADMIN_EMAIL=... PB_ADMIN_PASSWORD=... node tools/screenshots-v2.mjs [options]
 
    Options :
      --ecraser            écrit dans Images/Screenshot app/V2 (par défaut : V2-nouveau, rien n'est écrasé)
@@ -22,7 +22,7 @@ import { fileURLToPath } from 'node:url';
 
 const APP = process.env.APP_URL || 'http://127.0.0.1:8000';
 const PB = process.env.PB_URL || 'http://127.0.0.1:8090';
-const ADMIN_EMAIL = process.env.PB_ADMIN_EMAIL || 'baudouinjeremy@gmail.com';
+const ADMIN_EMAIL = process.env.PB_ADMIN_EMAIL;
 const ADMIN_PASSWORD = process.env.PB_ADMIN_PASSWORD;
 const DEMO = { email: 'demo-captures@nutridash-test.com', password: 'DemoCaptures1234!', name: 'Camille' };
 
@@ -92,7 +92,7 @@ async function pbFetch(token, route, init = {}) {
 const create = (token, col, body) => pbFetch(token, `/api/collections/${col}/records`, { method: 'POST', body: JSON.stringify(body) });
 
 async function adminToken() {
-    if (!ADMIN_PASSWORD) throw new Error('Variable PB_ADMIN_PASSWORD manquante (mot de passe superuser PocketBase).');
+    if (!ADMIN_EMAIL || !ADMIN_PASSWORD) throw new Error('Variables PB_ADMIN_EMAIL et PB_ADMIN_PASSWORD manquantes (compte superuser PocketBase).');
     const res = await fetch(`${PB}/api/collections/_superusers/auth-with-password`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ identity: ADMIN_EMAIL, password: ADMIN_PASSWORD }),

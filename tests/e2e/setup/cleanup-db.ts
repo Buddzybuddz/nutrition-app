@@ -4,11 +4,11 @@ const TEST_EMAILS = [testUsers.utilisateur.email]
 
 export async function cleanupTestData(): Promise<void> {
   // Auth admin PocketBase via superuser
-  const adminEmail = process.env.PB_ADMIN_EMAIL || 'admin@nutridash.fr'
-  const adminPassword = process.env.PB_ADMIN_PASSWORD || ''
+  const adminEmail = process.env.PB_ADMIN_EMAIL
+  const adminPassword = process.env.PB_ADMIN_PASSWORD
 
-  if (!adminPassword) {
-    console.warn('[Cleanup] PB_ADMIN_PASSWORD non défini — nettoyage ignoré')
+  if (!adminEmail || !adminPassword) {
+    console.warn('[Cleanup] PB_ADMIN_EMAIL ou PB_ADMIN_PASSWORD non défini — nettoyage ignoré')
     return
   }
 

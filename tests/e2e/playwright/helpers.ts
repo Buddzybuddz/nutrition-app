@@ -71,8 +71,11 @@ export async function createTestUser(
 }
 
 export async function getAdminToken(): Promise<string> {
-  const adminEmail = process.env.PB_ADMIN_EMAIL || 'baudouinjeremy@gmail.com'
-  const adminPassword = process.env.PB_ADMIN_PASSWORD || ''
+  const adminEmail = process.env.PB_ADMIN_EMAIL
+  const adminPassword = process.env.PB_ADMIN_PASSWORD
+  if (!adminEmail || !adminPassword) {
+    throw new Error('PB_ADMIN_EMAIL et PB_ADMIN_PASSWORD doivent être définis (compte superuser du PocketBase de test)')
+  }
   const res = await fetch(`${PB_URL}/api/collections/_superusers/auth-with-password`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
