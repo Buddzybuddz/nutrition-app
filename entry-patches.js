@@ -235,6 +235,15 @@
         /* Sync quand le select change depuis le JS (editEntry pré-sélectionne) */
         select.addEventListener('change', syncLabel);
 
+        /* Une valeur posée par le code (select.value = ...) ne déclenche aucun événement :
+           on intercepte le setter pour que le libellé affiché suive toujours la vraie valeur. */
+        var nativeValue = Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype, 'value');
+        Object.defineProperty(select, 'value', {
+            configurable: true,
+            get: function() { return nativeValue.get.call(select); },
+            set: function(v) { nativeValue.set.call(select, v); syncLabel(); }
+        });
+
         syncLabel();
     }
 
