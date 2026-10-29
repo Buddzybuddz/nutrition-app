@@ -692,8 +692,6 @@
                     </div>
 
                     <div class="form-group">
-                        <label for="goal" class="pv-label">Objectif</label>
-                    <div class="form-group">
                         <label for="activityLevel" class="pv-label">Activité professionnelle</label>
                         <div class="select-wrapper">
                             <select id="activityLevel" class="pv-select">
@@ -707,6 +705,8 @@
                         <p class="pv-hint">Votre activité au travail et au quotidien, sans compter votre sport : il s'ajoute à part quand vous le saisissez.</p>
                     </div>
 
+                    <div class="form-group">
+                        <label for="goal" class="pv-label">Objectif</label>
                         <div class="select-wrapper">
                             <select id="goal" class="pv-select" required>
                                 <option value="maintenance" selected>Maintien du poids</option>
@@ -1122,9 +1122,9 @@
                     <div class="ai-estimate">
                         <label for="activity-ai-text">Décrire mon activité <span class="ai-badge">Estimation IA</span></label>
                         <textarea id="activity-ai-text" rows="2" maxlength="300" placeholder="ex : 45 min de vélo, rythme tranquille"></textarea>
+                        <p class="ai-char-count" id="activity-ai-count" aria-hidden="true">0 / 300</p>
                         <button type="button" class="btn btn-secondary ai-estimate-btn" id="activity-ai-btn">Estimer avec l'IA</button>
                         <p class="ai-estimate-usage" id="activity-ai-usage"></p>
-                        <p class="ai-char-count" id="activity-ai-count" aria-hidden="true">0 / 300</p>
                         <p class="ai-estimate-status" id="activity-ai-status" role="status" aria-live="polite"></p>
                     </div>
 
