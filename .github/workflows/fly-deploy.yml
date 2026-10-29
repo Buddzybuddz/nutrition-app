@@ -1,22 +1,40 @@
 # See https://fly.io/docs/app-guides/continuous-deployment-with-github-actions/
+# Le déploiement n'a lieu que si les contrôles (audit, syntaxe, tests unitaires) passent.
 
 name: Fly Deploy
 on:
   push:
     branches:
       - main
+
+permissions:
+  contents: read
+
 jobs:
-  deploy:
-    name: Deploy app
+  test:
+    name: Contrôles avant déploiement
     runs-on: ubuntu-latest
-    concurrency: deploy-group    # optional: ensure only one action runs at a time
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
+          cache: npm
+      - run: npm ci
       - name: Audit des dépendances npm
         run: npm audit --audit-level=high
+      - name: Syntaxe des scripts front, hooks et migrations
+        run: npm run check:syntax
+      - name: Tests unitaires
+        run: npm test
+
+  deploy:
+    name: Deploy app
+    needs: test
+    runs-on: ubuntu-latest
+    concurrency: deploy-group    # optional: ensure only one action runs at a time
+    steps:
+      - uses: actions/checkout@v4
       - uses: superfly/flyctl-actions/setup-flyctl@ed8efb33836e8b2096c7fd3ba1c8afe303ebbff1 # v1.6
       - run: flyctl deploy --remote-only
         env:
