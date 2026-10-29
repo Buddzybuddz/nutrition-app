@@ -1,4 +1,4 @@
-/* programme.js — page « Mon programme » : Objectifs, Poids, Favoris.
+/* programme.js — page « Mon programme » : Objectifs, Poids, Activité, Favoris.
    Tout est calculé côté navigateur à partir de l'état déjà chargé (profil, pesées, historique 6 mois). */
 
 (function () {
@@ -231,6 +231,104 @@
         box.innerHTML = html;
     }
 
+    /* ── Activité sportive ────────────────────────────────── */
+
+    /* Activités saisies (historique chargé en mémoire, 6 mois) : { date, name, cals } */
+    function activities() {
+        var out = [], hist = (typeof state !== 'undefined' && state.history) || {};
+        Object.keys(hist).forEach(function (date) {
+            ((hist[date] && hist[date].entries) || []).forEach(function (e) {
+                if (e.type === 'Activité') out.push({ date: date, name: String(e.name || 'Activité'), cals: Math.round(Number(e.cals) || 0) });
+            });
+        });
+        return out;
+    }
+
+    /* Rang de la période de 7 jours glissants : 0 = les 7 derniers jours (aujourd'hui compris), 1 = les 7 d'avant, etc. */
+    function weekIndex(date, today) {
+        var diff = Math.round((new Date(today + 'T12:00:00') - new Date(date + 'T12:00:00')) / 86400000);
+        return diff < 0 ? -1 : Math.floor(diff / 7);
+    }
+
+    function diffNote(cur, prev, unit) {
+        var d = cur - prev;
+        if (!prev && !cur) return 'Aucune activité la semaine précédente';
+        if (d === 0) return 'Comme la semaine précédente';
+        return (d > 0 ? '+' : '−') + fmtInt(Math.abs(d)) + (unit ? ' ' + unit : '') + ' vs semaine précédente';
+    }
+
+    function barsChart(weeks, today) {
+        var W = 600, H = 190, padT = 22, padB = 28, padX = 8, n = weeks.length;
+        var max = Math.max.apply(null, weeks.map(function (w) { return w.cals; }).concat([1]));
+        var slot = (W - padX * 2) / n, bw = Math.min(46, slot * 0.62);
+        var base = H - padB;
+        var out = '<svg viewBox="0 0 ' + W + ' ' + H + '" class="pg-chart" role="img" aria-label="Calories brûlées par semaine sur 8 semaines">' +
+            '<line x1="' + padX + '" y1="' + base + '" x2="' + (W - padX) + '" y2="' + base + '" class="pg-axis"/>';
+        weeks.forEach(function (w, i) {
+            var cx = padX + slot * i + slot / 2, h = w.cals > 0 ? Math.max(3, (w.cals / max) * (base - padT)) : 0;
+            var start = addDays(today, -(w.idx * 7 + 6));
+            var label = new Date(start + 'T12:00:00').toLocaleDateString('fr-FR', { day: 'numeric', month: 'numeric' });
+            var cur = w.idx === 0;
+            out += (h ? '<rect x="' + (cx - bw / 2).toFixed(1) + '" y="' + (base - h).toFixed(1) + '" width="' + bw.toFixed(1) + '" height="' + h.toFixed(1) +
+                '" rx="5" class="pg-barcol' + (cur ? ' is-current' : '') + '"><title>' + esc('Semaine du ' + label + ' : ' + fmtInt(w.cals) + ' kcal, ' + w.sessions + (w.sessions > 1 ? ' séances' : ' séance')) + '</title></rect>' +
+                '<text x="' + cx.toFixed(1) + '" y="' + (base - h - 5).toFixed(1) + '" text-anchor="middle" class="pg-axis-label pg-barval">' + esc(fmtInt(w.cals)) + '</text>' : '') +
+                '<text x="' + cx.toFixed(1) + '" y="' + (H - 8) + '" text-anchor="middle" class="pg-axis-label' + (cur ? ' is-current' : '') + '">' + esc(cur ? 'Auj.' : label) + '</text>';
+        });
+        return out + '</svg>';
+    }
+
+    function renderActivite() {
+        var box = $('pg-panel-activite'), today = todayISO();
+        var acts = activities().filter(function (a) { return weekIndex(a.date, today) >= 0; });
+
+        /* 8 périodes de 7 jours : séances, jours actifs, calories */
+        var weeks = [];
+        for (var i = 7; i >= 0; i--) weeks.push({ idx: i, sessions: 0, cals: 0, days: {} });
+        var byIdx = {}; weeks.forEach(function (w) { byIdx[w.idx] = w; });
+        acts.forEach(function (a) {
+            var w = byIdx[weekIndex(a.date, today)];
+            if (!w) return;
+            w.sessions++; w.cals += a.cals; w.days[a.date] = true;
+        });
+        var cur = byIdx[0], prev = byIdx[1], curDays = Object.keys(cur.days).length;
+
+        if (!weeks.some(function (w) { return w.sessions; })) {
+            box.innerHTML = '<div class="pg-card pg-card-wide pg-empty"><p>Aucune activité enregistrée sur les 8 dernières semaines. ' +
+                'Ajoutez une activité depuis l\'accueil (bouton +) pour suivre votre rythme ici.</p></div>';
+            return;
+        }
+
+        var html = '<div class="pg-cards pg-cards-3">' +
+            card('Séances', fmtInt(cur.sessions), diffNote(cur.sessions, prev.sessions, '')) +
+            card('Jours actifs', curDays + ' / 7', 'sur les 7 derniers jours') +
+            card('Calories brûlées', fmtInt(cur.cals) + ' kcal', diffNote(cur.cals, prev.cals, 'kcal')) +
+            '</div>';
+
+        html += '<section class="pg-card pg-card-wide"><h3 class="pg-h">Calories brûlées par semaine</h3>' + barsChart(weeks, today) +
+            '<p class="pg-muted">8 périodes de 7 jours. En corail : les 7 derniers jours, aujourd\'hui compris.</p></section>';
+
+        /* Répartition par activité, 30 derniers jours */
+        var groups = {};
+        activities().forEach(function (a) {
+            if (weekIndex(a.date, today) < 0 || Math.round((new Date(today + 'T12:00:00') - new Date(a.date + 'T12:00:00')) / 86400000) > 29) return;
+            var k = norm(a.name) || 'activite';
+            var g = groups[k] || (groups[k] = { name: a.name, last: a.date, sessions: 0, cals: 0 });
+            g.sessions++; g.cals += a.cals;
+            if (a.date >= g.last) { g.last = a.date; g.name = a.name; }
+        });
+        var list = Object.keys(groups).map(function (k) { return groups[k]; }).sort(function (a, b) { return b.cals - a.cals || b.sessions - a.sessions; });
+        var top = list.slice(0, 6), maxCals = Math.max.apply(null, top.map(function (g) { return g.cals; }).concat([1]));
+        html += '<section class="pg-card pg-card-wide"><h3 class="pg-h">Mes activités · 30 derniers jours</h3>' +
+            (top.length ? '<ul class="pg-sport">' + top.map(function (g) {
+                return '<li><div class="pg-sport-row"><span>' + esc(g.name) + '</span><strong>' + esc(fmtInt(g.cals)) + ' kcal</strong></div>' +
+                    '<div class="pg-bar" aria-hidden="true"><span style="width:' + Math.max(4, Math.round(g.cals / maxCals * 100)) + '%"></span></div>' +
+                    '<small>' + g.sessions + (g.sessions > 1 ? ' séances' : ' séance') + '</small></li>';
+            }).join('') + '</ul>' + (list.length > top.length ? '<p class="pg-muted">Et ' + (list.length - top.length) + ' autre' + (list.length - top.length > 1 ? 's' : '') + ' activité' + (list.length - top.length > 1 ? 's' : '') + '.</p>' : '')
+                : '<p class="pg-muted">Aucune activité sur les 30 derniers jours.</p>') + '</section>';
+
+        box.innerHTML = html;
+    }
+
     function saveWeight(w) {
         var d = todayISO();
         state.profile.weight = w;
@@ -376,6 +474,7 @@
 
     function renderTab() {
         if (tab === 'poids') renderPoids();
+        else if (tab === 'activite') renderActivite();
         else if (tab === 'favoris') renderFavoris();
         else renderObjectifs();
     }
@@ -387,7 +486,7 @@
             b.classList.toggle('is-active', on);
             b.setAttribute('aria-selected', on ? 'true' : 'false');
         });
-        ['objectifs', 'poids', 'favoris'].forEach(function (n) { $('pg-panel-' + n).hidden = n !== name; });
+        ['objectifs', 'poids', 'activite', 'favoris'].forEach(function (n) { $('pg-panel-' + n).hidden = n !== name; });
         renderTab();
     }
 

@@ -5416,6 +5416,18 @@ details[open] .advice-accordion-summary::after {
     border-top: 1px solid var(--color-border, #e8eae0);
 }
 
+/* Suivi de l'activité sportive */
+.pg-barcol { fill: var(--color-primary); }
+.pg-barcol.is-current { fill: var(--color-accent-strong); }
+.pg-barval { font-weight: 600; fill: var(--color-text-2); }
+.pg-axis-label.is-current { font-weight: 700; fill: var(--color-text-1); }
+.pg-sport { list-style: none; margin: 8px 0 0; padding: 0; display: flex; flex-direction: column; gap: 14px; }
+.pg-sport-row { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; font-size: 14px; }
+.pg-sport-row span { color: var(--color-text-1); font-weight: 600; min-width: 0; overflow-wrap: anywhere; }
+.pg-sport-row strong { color: var(--color-primary); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.pg-sport .pg-bar { margin: 6px 0 4px; }
+.pg-sport small { font-size: 12.5px; color: var(--color-text-3); }
+
 /* Détail du calcul (profil) : parcours en étapes */
 .pv-calc { margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--color-border, #e8eae0); text-align: left; }
 .pv-calc-title { margin: 0 0 14px; font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 700; color: var(--color-text-1); }
