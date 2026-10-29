@@ -64,10 +64,11 @@
 
         var weight = getLatestWeight(), goal = p.goal || 'maintenance';
         var coef = goal === 'loss' ? 0.9 : (goal === 'gain' ? 1.1 : 1);
-        var tdee = p.tdee || (p.bmr ? p.bmr * 1.2 : 0);
+        var tdee = p.tdee || (p.bmr ? p.bmr * activityFactor(p.activityLevel) : 0);
         var log = (state.history || {})[todayISO()] || {};
         var burned = Math.round(log.bonusTDEE || 0);
-        var calGoal = Math.round(tdee * coef + burned), protGoal = Math.round(weight * 2);
+        var perKg = proteinPerKg(goal);
+        var calGoal = Math.round(tdee * coef + burned), protGoal = Math.round(weight * perKg);
         var calCons = Math.round(log.consumedCals || 0), protCons = Math.round(log.consumedProtein || 0);
 
         var target = Number(p.targetWeight) || 0, diff = weight - target, gap = '';
@@ -82,7 +83,7 @@
             dayCard('Calories du jour', calCons, calGoal, 'kcal',
                 'Métabolisme ' + Math.round(tdee) + ' kcal × ' + String(coef).replace('.', ',') +
                 (burned ? ' + ' + burned + ' kcal d\'activités' : '')) +
-            dayCard('Protéines du jour', protCons, protGoal, 'g', '2 g par kg de poids (' + fmtKg(weight) + ')') +
+            dayCard('Protéines du jour', protCons, protGoal, 'g', fmtPerKg(perKg) + ' g par kg de poids (' + fmtKg(weight) + ')') +
             '</div>';
 
         html += '<div class="pg-duo">';
@@ -93,7 +94,7 @@
             (gap ? '<p class="pg-gap">' + esc(gap) + '</p>' : '') +
             '<button type="button" class="ai-link" data-click="navigateTo" data-arg="profil">Modifier dans mon profil</button></section>';
 
-        html += renderRegularite(tdee, protGoal) + '</div>';
+        html += renderRegularite(tdee, Math.round(weight * LEGACY_PROTEIN_PER_KG)) + '</div>';
 
         /* On ne garde que les changements : un objectif répété d'un jour à l'autre n'apporte rien */
         var prev = null, gh = (state.goalHistory || []).slice().sort(function (a, b) { return a.date.localeCompare(b.date); })

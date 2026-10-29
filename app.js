@@ -161,8 +161,8 @@ function updateProfileData(silent = false) {
         state.profile.age
     );
     
-    // Le TDEE de base est maintenant BMR * 1.2 (sédentaire)
-    state.profile.tdee = state.profile.bmr * 1.2;
+    // TDEE de base = BMR x coefficient d'activité professionnelle (1,2 sédentaire par défaut)
+    state.profile.tdee = state.profile.bmr * activityFactor(state.profile.activityLevel);
     
     // Mise à jour du "snapshot" pour la date active visualisée
     // Cela garantit que modifier le profil impacte le jour en cours d'édition
@@ -324,7 +324,7 @@ document.getElementById('profile-form').addEventListener('submit', (e) => {
         height: parseInt(document.getElementById('height').value),
         goal: document.getElementById('goal').value,
         targetWeight: document.getElementById('targetWeight').value ? parseFloat(document.getElementById('targetWeight').value) : parseFloat(document.getElementById('weight').value),
-        activity: 1.2, // Niveau sédentaire utilisé par défaut
+        activityLevel: document.getElementById('activityLevel').value || 'sedentary',
         weighInDay: parseInt(document.getElementById('weighInDay').value)
     };
     updateProfileData();
@@ -351,9 +351,24 @@ document.getElementById('profile-form').addEventListener('submit', (e) => {
     document.querySelector('[data-target="dashboard-view"]').click();
 });
 
+/* Aide sous le menu Objectif : dit ce que l'app applique pour l'objectif choisi */
+function updateGoalHint() {
+    const el = document.getElementById('goal-hint');
+    const goalEl = document.getElementById('goal');
+    if (!el || !goalEl) return;
+    const goal = goalEl.value;
+    const prot = String(proteinPerKg(goal)).replace('.', ',') + ' g de protéines par kg de poids';
+    el.textContent = goal === 'loss'
+        ? 'Vos calories sont réduites de 10 % par rapport à votre dépense, avec ' + prot + '.'
+        : goal === 'gain'
+            ? 'Vos calories sont augmentées de 10 % par rapport à votre dépense, avec ' + prot + '.'
+            : 'Vos calories visent le maintien de votre poids, avec ' + prot + '.';
+}
+
 const goalSelect = document.getElementById('goal');
 if (goalSelect) {
     goalSelect.addEventListener('change', (e) => {
+        updateGoalHint();
         const targetGroup = document.getElementById('target-weight-group');
         if (e.target.value === 'loss') {
             targetGroup.classList.remove('hidden');
@@ -362,6 +377,8 @@ if (goalSelect) {
         }
     });
 }
+
+updateGoalHint();
 
 const heightInput = document.getElementById('height');
 const weightInput = document.getElementById('weight');
@@ -378,6 +395,36 @@ function updateIdealWeightLabel() {
     }
 }
 
+/* Détail du calcul affiché dans le profil : BMR -> x activité professionnelle -> x objectif, puis protéines */
+function renderCalcDetail(bmr, weight, goal, level) {
+    const box = document.getElementById('profile-calc');
+    if (!box) return;
+    const fmt = (n) => Math.round(n).toLocaleString('fr-FR');
+    const ratio = (n) => String(n).replace('.', ',');
+    const lvl = ACTIVITY_LEVELS[level] || ACTIVITY_LEVELS.sedentary;
+    const goalCoef = goal === 'loss' ? 0.9 : (goal === 'gain' ? 1.1 : 1);
+    const goalLabel = goal === 'loss' ? 'Perte de poids / Sèche (−10 %)' : (goal === 'gain' ? 'Prise de masse (+10 %)' : 'Maintien du poids');
+    const tdee = bmr * lvl.factor;
+    const perKg = proteinPerKg(goal);
+    const kg = ratio(Math.round(weight * 10) / 10);
+    const step = (n, title, hint, value) =>
+        '<li class="pv-step"><span class="pv-step-n" aria-hidden="true">' + n + '</span>' +
+        '<div class="pv-step-body"><span class="pv-step-t">' + title + '</span><small>' + hint + '</small></div>' +
+        '<strong class="pv-step-v">' + value + '</strong></li>';
+    box.innerHTML =
+        '<h4 class="pv-calc-title">Comment c\'est calculé</h4>' +
+        '<ol class="pv-steps">' +
+        step(1, 'Métabolisme de base', 'Selon votre poids, taille, âge et sexe (Mifflin-St Jeor)', fmt(bmr) + ' kcal') +
+        step(2, '× ' + ratio(lvl.factor) + ' · ' + lvl.label, 'Votre activité professionnelle, hors sport', fmt(tdee) + ' kcal') +
+        step(3, '× ' + ratio(goalCoef) + ' · ' + goalLabel, 'Les activités que vous saisissez s\'ajoutent à cette cible', fmt(tdee * goalCoef) + ' kcal') +
+        step(4, 'Protéines · ' + ratio(perKg) + ' g × ' + kg + ' kg', 'Ratio par kilo de poids, selon votre objectif', fmt(weight * perKg) + ' g') +
+        '</ol>' +
+        '<div class="pv-calc-result">' +
+        '<div><span>Cible calories</span><strong>' + fmt(tdee * goalCoef) + ' <small>kcal / jour</small></strong></div>' +
+        '<div><span>Cible protéines</span><strong>' + fmt(weight * perKg) + ' <small>g / jour</small></strong></div>' +
+        '</div>';
+}
+
 function updateLivePreview() {
     const birthday = document.getElementById('birthDate').value;
     const gender = document.getElementById('gender').value;
@@ -387,17 +434,22 @@ function updateLivePreview() {
     if (birthday && gender && weight && height) {
         const age = calculateAge(birthday);
         const bmr = calculateMifflinStJeor(gender, weight, height, age);
-        const tdee = bmr * 1.2;
+        const tdee = bmr * activityFactor(document.getElementById('activityLevel').value);
         
         dpBmr.textContent = Math.round(bmr) + " kcal";
         dpTdee.textContent = Math.round(tdee) + " kcal";
         profileStats.classList.remove('hidden');
+        renderCalcDetail(bmr, weight, document.getElementById('goal').value, document.getElementById('activityLevel').value);
     }
 }
 
 if (heightInput) heightInput.addEventListener('input', () => { updateIdealWeightLabel(); updateLivePreview(); });
 if (weightInput) weightInput.addEventListener('input', updateLivePreview);
 if (genderSelect) genderSelect.addEventListener('change', () => { updateIdealWeightLabel(); updateLivePreview(); });
+const activityLevelSelect = document.getElementById('activityLevel');
+if (activityLevelSelect) activityLevelSelect.addEventListener('change', updateLivePreview);
+const goalSelectEl = document.getElementById('goal');
+if (goalSelectEl) goalSelectEl.addEventListener('change', updateLivePreview);
 if (document.getElementById('birthDate')) document.getElementById('birthDate').addEventListener('change', updateLivePreview);
 if (idealWeightSuggestion) {
     idealWeightSuggestion.addEventListener('click', () => {
@@ -421,6 +473,7 @@ function populateProfileForm() {
         document.getElementById('weight').value = state.profile.weight;
         document.getElementById('height').value = state.profile.height;
         document.getElementById('weighInDay').value = state.profile.weighInDay !== undefined ? state.profile.weighInDay : 1;
+        document.getElementById('activityLevel').value = state.profile.activityLevel || 'sedentary';
         
         if (state.profile.goal) {
             document.getElementById('goal').value = state.profile.goal;
@@ -434,10 +487,12 @@ function populateProfileForm() {
             }
         }
         updateIdealWeightLabel();
+        updateGoalHint();
         
         dpBmr.textContent = Math.round(state.profile.bmr) + " kcal";
         dpTdee.textContent = Math.round(state.profile.tdee) + " kcal";
         profileStats.classList.remove('hidden');
+        renderCalcDetail(state.profile.bmr, getLatestWeight(), state.profile.goal, state.profile.activityLevel);
     }
 }
 
@@ -879,9 +934,11 @@ function updateDashboard() {
     if (calsGoal) animNum(calsGoal, targetTdee);
     if (calsConsumed) animNum(calsConsumed, actLog.consumedCals);
     
-    // Protein Logic : 2g par kg de poids de corps actuel
+    // Protein Logic : g par kg de poids actuel selon l'objectif (1,3 sèche / 1,6 maintien / 2 prise de masse).
+    // Un jour passé garde le ratio figé à son enregistrement, ou l'ancien 2 g/kg s'il n'en a pas.
     const currentWeight = getLatestWeight();
-    const targetProtein = currentWeight * 2;
+    const proteinRatio = (!isToday && !isFuture) ? (actLog.proteinPerKg || LEGACY_PROTEIN_PER_KG) : proteinPerKg(goalName);
+    const targetProtein = currentWeight * proteinRatio;
     const consumedProtein = actLog.consumedProtein;
     const remainingProtein = targetProtein - consumedProtein;
     

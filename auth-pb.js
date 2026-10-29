@@ -263,6 +263,7 @@ async function migrateLegacyData(user, cloudState) {
                 weight: parseFloat(p.weight) || 0,
                 height: parseFloat(p.height) || 0,
                 goal: p.goal === 'maintain' ? 'maintenance' : (p.goal || 'maintenance'),
+                activityLevel: p.activityLevel || 'sedentary',
                 targetWeight: parseFloat(p.targetWeight) || 0,
                 weighInDay: parseInt(p.weighInDay) || 1,
                 customActivities: (cloudState.customActivities || []).map(a => typeof a === 'object' ? JSON.stringify({ name: a.name, cals: a.cals }) : a)
@@ -401,6 +402,7 @@ window.loadFromCloud = async (user) => {
                 weight: profile.weight,
                 height: profile.height,
                 goal: profile.goal,
+                activityLevel: profile.activityLevel || 'sedentary',
                 targetWeight: profile.targetWeight,
                 weighInDay: profile.weighInDay,
                 tdee: profile.weight * 30, // Fallback si non calculé
@@ -534,7 +536,8 @@ async function loadFullHistory() {
                 ],
                 baseTDEE: data.stats ? data.stats.baseTDEE : (state.profile ? (state.profile.tdee || state.profile.weight * 33) : 0),
                 goal: resolvedGoal,
-                goalMultiplier: resolvedMultiplier
+                goalMultiplier: resolvedMultiplier,
+                proteinPerKg: data.stats && data.stats.proteinPerKg ? data.stats.proteinPerKg : 0
             };
         }
         
@@ -584,7 +587,8 @@ async function loadDayData(dateStr) {
             ],
             baseTDEE: stats ? stats.baseTDEE : (state.profile ? (state.profile.tdee || state.profile.weight * 33) : 0),
             goal: resolvedGoal,
-            goalMultiplier: resolvedMultiplier
+            goalMultiplier: resolvedMultiplier,
+            proteinPerKg: stats && stats.proteinPerKg ? stats.proteinPerKg : 0
         };
     } catch(e) {
         if (!e.isAbort) {
@@ -649,7 +653,11 @@ window.syncToCloud = async () => {
             date: toPBDate(log.date),
             baseTDEE: log.baseTDEE || 0,
             goal: log.goal || (state.profile ? state.profile.goal : 'maintenance'),
-            goalMultiplier: log.goalMultiplier || 1
+            goalMultiplier: log.goalMultiplier || 1,
+            // Ratio de protéines figé : mis à jour pour aujourd'hui et le futur, conservé (ou vide = ancien 2 g/kg) pour un jour passé
+            proteinPerKg: log.date >= formatISOLocal(new Date())
+                ? proteinPerKg(log.goal || (state.profile ? state.profile.goal : 'maintenance'))
+                : (log.proteinPerKg || 0)
         };
         try {
             const dateFilter = log.date;

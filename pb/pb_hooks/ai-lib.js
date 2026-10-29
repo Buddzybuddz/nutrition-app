@@ -93,8 +93,9 @@ function bmr(gender, weight, height, age) {
 
 var MEAL_LABELS = { breakfast: "Petit-déjeuner", lunch: "Déjeuner", snack: "Collation", dinner: "Dîner" };
 
-/* Reproduit les formules de l'app : TDEE = BMR x 1,2 ; objectif x 0,9 (perte) / 1 / 1,1 (prise) ;
-   cible calories = TDEE x coef + calories des activités ; cible protéines = 2 g x poids. */
+/* Reproduit les formules de l'app : TDEE = BMR x coefficient d'activité professionnelle (1,2 à 1,75) ; objectif x 0,9 (perte) / 1 / 1,1 (prise) ;
+   cible calories = TDEE x coef + calories des activités ; cible protéines = ratio x poids (1,3 sèche, 1,6 maintien, 2 prise de masse ; 2 g/kg pour les jours
+   antérieurs à cette règle, ratio figé dans daily_stats.proteinPerKg). */
 function buildContext(userId, today) {
     var prof = findOne("profiles", "user = {:u}", { u: userId });
     if (!prof) return null;
@@ -117,9 +118,13 @@ function buildContext(userId, today) {
     var age = ageFrom(prof.get("birthDate"), today);
     var goal = String(prof.get("goal") || "maintenance");
     var coef = goal === "loss" ? 0.9 : (goal === "gain" ? 1.1 : 1);
+    var perKgNow = goal === "loss" ? 1.3 : (goal === "gain" ? 2 : 1.6);
+    function fmtRatio(r) { return String(r).replace(".", ","); }
     var goalLabel = goal === "loss" ? "perte de poids (-10 %)" : (goal === "gain" ? "prise de masse (+10 %)" : "maintien du poids");
     var nowWeight = weightAt(today);
-    var tdeeNow = bmr(gender, nowWeight, height, age) * 1.2;
+    var ACTIVITY = { sedentary: 1.2, light: 1.3, active: 1.45, very_active: 1.6, intense: 1.75 };
+    var actFactor = ACTIVITY[String(prof.get("activityLevel") || "")] || 1.2;
+    var tdeeNow = bmr(gender, nowWeight, height, age) * actFactor;
 
     var meals = findMany("meals", "user = {:u} && date >= {:f}", "date", 600, { u: userId, f: fromTs });
     var acts = findMany("activities_log", "user = {:u} && date >= {:f}", "date", 300, { u: userId, f: fromTs });
@@ -144,7 +149,8 @@ function buildContext(userId, today) {
         var s = statByDay[day], d = days[day] || { burned: 0 };
         var base = s && Number(s.get("baseTDEE")) > 0 ? Number(s.get("baseTDEE")) : tdeeNow;
         var c = s && Number(s.get("goalMultiplier")) > 0 ? Number(s.get("goalMultiplier")) : coef;
-        return { cal: Math.round(base * c + d.burned), prot: Math.round(weightAt(day) * 2) };
+        var per = day >= today ? perKgNow : (s && Number(s.get("proteinPerKg")) > 0 ? Number(s.get("proteinPerKg")) : 2);
+        return { cal: Math.round(base * c + d.burned), prot: Math.round(weightAt(day) * per) };
     }
 
     function dayName(day) { return WEEKDAYS[new Date(day + "T12:00:00Z").getUTCDay()] + " " + day; }
@@ -199,7 +205,7 @@ function buildContext(userId, today) {
     out.push("DATE DU JOUR : " + dayName(today));
     out.push("PROFIL : " + ((gender === "male" || gender === "Homme") ? "homme" : "femme") + ", " + age + " ans, " + height + " cm, poids actuel " + nowWeight + " kg" +
         (prof.get("targetWeight") ? ", poids cible " + prof.get("targetWeight") + " kg" : "") + ". Objectif : " + goalLabel + ".");
-    out.push("RÈGLES DE L'APP : cible calories = métabolisme x 1,2 (" + Math.round(tdeeNow) + " kcal) x " + coef + " + calories des activités ; cible protéines = 2 g par kg (" + Math.round(nowWeight * 2) + " g).");
+    out.push("RÈGLES DE L'APP : cible calories = métabolisme x " + fmtRatio(actFactor) + " selon l'activité professionnelle (" + Math.round(tdeeNow) + " kcal) x " + coef + " + calories des activités ; cible protéines = " + fmtRatio(perKgNow) + " g par kg selon l'objectif (" + Math.round(nowWeight * perKgNow) + " g).");
     out.push("");
     out.push("AUJOURD'HUI : " + t.cals + " kcal et " + t.prot + " g de protéines consommés. Objectif du jour : " + g.cal + " kcal (dont " + t.burned + " kcal d'activités) et " + g.prot + " g de protéines." +
         " Reste : " + (g.cal - t.cals) + " kcal et " + (g.prot - t.prot) + " g de protéines.");

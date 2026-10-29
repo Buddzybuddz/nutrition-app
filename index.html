@@ -693,6 +693,20 @@
 
                     <div class="form-group">
                         <label for="goal" class="pv-label">Objectif</label>
+                    <div class="form-group">
+                        <label for="activityLevel" class="pv-label">Activité professionnelle</label>
+                        <div class="select-wrapper">
+                            <select id="activityLevel" class="pv-select">
+                                <option value="sedentary" selected>Sédentaire — bureau, télétravail, chauffeur, étudiant</option>
+                                <option value="light">Peu actif — enseignant, vendeur, commercial</option>
+                                <option value="active">Actif — infirmier, serveur, coiffeur, aide à domicile</option>
+                                <option value="very_active">Très actif — maçon, ouvrier, agriculteur, déménageur</option>
+                                <option value="intense">Physique intense — chantier lourd, forestier</option>
+                            </select>
+                        </div>
+                        <p class="pv-hint">Votre activité au travail et au quotidien, sans compter votre sport : il s'ajoute à part quand vous le saisissez.</p>
+                    </div>
+
                         <div class="select-wrapper">
                             <select id="goal" class="pv-select" required>
                                 <option value="maintenance" selected>Maintien du poids</option>
@@ -700,7 +714,7 @@
                                 <option value="gain">Prise de masse propre</option>
                             </select>
                         </div>
-                        <p class="pv-hint">Un ajustement de 10 % est idéal — suffisant pour agir sans fatigue ni risque de perte musculaire.</p>
+                        <p class="pv-hint" id="goal-hint" aria-live="polite"></p>
                     </div>
 
                     <div class="form-group hidden" id="target-weight-group">
@@ -744,7 +758,8 @@
                             <span class="pv-stat-unit">kcal / activité</span>
                         </div>
                     </div>
-                    <p class="pv-stats-note">BMR = dépenses au repos total &nbsp;&bull;&nbsp; TDEE = avec activité sédentaire</p>
+                    <p class="pv-stats-note">BMR = dépense au repos &nbsp;&bull;&nbsp; TDEE = avec votre activité professionnelle</p>
+                    <div class="pv-calc" id="profile-calc"></div>
                 </div>
 
                 <!-- Section RGPD -->

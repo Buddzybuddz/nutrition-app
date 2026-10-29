@@ -73,9 +73,33 @@ const CHEAT_MEALS = {
     cheat_alcool: { label: 'Cheat meal + alcool', cals: 1500, prot: 30 }
 };
 
+/* Cible de protéines (g par kg de poids) selon l'objectif. Les jours enregistrés avant cette règle
+   n'ont pas de ratio figé : ils gardent l'ancien 2 g/kg (LEGACY_PROTEIN_PER_KG) pour que l'historique ne bouge pas. */
+const PROTEIN_PER_KG = { loss: 1.3, maintenance: 1.6, gain: 2 };
+const LEGACY_PROTEIN_PER_KG = 2;
+function proteinPerKg(goal) {
+    return PROTEIN_PER_KG[goal] || PROTEIN_PER_KG.maintenance;
+}
+/* Niveau d'activité professionnelle (hors sport, saisi à part) : coefficient appliqué au métabolisme de base.
+   Un profil sans niveau (comptes existants) reste sédentaire, soit l'ancien x 1,2. */
+const ACTIVITY_LEVELS = {
+    sedentary:   { factor: 1.2,  label: 'Sédentaire',        hint: 'bureau, télétravail, chauffeur, étudiant' },
+    light:       { factor: 1.3,  label: 'Peu actif',         hint: 'enseignant, vendeur, commercial' },
+    active:      { factor: 1.45, label: 'Actif',             hint: 'infirmier, serveur, coiffeur, aide à domicile' },
+    very_active: { factor: 1.6,  label: 'Très actif',        hint: 'maçon, ouvrier, agriculteur, déménageur' },
+    intense:     { factor: 1.75, label: 'Physique intense',  hint: 'chantier lourd, forestier' }
+};
+function activityFactor(level) {
+    return (ACTIVITY_LEVELS[level] || ACTIVITY_LEVELS.sedentary).factor;
+}
+function fmtPerKg(ratio) {
+    return String(ratio).replace('.', ',');
+}
+
 /* Régularité sur les 7 derniers jours complets (hier et les 6 précédents, aujourd'hui exclu car en cours).
    Un jour compte s'il a des calories saisies. « Dans l'objectif » : kcal entre 90 et 105 % de la cible du jour
-   et protéines à 90 % au moins de la cible. 7 700 kcal ≈ 1 kg de masse grasse (approximation). */
+   et protéines à 90 % au moins de la cible. proteinTarget est la cible à 2 g/kg : elle est ramenée au ratio
+   figé de chaque jour (log.proteinPerKg, 2 g/kg si absent). 7 700 kcal ≈ 1 kg de masse grasse (approximation). */
 function computeWeekBalance(history, todayStr, proteinTarget, fallbackTdee) {
     const res = { daysLogged: 0, daysOk: 0, surplus: 0, kg: 0, maxGap: null, cheats: 0, cheatsAlcool: 0, days: [] };
     const [y, m, d] = todayStr.split('-').map(Number);
@@ -90,7 +114,8 @@ function computeWeekBalance(history, todayStr, proteinTarget, fallbackTdee) {
         res.daysLogged++;
         res.surplus += gap;
         const kcalOk = cals >= target * 0.9 && cals <= target * 1.05;
-        const protOk = !(proteinTarget > 0) || (log.consumedProtein || 0) >= proteinTarget * 0.9;
+        const dayProtTarget = proteinTarget * ((log.proteinPerKg || LEGACY_PROTEIN_PER_KG) / LEGACY_PROTEIN_PER_KG);
+        const protOk = !(proteinTarget > 0) || (log.consumedProtein || 0) >= dayProtTarget * 0.9;
         if (kcalOk && protOk) res.daysOk++;
         res.days[0].state = kcalOk && protOk ? 'ok' : 'off';
         if (gap > 0 && (!res.maxGap || gap > res.maxGap.kcal)) res.maxGap = { date, kcal: Math.round(gap) };
@@ -119,6 +144,12 @@ if (typeof module !== 'undefined' && module.exports) {
         sortDatesFR,
         formatDateFR,
         computeWeekBalance,
+        proteinPerKg,
+        ACTIVITY_LEVELS,
+        activityFactor,
+        fmtPerKg,
+        PROTEIN_PER_KG,
+        LEGACY_PROTEIN_PER_KG,
         CHEAT_MEALS
     };
 }

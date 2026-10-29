@@ -8,6 +8,11 @@ import {
     sortDatesFR,
     formatDateFR,
     computeWeekBalance,
+    proteinPerKg,
+    ACTIVITY_LEVELS,
+    activityFactor,
+    fmtPerKg,
+    LEGACY_PROTEIN_PER_KG,
     CHEAT_MEALS
 } from './utils.js';
 
@@ -183,6 +188,71 @@ describe('Utils Functions', () => {
         it('définit des forfaits plus élevés avec alcool et les mêmes protéines', () => {
             expect(CHEAT_MEALS.cheat).toMatchObject({ cals: 1000, prot: 30 });
             expect(CHEAT_MEALS.cheat_alcool).toMatchObject({ cals: 1500, prot: 30 });
+        });
+    });
+    describe('proteinPerKg', () => {
+        it('donne 1,3 en sèche, 1,6 en maintien et 2 en prise de masse', () => {
+            expect(proteinPerKg('loss')).toBe(1.3);
+            expect(proteinPerKg('maintenance')).toBe(1.6);
+            expect(proteinPerKg('gain')).toBe(2);
+        });
+
+        it('retombe sur le maintien pour un objectif inconnu ou absent', () => {
+            expect(proteinPerKg(undefined)).toBe(1.6);
+            expect(proteinPerKg('autre')).toBe(1.6);
+        });
+
+        it('conserve 2 g/kg comme ratio des jours antérieurs à la règle', () => {
+            expect(LEGACY_PROTEIN_PER_KG).toBe(2);
+        });
+
+        it('formate le ratio avec une virgule', () => {
+            expect(fmtPerKg(1.3)).toBe('1,3');
+            expect(fmtPerKg(2)).toBe('2');
+        });
+    });
+
+    describe('computeWeekBalance : ratio de protéines figé par jour', () => {
+        const day = (prot, extra = {}) => ({ consumedCals: 2000, consumedProtein: prot, baseTDEE: 2000, goalMultiplier: 1, bonusTDEE: 0, ...extra });
+
+        it('un jour sans ratio figé garde la cible historique à 2 g/kg', () => {
+            // cible 2 g/kg = 130 g ; 100 g < 90 % de 130 (117 g)
+            const r = computeWeekBalance({ '2026-10-24': day(100) }, '2026-10-25', 130, 2000);
+            expect(r.days[6].state).toBe('off');
+        });
+
+        it('un jour enregistré en sèche (1,3 g/kg) est jugé sur 1,3 g/kg', () => {
+            // cible 1,3 g/kg = 84,5 g ; 100 g la dépasse
+            const r = computeWeekBalance({ '2026-10-24': day(100, { proteinPerKg: 1.3 }) }, '2026-10-25', 130, 2000);
+            expect(r.days[6].state).toBe('ok');
+        });
+
+        it('mélange les ratios selon les jours', () => {
+            const h = { '2026-10-24': day(100, { proteinPerKg: 1.3 }), '2026-10-23': day(100) };
+            const r = computeWeekBalance(h, '2026-10-25', 130, 2000);
+            expect(r.days[6].state).toBe('ok');
+            expect(r.days[5].state).toBe('off');
+        });
+    });
+    describe('activityFactor', () => {
+        it('donne le coefficient de chacun des 5 niveaux', () => {
+            expect(activityFactor('sedentary')).toBe(1.2);
+            expect(activityFactor('light')).toBe(1.3);
+            expect(activityFactor('active')).toBe(1.45);
+            expect(activityFactor('very_active')).toBe(1.6);
+            expect(activityFactor('intense')).toBe(1.75);
+        });
+
+        it('reste sédentaire (x 1,2) sans niveau ou avec un niveau inconnu : les comptes existants ne changent pas', () => {
+            expect(activityFactor(undefined)).toBe(1.2);
+            expect(activityFactor('')).toBe(1.2);
+            expect(activityFactor('inconnu')).toBe(1.2);
+        });
+
+        it('propose 5 niveaux croissants', () => {
+            const factors = Object.values(ACTIVITY_LEVELS).map(l => l.factor);
+            expect(factors).toHaveLength(5);
+            expect([...factors].sort((a, b) => a - b)).toEqual(factors);
         });
     });
 });
