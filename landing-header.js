@@ -7,16 +7,17 @@
 (function() {
     var header = document.getElementById('lp-header');
     if (!header) return;
+    var phone = window.matchMedia('(max-width: 900px)');
     var cta = null, scroller = null; /* ces éléments sont plus bas dans la page : ce script se charge avant eux, on les cherche au premier défilement */
     var scrolled = null, hidden = false, away = false, lastY = window.scrollY, acc = 0, ticking = false, idle = 0;
 
     function setHidden(v) { if (v !== hidden) { hidden = v; header.classList.toggle('lp-header--hidden', v); } }
-    function setAway(v) { if (!cta) cta = document.querySelector('.lx-sticky-cta'); if (cta && v !== away) { away = v; cta.classList.toggle('lx-cta-away', v); } }
+    function setAway(v) { if (phone.matches) v = false; /* mobile : la barre du bas reste fixe */ if (!cta) cta = document.querySelector('.lx-sticky-cta'); if (cta && v !== away) { away = v; cta.classList.toggle('lx-cta-away', v); } }
 
     /* Le carrousel épinglé est calé sous le bandeau : on garde alors le bandeau visible */
     function pinned() {
         if (!scroller) scroller = document.querySelector('.lx-car-scroll');
-        if (!scroller) return false;
+        if (!scroller || !scroller.classList.contains('is-pin')) return false; /* épinglé seulement sur grand écran */
         var r = scroller.getBoundingClientRect();
         return r.top <= 70 && r.bottom > 240;
     }

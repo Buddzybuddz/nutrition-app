@@ -147,6 +147,7 @@ body:has(.landing-page:not(.hidden)) { overflow-x: clip; overflow-y: visible; }
 .lx-story-ph .lx-screen img { opacity: 0; }
 .lx-story-ph .lx-screen img:nth-child(1) { opacity: 1; }
 .lx-steps { view-timeline: --lx-st block; }
+.lx-step-shot { display: none; }
 .lx-step { min-height: 68vh; display: flex; flex-direction: column; justify-content: center; padding: 24px 0; max-width: 460px; }
 .lx-step-n { width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; background: var(--color-primary); color: #fff; font-family: 'DM Sans', sans-serif; font-weight: 700; font-size: .9375rem; }
 .lx-step h3 { margin: 16px 0 0; font-family: 'DM Sans', sans-serif; font-size: 2.125rem; letter-spacing: -.02em; line-height: 1.1; color: var(--color-text-1); }
@@ -279,8 +280,7 @@ body:has(.landing-page:not(.hidden)) { overflow-x: clip; overflow-y: visible; }
     .lx-slide p { font-size: 1.0625rem; }
     .lx-car-phone { height: clamp(300px, calc(100vh - 290px), 620px); height: clamp(300px, calc(100svh - 290px), 620px); }
 }
-/* Mobile : le défilement de la page pilote le carrousel, les flèches sont masquées (la frise reste tactile) */
-@media (max-width: 900px) { .lx-car-scroll.is-pin .lx-car-nav { display: none; } }
+/* Mobile : carrousel natif (scroll-snap) qu'on balaie du doigt, sans épinglage ni script de défilement de page ; la frise et les flèches restent actives */
 @media (prefers-reduced-motion: reduce) { .lx-car-track { scroll-behavior: auto; } }
 .lx-days-cta { margin-top: 56px; display: flex; flex-wrap: wrap; gap: 16px 24px; align-items: center; }
 .lx-days-cta span { font-size: .9375rem; color: #B9CFC2; }
@@ -320,11 +320,15 @@ body:has(.landing-page:not(.hidden)) { overflow-x: clip; overflow-y: visible; }
     .lx-bub.r1 { margin-left: 60px; top: 90px; }
     .lx-bub.l2, .lx-bub.r2 { display: none; }
     .lx-story-g { grid-template-columns: 1fr; gap: 0; }
-    .lx-story-ph { top: 56px; z-index: 3; background: var(--color-bg); padding: 8px 0; }
-    .lx-story-ph::before { content: ""; position: absolute; left: 0; right: 0; bottom: 100%; height: 56px; background: var(--color-bg); }
-    .lx-story-ph .lx-phone { width: 176px; border-radius: 30px; padding: 6px; }
-    .lx-story-ph .lx-screen { border-radius: 25px; }
-    .lx-step { min-height: 52vh; }
+    /* Mobile : pas de téléphone collé ni de fondu piloté par le défilement. Chaque étape porte sa propre capture, la page défile normalement. */
+    .lx-story-ph { display: none; }
+    .lx-step { min-height: 0; max-width: none; justify-content: flex-start; padding: 32px 0 36px; border-top: 1px solid var(--color-border); }
+    .lx-step:first-child { border-top: 0; padding-top: 8px; }
+    .lx-step h3 { font-size: 1.625rem; }
+    .lx-step p { font-size: 1.0625rem; }
+    .lx-step-shot { display: flex; justify-content: center; margin-top: 24px; }
+    .lx-step-shot .lx-phone { width: 210px; margin: 0; animation: none; border-radius: 32px; padding: 6px; box-shadow: 0 28px 56px -18px rgba(16, 32, 26, .4), 0 0 0 1.5px #2b3d33 inset; }
+    .lx-step-shot .lx-screen { border-radius: 27px; }
     .lx-t7, .lx-t5, .lx-t4 { grid-column: span 12; }
     .lx-ring { width: 140px; height: 140px; }
     .lx-ring-c strong { font-size: 1.875rem; }
