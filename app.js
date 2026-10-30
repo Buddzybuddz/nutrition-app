@@ -396,7 +396,7 @@ function updateIdealWeightLabel() {
 }
 
 /* Détail du calcul affiché dans le profil : BMR -> x activité professionnelle -> x objectif, puis protéines */
-function renderCalcDetail(bmr, weight, goal, level) {
+function renderCalcDetail(bmr, weight, goal, level, height) {
     const box = document.getElementById('profile-calc');
     if (!box) return;
     const fmt = (n) => Math.round(n).toLocaleString('fr-FR');
@@ -406,7 +406,9 @@ function renderCalcDetail(bmr, weight, goal, level) {
     const goalLabel = goal === 'loss' ? 'Perte de poids / Sèche (−10 %)' : (goal === 'gain' ? 'Prise de masse (+10 %)' : 'Maintien du poids');
     const tdee = bmr * lvl.factor;
     const perKg = proteinPerKg(goal);
-    const kg = ratio(Math.round(weight * 10) / 10);
+    const protWeight = proteinWeight(weight, height);
+    const kg = ratio(Math.round(protWeight * 10) / 10);
+    const capped = protWeight < weight;
     const step = (n, title, hint, value) =>
         '<li class="pv-step"><span class="pv-step-n" aria-hidden="true">' + n + '</span>' +
         '<div class="pv-step-body"><span class="pv-step-t">' + title + '</span><small>' + hint + '</small></div>' +
@@ -417,11 +419,11 @@ function renderCalcDetail(bmr, weight, goal, level) {
         step(1, 'Métabolisme de base', 'Selon votre poids, taille, âge et sexe (Mifflin-St Jeor)', fmt(bmr) + ' kcal') +
         step(2, '× ' + ratio(lvl.factor) + ' · ' + lvl.label, 'Votre activité professionnelle, hors sport', fmt(tdee) + ' kcal') +
         step(3, '× ' + ratio(goalCoef) + ' · ' + goalLabel, 'Les activités que vous saisissez s\'ajoutent à cette cible', fmt(tdee * goalCoef) + ' kcal') +
-        step(4, 'Protéines · ' + ratio(perKg) + ' g × ' + kg + ' kg', 'Ratio par kilo de poids, selon votre objectif', fmt(weight * perKg) + ' g') +
+        step(4, 'Protéines · ' + ratio(perKg) + ' g × ' + kg + ' kg', capped ? 'Ratio par kilo selon votre objectif, sur un poids plafonné à un IMC de ' + PROTEIN_MAX_BMI + ' (' + ratio(Math.round(weight * 10) / 10) + ' kg réels)' : 'Ratio par kilo de poids, selon votre objectif', fmt(protWeight * perKg) + ' g') +
         '</ol>' +
         '<div class="pv-calc-result">' +
         '<div><span>Cible calories</span><strong>' + fmt(tdee * goalCoef) + ' <small>kcal / jour</small></strong></div>' +
-        '<div><span>Cible protéines</span><strong>' + fmt(weight * perKg) + ' <small>g / jour</small></strong></div>' +
+        '<div><span>Cible protéines</span><strong>' + fmt(protWeight * perKg) + ' <small>g / jour</small></strong></div>' +
         '</div>';
 }
 
@@ -439,7 +441,7 @@ function updateLivePreview() {
         dpBmr.textContent = Math.round(bmr) + " kcal";
         dpTdee.textContent = Math.round(tdee) + " kcal";
         profileStats.classList.remove('hidden');
-        renderCalcDetail(bmr, weight, document.getElementById('goal').value, document.getElementById('activityLevel').value);
+        renderCalcDetail(bmr, weight, document.getElementById('goal').value, document.getElementById('activityLevel').value, height);
     }
 }
 
@@ -934,11 +936,11 @@ function updateDashboard() {
     if (calsGoal) animNum(calsGoal, targetTdee);
     if (calsConsumed) animNum(calsConsumed, actLog.consumedCals);
     
-    // Protein Logic : g par kg de poids actuel selon l'objectif (1,3 sèche / 1,6 maintien / 2 prise de masse).
+    // Protein Logic : g par kg de poids actuel selon l'objectif (1,8 sèche / 1,6 maintien / 2 prise de masse), sur un poids plafonné à IMC 27.
     // Un jour passé garde le ratio figé à son enregistrement, ou l'ancien 2 g/kg s'il n'en a pas.
     const currentWeight = getLatestWeight();
     const proteinRatio = (!isToday && !isFuture) ? (actLog.proteinPerKg || LEGACY_PROTEIN_PER_KG) : proteinPerKg(goalName);
-    const targetProtein = currentWeight * proteinRatio;
+    const targetProtein = proteinWeight(currentWeight, state.profile && state.profile.height) * proteinRatio;
     const consumedProtein = actLog.consumedProtein;
     const remainingProtein = targetProtein - consumedProtein;
     

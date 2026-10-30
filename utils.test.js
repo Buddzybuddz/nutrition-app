@@ -9,6 +9,7 @@ import {
     formatDateFR,
     computeWeekBalance,
     proteinPerKg,
+    proteinWeight,
     ACTIVITY_LEVELS,
     activityFactor,
     fmtPerKg,
@@ -190,9 +191,21 @@ describe('Utils Functions', () => {
             expect(CHEAT_MEALS.cheat_alcool).toMatchObject({ cals: 1500, prot: 30 });
         });
     });
+    describe('proteinWeight', () => {
+        it('plafonne le poids à l\'IMC 27 pour la taille', () => {
+            expect(proteinWeight(120, 175)).toBeCloseTo(82.7, 1);
+            expect(proteinWeight(100, 160)).toBeCloseTo(69.1, 1);
+        });
+
+        it('garde le poids réel sous le plafond ou sans taille', () => {
+            expect(proteinWeight(80, 175)).toBe(80);
+            expect(proteinWeight(120, 0)).toBe(120);
+            expect(proteinWeight(120, undefined)).toBe(120);
+        });
+    });
     describe('proteinPerKg', () => {
-        it('donne 1,3 en sèche, 1,6 en maintien et 2 en prise de masse', () => {
-            expect(proteinPerKg('loss')).toBe(1.3);
+        it('donne 1,8 en sèche, 1,6 en maintien et 2 en prise de masse', () => {
+            expect(proteinPerKg('loss')).toBe(1.8);
             expect(proteinPerKg('maintenance')).toBe(1.6);
             expect(proteinPerKg('gain')).toBe(2);
         });

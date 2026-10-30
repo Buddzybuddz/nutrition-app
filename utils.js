@@ -75,10 +75,18 @@ const CHEAT_MEALS = {
 
 /* Cible de protéines (g par kg de poids) selon l'objectif. Les jours enregistrés avant cette règle
    n'ont pas de ratio figé : ils gardent l'ancien 2 g/kg (LEGACY_PROTEIN_PER_KG) pour que l'historique ne bouge pas. */
-const PROTEIN_PER_KG = { loss: 1.3, maintenance: 1.6, gain: 2 };
+const PROTEIN_PER_KG = { loss: 1.8, maintenance: 1.6, gain: 2 };
 const LEGACY_PROTEIN_PER_KG = 2;
 function proteinPerKg(goal) {
     return PROTEIN_PER_KG[goal] || PROTEIN_PER_KG.maintenance;
+}
+/* Poids pris en compte pour les protéines : plafonné au poids d'un IMC de 27 pour la taille, car la graisse
+   n'augmente pas les besoins. Sans taille connue, le poids réel est gardé. */
+const PROTEIN_MAX_BMI = 27;
+function proteinWeight(weight, heightCm) {
+    if (!(weight > 0) || !(heightCm > 0)) return weight || 0;
+    const cap = PROTEIN_MAX_BMI * Math.pow(heightCm / 100, 2);
+    return Math.min(weight, cap);
 }
 /* Niveau d'activité professionnelle (hors sport, saisi à part) : coefficient appliqué au métabolisme de base.
    Un profil sans niveau (comptes existants) reste sédentaire, soit l'ancien x 1,2. */
@@ -145,6 +153,8 @@ if (typeof module !== 'undefined' && module.exports) {
         formatDateFR,
         computeWeekBalance,
         proteinPerKg,
+        proteinWeight,
+        PROTEIN_MAX_BMI,
         ACTIVITY_LEVELS,
         activityFactor,
         fmtPerKg,

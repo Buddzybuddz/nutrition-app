@@ -225,7 +225,7 @@
             var coef = p.goal === 'loss' ? 0.9 : (p.goal === 'gain' ? 1.1 : 1);
             var weight = getLatestWeight();
             var cals = Math.round(log.consumedCals || 0), prot = Math.round(log.consumedProtein || 0);
-            var calGoal = Math.round((p.tdee || 0) * coef + (log.bonusTDEE || 0)), protGoal = Math.round(weight * proteinPerKg(p.goal));
+            var calGoal = Math.round((p.tdee || 0) * coef + (log.bonusTDEE || 0)), protGoal = Math.round(proteinWeight(weight, p.height) * proteinPerKg(p.goal));
             if (calGoal) {
                 steps.push('Je regarde votre journée : ' + cals + ' kcal sur ' + calGoal + ', ' + prot + ' g de protéines sur ' + protGoal + '.');
                 if (wantsMeal) {
