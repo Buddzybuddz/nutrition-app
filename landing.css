@@ -254,7 +254,8 @@ body:has(.landing-page:not(.hidden)) { overflow-x: clip; overflow-y: visible; }
 .lx-slide-day { font-family: 'DM Sans', sans-serif; font-weight: 700; font-size: .8125rem; letter-spacing: .1em; text-transform: uppercase; color: var(--lx-salmon); }
 .lx-slide h3 { margin: 0; font-family: 'DM Sans', sans-serif; font-weight: 600; font-size: 1.5rem; line-height: 1.15; letter-spacing: -.015em; color: #fff; text-wrap: balance; }
 .lx-slide p { margin: 0; font-size: .9375rem; line-height: 1.5; color: #B9CFC2; }
-.lx-car-phone { height: clamp(240px, calc(100vh - 450px), 520px); height: clamp(240px, calc(100svh - 450px), 520px); width: auto; aspect-ratio: 540 / 1168; padding: 7px; border-radius: 36px; background: #0a120e; border: 1px solid #2b4538; box-shadow: 0 30px 60px -20px rgba(0, 0, 0, .6); position: relative; flex: none; }
+/* Taille liée à la largeur de l'écran (stable), jamais à sa hauteur : celle-ci change avec les barres du navigateur (Safari, Chrome) */
+.lx-car-phone { width: clamp(210px, 60vw, 250px); height: auto; aspect-ratio: 540 / 1168; padding: 7px; border-radius: 36px; background: #0a120e; border: 1px solid #2b4538; box-shadow: 0 30px 60px -20px rgba(0, 0, 0, .6); position: relative; flex: none; }
 .lx-car-phone::before { content: ""; position: absolute; top: 12px; left: 50%; width: 22%; height: 6px; margin-left: -11%; border-radius: 6px; background: #0a120e; z-index: 1; }
 .lx-car-phone img { width: 100%; height: 100%; display: block; border-radius: 29px; object-fit: cover; object-position: top; background: #fff; }
 .lx-car-nav { display: flex; justify-content: center; align-items: center; gap: 14px; }
@@ -278,7 +279,7 @@ body:has(.landing-page:not(.hidden)) { overflow-x: clip; overflow-y: visible; }
     .lx-slide-copy { flex: none; width: 380px; max-width: 100%; }
     .lx-slide h3 { font-size: 2rem; }
     .lx-slide p { font-size: 1.0625rem; }
-    .lx-car-phone { height: clamp(300px, calc(100vh - 290px), 620px); height: clamp(300px, calc(100svh - 290px), 620px); }
+    .lx-car-phone { width: auto; height: clamp(300px, calc(100vh - 290px), 620px); height: clamp(300px, calc(100svh - 290px), 620px); }
 }
 /* Mobile : carrousel natif (scroll-snap) qu'on balaie du doigt, sans épinglage ni script de défilement de page ; la frise et les flèches restent actives */
 @media (prefers-reduced-motion: reduce) { .lx-car-track { scroll-behavior: auto; } }
@@ -335,11 +336,16 @@ body:has(.landing-page:not(.hidden)) { overflow-x: clip; overflow-y: visible; }
     .lx-sts { gap: 10px; }
     .lx-sec { padding: 72px 0; }
     .lx-days { margin: 0 12px; border-radius: 28px; padding: 64px 0; }
+    /* Barre du bas : fixe (pas sticky, qui saute quand les barres du navigateur se replient), elle apparaît une fois après le haut de page */
     .lx-sticky-cta {
-        display: flex; position: sticky; bottom: 0; z-index: 90; padding: 10px 16px calc(10px + env(safe-area-inset-bottom));
-        background: rgba(247, 248, 243, .98); 
+        display: flex; position: fixed; left: 0; right: 0; bottom: 0; z-index: 90; padding: 10px 16px calc(10px + env(safe-area-inset-bottom));
+        background: rgba(247, 248, 243, .98);
         border-top: 1px solid var(--color-border);
+        opacity: 0; transform: translate3d(0, 100%, 0); pointer-events: none;
     }
+    .lx-sticky-cta.is-visible { opacity: 1; transform: translate3d(0, 0, 0); pointer-events: auto; }
+    .lp-footer { padding-bottom: calc(96px + env(safe-area-inset-bottom)); } /* la barre fixe ne masque pas le bas de page */
+    .lp-header--hidden { translate: none; } /* mobile : bandeau du haut toujours visible */
     .lx-sticky-cta .lx-btn { width: 100%; background: var(--lx-cta); color: #fff; box-shadow: none; }
 }
 @media (min-width: 768px) {
@@ -462,3 +468,10 @@ body:has(.landing-page:not(.hidden)) { overflow-x: clip; overflow-y: visible; }
 .lx-sticky-cta { transition: opacity .35s, transform .35s cubic-bezier(.2, .7, .2, 1), translate .25s ease; }
 .lx-sticky-cta.lx-cta-away { translate: 0 130%; }
 @media (prefers-reduced-motion: reduce) { .lp-header, .lx-sticky-cta { transition: none; } }
+
+/* Mobile : bandeau du haut en position: fixed (couche propre, hors flux) plutôt que sticky, qui tremble sur iOS quand les barres du navigateur se replient.
+   Le hero remonte jusqu'en haut de page : il passait déjà sous le bandeau grâce à une marge négative. */
+@media (max-width: 900px) {
+    .landing-page .lp-header { position: fixed; top: 0; left: 0; right: 0; }
+    .landing-page .lx-hero { margin-top: 0; }
+}

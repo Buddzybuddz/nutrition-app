@@ -1,8 +1,9 @@
 /* landing-header.js — bandeau du haut et barre « Essayer 7 jours gratuits » de la landing.
    - Le bandeau prend son style « défilé » au-delà de 50 px.
-   - Il se cache quand on descend et réapparaît dès qu'on remonte ; il reste visible en haut de page et pendant que
-     le carrousel des 7 jours est épinglé (le carrousel est calé juste en dessous).
-   - La barre du bas se cache pendant le défilement vers le bas et revient à l'arrêt ou en remontant.
+   - Ordinateur : il se cache quand on descend et réapparaît dès qu'on remonte ; il reste visible en haut de page et
+     pendant que le carrousel des 7 jours est épinglé (le carrousel est calé juste en dessous).
+   - Mobile : bandeau du haut et barre du bas ne bougent plus au défilement (les barres du navigateur se replient en
+     même temps : tout mouvement supplémentaire se voit comme un saut).
    Seules des classes (donc des transform, composités) sont changées, et seulement quand l'état change. */
 (function() {
     var header = document.getElementById('lp-header');
@@ -28,6 +29,7 @@
         lastY = y;
         var s = y > 50;
         if (s !== scrolled) { scrolled = s; header.classList.toggle('lp-header--scrolled', s); }
+        if (phone.matches) { setHidden(false); setAway(false); return; }
         if (dy === 0) return;
         acc = (dy > 0) === (acc >= 0) ? acc + dy : dy; /* cumul dans le sens courant, remis à zéro quand le sens change */
         if (y <= 80 || acc < -12) { setHidden(false); setAway(false); }

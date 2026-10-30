@@ -2215,7 +2215,7 @@ input:focus, select:focus {
     background-color: var(--color-bg);
     font-family: 'Inter', sans-serif;
     color: var(--color-text-1);
-    animation: lp-page-in 0.5s ease-out both;
+    animation: lp-page-in 0.5s ease-out backwards; /* pas de fill-mode forwards : un transform permanent ferait des position: fixed de la page des éléments absolus */
 }
 
 @keyframes lp-page-in {
