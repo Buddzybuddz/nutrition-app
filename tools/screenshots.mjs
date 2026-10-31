@@ -1,24 +1,50 @@
-/* Captures d'écran « V2 » de NutriDash (landing, authentification, app, desktop + mobile).
+/* Captures d'écran de NutriDash (desktop et/ou mobile).
 
-   Prérequis : le front sert sur http://127.0.0.1:8000 (python3 -m http.server 8000) et PocketBase tourne sur
-   http://127.0.0.1:8090 avec toutes les migrations appliquées (dont meals.cheat).
+   Le dossier de captures reflète toujours l'état courant de l'application : pas de versions.
+   Chaque lancement capture l'app dans un dossier temporaire, le compare au dossier de captures
+   et signale (ou corrige) :
+     - manquantes : capturées maintenant, absentes du dossier ;
+     - périmées   : présentes mais différentes de l'app actuelle (écart de pixels > SEUIL) ;
+     - en trop    : présentes dans le dossier, mais plus produites par le script (écran supprimé ou renommé).
+
+   Prérequis : l'application tourne sur APP_URL ; Playwright est installé
+   (npm i -D @playwright/test && npx playwright install chromium) ; pour la détection des captures
+   périmées : npm i -D pngjs pixelmatch (sans eux, comparaison octet par octet, plus sensible au bruit).
 
    Usage :
-     PB_ADMIN_EMAIL=... PB_ADMIN_PASSWORD=... node tools/screenshots-v2.mjs [options]
+     node tools/screenshots.mjs [options]
 
    Options :
-     --ecraser            écrit dans Images/Screenshot app/V2 (par défaut : V2-nouveau, rien n'est écrasé)
-     --avec-ia            fait les vraies estimations IA (clé IA requise côté PocketBase, consomme le quota du compte démo) ;
-                          par défaut la réponse de l'estimation est simulée (mock) pour les captures « estimation IA »
-     --garder             conserve le compte démo et ses données à la fin
-     --seulement=a,b      groupes à capturer parmi : landing, auth, dashboard, repas, activite, assistant, suivi, profil
+     --verifier                        audit seul : liste manquantes / périmées / en trop, ne modifie rien
+                                       (code de sortie 1 s'il y a un écart)
+     --ecarts=<dossier>                copie l'ancienne et la nouvelle version de chaque capture périmée (<nom>.ancien.png / <nom>.nouveau.png)
+     --purger                          supprime aussi les captures en trop (par défaut : elles sont seulement listées)
+     --appareils=desktop|mobile|both   appareils à capturer (sans option : la question est posée dans le terminal)
+     --seulement=a,b                   groupes à traiter (voir GROUPS) ; le reste du dossier n'est pas touché
+     --garder                          conserve les données de démo à la fin (si seed/cleanup sont définis)
 
-   Les données sont créées sur un compte démo dédié (demo-captures@nutridash-test.com), supprimé à la fin. */
+   Sans option, le script synchronise : il ajoute les manquantes et remplace les périmées. */
 
 import { chromium } from '@playwright/test';
-import { mkdir } from 'node:fs/promises';
+import { copyFile, mkdir, mkdtemp, readdir, readFile, rm, stat } from 'node:fs/promises';
+import { createHash } from 'node:crypto';
+import { readFileSync } from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
+import readline from 'node:readline/promises';
 import { fileURLToPath } from 'node:url';
+
+/* Accès : variables du shell d'abord, puis fichiers du projet (le premier qui définit une variable l'emporte) :
+   .env.captures (conservé par le skill, ignoré par git), .env.local, .env. Format CLE=valeur. */
+const PROJECT_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+for (const file of ['.env.captures', '.env.local', '.env']) {
+    try {
+        for (const line of readFileSync(path.join(PROJECT_ROOT, file), 'utf8').split('\n')) {
+            const m = line.match(/^\s*(?:export\s+)?([A-Za-z0-9_]+)\s*=\s*(.*?)\s*$/);
+            if (m && !(m[1] in process.env)) process.env[m[1]] = m[2].replace(/^(['"])(.*)\1$/, '$2');
+        }
+    } catch { /* fichier absent */ }
+}
 
 const APP = process.env.APP_URL || 'http://127.0.0.1:8000';
 const PB = process.env.PB_URL || 'http://127.0.0.1:8090';
@@ -28,11 +54,16 @@ const DEMO = { email: 'demo-captures@nutridash-test.com', password: 'DemoCapture
 
 const args = process.argv.slice(2);
 const flag = (n) => args.includes(`--${n}`);
-const only = (args.find((a) => a.startsWith('--seulement=')) || '').split('=')[1]?.split(',').filter(Boolean);
+const opt = (n) => (args.find((a) => a.startsWith(`--${n}=`)) || '').split('=')[1];
+const only = opt('seulement')?.split(',').filter(Boolean);
 const wants = (group) => !only || only.includes(group);
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', 'Images', 'Screenshot app');
-const OUT = path.join(ROOT, flag('ecraser') ? 'V2' : 'V2-nouveau');
+/* Écart de pixels (part de l'image) au-delà duquel une capture est jugée périmée. */
+const SEUIL = 0.002;
+let OUT; // dossier temporaire de capture, créé dans main
+let current = null; // groupe en cours : { P, folders }
+const touched = []; // groupes terminés sans erreur
 
 const VIEWPORTS = {
     Desktop: { viewport: { width: 1920, height: 1080 }, deviceScaleFactor: 1 },
@@ -217,13 +248,14 @@ async function mockEstimate(page) {
 const shots = []; const failures = []; const skipped = [];
 
 async function snap(page, folder, name, { full = false } = {}) {
+    current?.folders.add(folder);
     const dir = path.join(OUT, folder);
     await mkdir(dir, { recursive: true });
     const file = path.join(dir, `${name}.png`);
     try {
         await page.evaluate(() => document.fonts && document.fonts.ready);
         await page.screenshot({ path: file, fullPage: full });
-        shots.push(path.relative(ROOT, file));
+        shots.push(path.relative(OUT, file).split(path.sep).join('/'));
     } catch (e) { failures.push(`${name} : ${e.message}`); }
 }
 const settle = (page, ms = 1200) => page.waitForTimeout(ms);
@@ -444,32 +476,114 @@ async function profil(page, P) {
     await snap(page, F, `${P}-Profil_02`);
 }
 
+/* ── Comparaison avec le dossier de captures ──────────────── */
+
+async function listPngs(dir, base = dir) {
+    const out = [];
+    let entries = [];
+    try { entries = await readdir(dir, { withFileTypes: true }); } catch { return out; }
+    for (const e of entries) {
+        const full = path.join(dir, e.name);
+        if (e.isDirectory()) out.push(...await listPngs(full, base));
+        else if (e.name.endsWith('.png')) out.push(path.relative(base, full).split(path.sep).join('/'));
+    }
+    return out;
+}
+
+const exists = (f) => stat(f).then(() => true, () => false);
+
+/* true si la capture a changé par rapport à celle du dossier. */
+async function isOutdated(oldFile, newFile) {
+    const [a, b] = await Promise.all([readFile(oldFile), readFile(newFile)]);
+    if (createHash('sha1').update(a).digest('hex') === createHash('sha1').update(b).digest('hex')) return false;
+    let PNG, pixelmatch;
+    try { ({ PNG } = await import('pngjs')); pixelmatch = (await import('pixelmatch')).default; }
+    catch { return true; } // pngjs/pixelmatch absents : tout octet différent compte
+    const A = PNG.sync.read(a); const B = PNG.sync.read(b);
+    if (A.width !== B.width || A.height !== B.height) return true;
+    const diff = pixelmatch(A.data, B.data, null, A.width, A.height, { threshold: 0.1 });
+    return diff / (A.width * A.height) > SEUIL;
+}
+
+/* Compare le staging (OUT) au dossier ROOT et renvoie { missing, outdated, extra, ok }. */
+async function reconcile(devices) {
+    const staged = [...new Set(shots)];
+    const missing = []; const outdated = []; const ok = [];
+    for (const rel of staged) {
+        const target = path.join(ROOT, rel);
+        if (!(await exists(target))) missing.push(rel);
+        else if (await isOutdated(target, path.join(OUT, rel))) outdated.push(rel);
+        else ok.push(rel);
+    }
+    /* En trop : uniquement dans les dossiers de groupes terminés sans erreur, pour les appareils capturés,
+       ou dossiers entiers disparus lors d'un passage complet sans échec. */
+    const extra = [];
+    const existing = await listPngs(ROOT);
+    const stagedSet = new Set(staged);
+    const checked = new Set();
+    for (const g of touched) for (const f of g.folders) checked.add(`${g.P}|${f}`);
+    const fullRun = !only && !failures.length && devices.length === Object.keys(VIEWPORTS).length;
+    const knownFolders = new Set(touched.flatMap((g) => [...g.folders]));
+    for (const rel of existing) {
+        if (stagedSet.has(rel)) continue;
+        const [folder, ...rest] = rel.split('/');
+        const file = rest.join('/');
+        const P = file.split('-')[0];
+        if (checked.has(`${P}|${folder}`)) extra.push(rel);
+        else if (fullRun && !knownFolders.has(folder)) extra.push(rel);
+    }
+    return { missing, outdated, extra, ok };
+}
+
+async function chooseDevices() {
+    const v = (opt('appareils') || '').toLowerCase();
+    if (['desktop', 'mobile', 'both'].includes(v)) return v === 'both' ? ['Desktop', 'Mobile'] : [v === 'desktop' ? 'Desktop' : 'Mobile'];
+    if (!process.stdin.isTTY) return ['Desktop', 'Mobile'];
+    const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+    const rep = (await rl.question('Captures : [1] desktop  [2] mobile  [3] les deux (défaut) ? ')).trim();
+    rl.close();
+    return rep === '1' ? ['Desktop'] : rep === '2' ? ['Mobile'] : ['Desktop', 'Mobile'];
+}
+
 /* ── Orchestration ────────────────────────────────────────── */
 
 async function main() {
+    const devices = await chooseDevices();
+    OUT = await mkdtemp(path.join(os.tmpdir(), 'captures-'));
     const needsApp = ['dashboard', 'repas', 'activite', 'assistant', 'suivi', 'profil'].some(wants);
-    const token = await adminToken();
+    const token = needsApp ? await adminToken() : null;
     let userId = null;
     if (needsApp) { userId = await seedDemo(token); console.log('Compte démo et données créés.'); }
 
     const browser = await chromium.launch();
     try {
-        for (const [P, opts] of Object.entries(VIEWPORTS)) {
+        for (const P of devices) {
+            const opts = VIEWPORTS[P];
             console.log(`\n── ${P} ──`);
-            if (wants('landing')) { const c = await browser.newContext(opts); await landing(await c.newPage(), P); await c.close(); }
-            if (wants('auth')) { const c = await browser.newContext(opts); await auth(await c.newPage(), P); await c.close(); }
+            const step = async (group, page, fn) => {
+                if (!wants(group)) return;
+                current = { P, folders: new Set() };
+                const avant = failures.length;
+                try { await fn(); if (failures.length === avant) touched.push(current); }
+                catch (e) { failures.push(`${P} ${group} : ${e.message.split('\n')[0]}`); await closeModals(page).catch(() => {}); }
+            };
+            for (const [group, fn] of [['landing', landing], ['auth', auth]]) {
+                if (!wants(group)) continue;
+                const c = await browser.newContext(opts); const page = await c.newPage();
+                await step(group, page, () => fn(page, P));
+                await c.close();
+            }
             if (needsApp) {
                 const c = await browser.newContext(opts);
                 const page = await c.newPage();
                 if (!flag('avec-ia')) await mockEstimate(page);
                 await login(page);
-                const step = async (group, fn) => { if (!wants(group)) return; try { await fn(); } catch (e) { failures.push(`${P} ${group} : ${e.message.split('\n')[0]}`); await closeModals(page).catch(() => {}); } };
-                await step('dashboard', () => dashboard(page, P));
-                await step('repas', () => repas(page, P, flag('avec-ia')));
-                await step('activite', () => activite(page, P, flag('avec-ia')));
-                await step('suivi', () => suivi(page, P));
-                await step('profil', () => profil(page, P));
-                await step('assistant', () => assistant(page, P, token, userId));
+                await step('dashboard', page, () => dashboard(page, P));
+                await step('repas', page, () => repas(page, P, flag('avec-ia')));
+                await step('activite', page, () => activite(page, P, flag('avec-ia')));
+                await step('suivi', page, () => suivi(page, P));
+                await step('profil', page, () => profil(page, P));
+                await step('assistant', page, () => assistant(page, P, token, userId));
                 await c.close();
             }
         }
@@ -478,9 +592,40 @@ async function main() {
         if (userId && !flag('garder')) { await removeDemo(token); console.log('\nCompte démo supprimé.'); }
     }
 
-    console.log(`\n${shots.length} captures dans ${path.relative(process.cwd(), OUT)}/`);
+    let drift = false;
+    try {
+        const { missing, outdated, extra, ok } = await reconcile(devices);
+        const verify = flag('verifier');
+        const show = (titre, list) => list.length && console.log(`\n${titre} (${list.length}) :\n  ${list.join('\n  ')}`);
+        console.log(`\n${shots.length} captures faites, ${path.relative(process.cwd(), ROOT)}/ ${verify ? 'vérifié' : 'synchronisé'}.`);
+        console.log(`À jour : ${ok.length}`);
+        show(verify ? 'Manquantes' : 'Ajoutées', missing);
+        show(verify ? 'Périmées' : 'Remplacées', outdated);
+        show(flag('purger') && !verify ? 'En trop (supprimées)' : 'En trop', extra);
+        if (opt('ecarts')) {
+            const dest = path.resolve(opt('ecarts'));
+            for (const rel of outdated) {
+                const base = path.join(dest, rel.replace(/\.png$/, ''));
+                await mkdir(path.dirname(base), { recursive: true });
+                await copyFile(path.join(ROOT, rel), `${base}.ancien.png`);
+                await copyFile(path.join(OUT, rel), `${base}.nouveau.png`);
+            }
+        }
+        drift = !!(missing.length || outdated.length || extra.length);
+
+        if (!verify) {
+            for (const rel of [...missing, ...outdated]) {
+                await mkdir(path.dirname(path.join(ROOT, rel)), { recursive: true });
+                await copyFile(path.join(OUT, rel), path.join(ROOT, rel));
+            }
+            if (flag('purger')) for (const rel of extra) await rm(path.join(ROOT, rel));
+            else if (extra.length) console.log('  → relancer avec --purger pour les supprimer.');
+        }
+    } finally { await rm(OUT, { recursive: true, force: true }); }
+
     if (skipped.length) console.log('\nIgnorées :\n  ' + skipped.join('\n  '));
     if (failures.length) { console.log('\nÉchecs :\n  ' + failures.join('\n  ')); process.exitCode = 1; }
+    else if (flag('verifier') && drift) process.exitCode = 1;
 }
 
 main().catch((e) => { console.error(e.message); process.exit(1); });
