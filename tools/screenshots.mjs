@@ -1,11 +1,13 @@
 /* Captures d'écran de NutriDash (desktop et/ou mobile).
 
    Le dossier de captures reflète toujours l'état courant de l'application : pas de versions.
-   Chaque lancement capture l'app dans un dossier temporaire, le compare au dossier de captures
-   et signale (ou corrige) :
-     - manquantes : capturées maintenant, absentes du dossier ;
-     - périmées   : présentes mais différentes de l'app actuelle (écart de pixels > SEUIL) ;
-     - en trop    : présentes dans le dossier, mais plus produites par le script (écran supprimé ou renommé).
+   Chaque lancement capture l'app dans un dossier temporaire, le compare au dossier de captures et classe :
+     - à ajouter   : capturées maintenant, absentes du dossier ;
+     - à modifier  : présentes mais différentes de l'app actuelle (écart de pixels > SEUIL) ;
+     - à supprimer : présentes dans le dossier, mais plus produites par le script (écran supprimé ou renommé).
+   S'il y a des écarts, le script ne modifie rien : il génère une page HTML de validation
+   (.captures-rapport/index.html, ignoré par git) où l'on voit chaque capture (ancien / nouveau) et où l'on
+   coche ce qu'on accepte. Puis --appliquer applique uniquement ce qui a été validé.
 
    Prérequis : l'application tourne sur APP_URL ; Playwright est installé
    (npm i -D @playwright/test && npx playwright install chromium) ; pour la détection des captures
@@ -15,18 +17,19 @@
      node tools/screenshots.mjs [options]
 
    Options :
-     --verifier                        audit seul : liste manquantes / périmées / en trop, ne modifie rien
+     (aucune)                          audit : génère le rapport HTML de validation s'il y a des écarts, ne modifie rien
                                        (code de sortie 1 s'il y a un écart)
-     --ecarts=<dossier>                copie l'ancienne et la nouvelle version de chaque capture périmée (<nom>.ancien.png / <nom>.nouveau.png)
-     --purger                          supprime aussi les captures en trop (par défaut : elles sont seulement listées)
+     --appliquer[=fichier|tout]        applique le dernier rapport : par défaut les captures validées dans la page
+                                       (~/Downloads/validation-captures.json), ou le fichier indiqué, ou « tout »
+     --direct                          sans validation : ajoute et remplace tout de suite (supprime seulement avec --purger)
+     --purger                          avec --direct : supprime aussi les captures en trop
      --appareils=desktop|mobile|both   appareils à capturer (sans option : la question est posée dans le terminal)
      --seulement=a,b                   groupes à traiter (voir GROUPS) ; le reste du dossier n'est pas touché
      --garder                          conserve les données de démo à la fin (si seed/cleanup sont définis)
-
-   Sans option, le script synchronise : il ajoute les manquantes et remplace les périmées. */
+ */
 
 import { chromium } from '@playwright/test';
-import { copyFile, mkdir, mkdtemp, readdir, readFile, rm, stat } from 'node:fs/promises';
+import { copyFile, mkdir, mkdtemp, readdir, readFile, rm, stat, writeFile } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import os from 'node:os';
@@ -545,9 +548,126 @@ async function chooseDevices() {
     return rep === '1' ? ['Desktop'] : rep === '2' ? ['Mobile'] : ['Desktop', 'Mobile'];
 }
 
+/* ── Rapport HTML de validation et application ────────────── */
+
+const REPORT = path.join(PROJECT_ROOT, '.captures-rapport'); // ignoré par git
+const VALIDATION_FILE = 'validation-captures.json'; // téléchargé par la page HTML
+
+async function copyInto(src, dest) { await mkdir(path.dirname(dest), { recursive: true }); await copyFile(src, dest); }
+
+async function pruneEmptyDirs(dir) {
+    for (const e of await readdir(dir, { withFileTypes: true }).catch(() => [])) {
+        if (!e.isDirectory()) continue;
+        const sub = path.join(dir, e.name);
+        await pruneEmptyDirs(sub);
+        if (!(await readdir(sub)).length) await rm(sub, { recursive: true });
+    }
+}
+
+/* items : [{ type: 'ajouter'|'modifier'|'supprimer', rel }] ; srcDir : dossier des nouvelles captures. */
+async function applyItems(items, srcDir) {
+    for (const { type, rel } of items) {
+        if (type === 'supprimer') await rm(path.join(ROOT, rel), { force: true });
+        else await copyInto(path.join(srcDir, rel), path.join(ROOT, rel));
+    }
+    await pruneEmptyDirs(ROOT);
+}
+
+async function writeReport({ missing, outdated, extra }) {
+    await rm(REPORT, { recursive: true, force: true });
+    const items = [
+        ...missing.map((rel) => ({ type: 'ajouter', rel })),
+        ...outdated.map((rel) => ({ type: 'modifier', rel })),
+        ...extra.map((rel) => ({ type: 'supprimer', rel })),
+    ];
+    for (const { type, rel } of items) {
+        if (type !== 'ajouter') await copyInto(path.join(ROOT, rel), path.join(REPORT, 'ancien', rel));
+        if (type !== 'supprimer') await copyInto(path.join(OUT, rel), path.join(REPORT, 'nouveau', rel));
+    }
+    const etat = { date: new Date().toISOString(), items };
+    await writeFile(path.join(REPORT, 'etat.json'), JSON.stringify(etat, null, 2));
+    await writeFile(path.join(REPORT, 'index.html'), reportHtml(etat));
+    return path.join(REPORT, 'index.html');
+}
+
+function reportHtml(etat) {
+    const data = JSON.stringify(etat).replace(/</g, '\\u003c');
+    return `<!DOCTYPE html><html lang="fr"><meta charset="utf-8"><title>Validation des captures</title>
+<style>
+body{font:14px -apple-system,sans-serif;margin:0;background:#f4f5f4;color:#1c2b24}
+header{position:sticky;top:0;background:#fff;border-bottom:1px solid #ddd;padding:10px 20px;z-index:5;display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center}
+h1{font-size:16px;margin:0} button{font:inherit;padding:6px 12px;border:1px solid #2d6a4f;background:#2d6a4f;color:#fff;border-radius:6px;cursor:pointer}
+button.sec{background:#fff;color:#2d6a4f} #cmd{font:12px ui-monospace,monospace;background:#eef;padding:2px 6px;border-radius:4px}
+h2{margin:26px 20px 8px;font-size:18px} .item{margin:0 20px 24px;background:#fff;border:1px solid #ddd;border-radius:10px;padding:12px}
+.item.off{opacity:.45} .item h3{margin:0 0 10px;font-size:14px;display:flex;gap:8px;align-items:center}
+.pair{display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:start} .pair.one{grid-template-columns:1fr}
+.pair.mobile{grid-template-columns:repeat(2,minmax(0,360px));justify-content:start} .pair.one.mobile{grid-template-columns:minmax(0,360px)}
+figure{margin:0} figcaption{font-weight:600;margin-bottom:4px;font-size:12px;text-transform:uppercase;color:#666}
+img{width:100%;border:1px solid #ccc;display:block;cursor:zoom-in} .fit img{max-height:560px;object-fit:contain;object-position:top;background:#eee}
+small{color:#666}
+</style>
+<header><h1>Validation des captures</h1><span id="count"></span>
+<button id="dl">Télécharger la validation</button><button class="sec" id="all">Tout cocher</button><button class="sec" id="none">Tout décocher</button>
+<label><input type="checkbox" id="fit" checked> limiter la hauteur</label>
+<small>Puis : <span id="cmd">node tools/screenshots.mjs --appliquer</span></small></header>
+<main id="main" class="fit"></main>
+<script>
+const etat = ${data};
+const TITRES = { ajouter: 'À ajouter (nouvelles captures)', modifier: 'À modifier (ancien / nouveau)', supprimer: 'À supprimer (plus produites par le script)' };
+const url = (d, rel) => d + '/' + rel.split('/').map(encodeURIComponent).join('/');
+const main = document.getElementById('main'); const boxes = [];
+for (const type of ['ajouter', 'modifier', 'supprimer']) {
+  const its = etat.items.filter((i) => i.type === type); if (!its.length) continue;
+  const h = document.createElement('h2'); h.textContent = TITRES[type] + ' : ' + its.length; main.append(h);
+  for (const it of its) {
+    const name = it.rel.split('/').pop(); const mob = name.startsWith('Mobile');
+    const fig = (cap, d) => '<figure><figcaption>' + cap + '</figcaption><a href="' + url(d, it.rel) + '" target="_blank"><img loading="lazy" src="' + url(d, it.rel) + '"></a></figure>';
+    const body = type === 'ajouter' ? fig('Nouveau', 'nouveau') : type === 'supprimer' ? fig('Ancien (sera supprimé)', 'ancien') : fig('Ancien', 'ancien') + fig('Nouveau', 'nouveau');
+    const div = document.createElement('div'); div.className = 'item';
+    div.innerHTML = '<h3><input type="checkbox" checked> <span></span></h3><div class="pair' + (type === 'modifier' ? '' : ' one') + (mob ? ' mobile' : '') + '">' + body + '</div>';
+    div.querySelector('span').textContent = it.rel;
+    const cb = div.querySelector('input'); cb.onchange = () => { div.classList.toggle('off', !cb.checked); upd(); };
+    boxes.push([it, cb]); main.append(div);
+  }
+}
+function upd() { const n = boxes.filter(([, c]) => c.checked).length; document.getElementById('count').textContent = n + ' / ' + boxes.length + ' validées'; }
+const setAll = (v) => { boxes.forEach(([, c]) => { c.checked = v; c.onchange(); }); };
+document.getElementById('all').onclick = () => setAll(true); document.getElementById('none').onclick = () => setAll(false);
+document.getElementById('fit').onchange = (e) => main.classList.toggle('fit', e.target.checked);
+document.getElementById('dl').onclick = () => {
+  const accepter = boxes.filter(([, c]) => c.checked).map(([i]) => i.rel);
+  const a = document.createElement('a'); a.download = '${VALIDATION_FILE}';
+  a.href = URL.createObjectURL(new Blob([JSON.stringify({ date: etat.date, accepter }, null, 2)], { type: 'application/json' })); a.click();
+};
+upd();
+</script></html>`;
+}
+
+/* Applique le dernier rapport : seules les captures validées dans la page HTML (ou --appliquer=tout). */
+async function appliquer() {
+    let etat;
+    try { etat = JSON.parse(await readFile(path.join(REPORT, 'etat.json'), 'utf8')); }
+    catch { throw new Error('Aucun rapport à appliquer : lancer d\'abord le script sans option pour en générer un.'); }
+    let items = etat.items;
+    const v = opt('appliquer');
+    if (v !== 'tout') {
+        const file = v ? path.resolve(v) : path.join(os.homedir(), 'Downloads', VALIDATION_FILE);
+        const [fst, rst] = await Promise.all([stat(file).catch(() => null), stat(path.join(REPORT, 'etat.json'))]);
+        if (!fst || fst.mtimeMs < rst.mtimeMs)
+            throw new Error(`Aucune validation à jour (${file}). Ouvrir le rapport, cliquer « Télécharger la validation », puis relancer ; ou --appliquer=tout pour tout accepter.`);
+        const accepter = new Set(JSON.parse(await readFile(file, 'utf8')).accepter);
+        items = items.filter((i) => accepter.has(i.rel));
+    }
+    await applyItems(items, path.join(REPORT, 'nouveau'));
+    await rm(REPORT, { recursive: true, force: true });
+    const n = (t) => items.filter((i) => i.type === t).length;
+    console.log(`Appliqué : ${n('ajouter')} ajoutée(s), ${n('modifier')} modifiée(s), ${n('supprimer')} supprimée(s) ; ${etat.items.length - items.length} refusée(s) (laissée(s) telle(s) quelle(s)).`);
+}
+
 /* ── Orchestration ────────────────────────────────────────── */
 
 async function main() {
+    if (args.some((a) => a === '--appliquer' || a.startsWith('--appliquer='))) return appliquer();
     const devices = await chooseDevices();
     OUT = await mkdtemp(path.join(os.tmpdir(), 'captures-'));
     const needsApp = ['dashboard', 'repas', 'activite', 'assistant', 'suivi', 'profil'].some(wants);
@@ -594,38 +714,24 @@ async function main() {
 
     let drift = false;
     try {
-        const { missing, outdated, extra, ok } = await reconcile(devices);
-        const verify = flag('verifier');
-        const show = (titre, list) => list.length && console.log(`\n${titre} (${list.length}) :\n  ${list.join('\n  ')}`);
-        console.log(`\n${shots.length} captures faites, ${path.relative(process.cwd(), ROOT)}/ ${verify ? 'vérifié' : 'synchronisé'}.`);
-        console.log(`À jour : ${ok.length}`);
-        show(verify ? 'Manquantes' : 'Ajoutées', missing);
-        show(verify ? 'Périmées' : 'Remplacées', outdated);
-        show(flag('purger') && !verify ? 'En trop (supprimées)' : 'En trop', extra);
-        if (opt('ecarts')) {
-            const dest = path.resolve(opt('ecarts'));
-            for (const rel of outdated) {
-                const base = path.join(dest, rel.replace(/\.png$/, ''));
-                await mkdir(path.dirname(base), { recursive: true });
-                await copyFile(path.join(ROOT, rel), `${base}.ancien.png`);
-                await copyFile(path.join(OUT, rel), `${base}.nouveau.png`);
-            }
-        }
+        const r = await reconcile(devices);
+        const { missing, outdated, extra, ok } = r;
         drift = !!(missing.length || outdated.length || extra.length);
-
-        if (!verify) {
-            for (const rel of [...missing, ...outdated]) {
-                await mkdir(path.dirname(path.join(ROOT, rel)), { recursive: true });
-                await copyFile(path.join(OUT, rel), path.join(ROOT, rel));
-            }
-            if (flag('purger')) for (const rel of extra) await rm(path.join(ROOT, rel));
-            else if (extra.length) console.log('  → relancer avec --purger pour les supprimer.');
+        console.log(`\n${shots.length} captures faites. À jour : ${ok.length} ; à ajouter : ${missing.length} ; à modifier : ${outdated.length} ; à supprimer : ${extra.length}.`);
+        if (!drift) { await rm(REPORT, { recursive: true, force: true }); console.log('Le dossier de captures est à jour.'); }
+        else if (flag('direct')) {
+            /* Sans validation : ajoute, remplace, et ne supprime que si --purger. */
+            await applyItems([...missing.map((rel) => ({ type: 'ajouter', rel })), ...outdated.map((rel) => ({ type: 'modifier', rel })),
+                ...(flag('purger') ? extra.map((rel) => ({ type: 'supprimer', rel })) : [])], OUT);
+            console.log('Dossier synchronisé (--direct).');
+        } else {
+            const file = await writeReport(r);
+            console.log(`\nRapport de validation : ${file}\nL'ouvrir, cocher ce qui est accepté, « Télécharger la validation », puis : node tools/screenshots.mjs --appliquer`);
         }
     } finally { await rm(OUT, { recursive: true, force: true }); }
 
-    if (skipped.length) console.log('\nIgnorées :\n  ' + skipped.join('\n  '));
     if (failures.length) { console.log('\nÉchecs :\n  ' + failures.join('\n  ')); process.exitCode = 1; }
-    else if (flag('verifier') && drift) process.exitCode = 1;
+    else if (drift && !flag('direct')) process.exitCode = 1; // utilisable en CI : 1 = des captures sont à mettre à jour
 }
 
 main().catch((e) => { console.error(e.message); process.exit(1); });

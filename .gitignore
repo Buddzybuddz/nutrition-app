@@ -31,3 +31,4 @@ marketing/**/*.ogg
 
 # Accès des captures d'écran (tools/screenshots.mjs)
 .env.captures
+.captures-rapport/
