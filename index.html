@@ -70,12 +70,85 @@
         "inLanguage": "fr-FR"
     }
     </script>
+    <script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "inLanguage": "fr-FR",
+    "mainEntity": [
+        {
+            "@type": "Question",
+            "name": "Comment fonctionne l'essai gratuit ?",
+            "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Vous profitez de toutes les fonctionnalités pendant 7 jours, sans carte bancaire à l'inscription. Après 7 jours, l'accès est bloqué : vous vous abonnez alors à 5,99 € par mois via Stripe pour continuer."
+            }
+        },
+        {
+            "@type": "Question",
+            "name": "Puis-je résilier quand je veux ?",
+            "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Oui. L'abonnement est sans engagement et se résilie à tout moment depuis votre profil."
+            }
+        },
+        {
+            "@type": "Question",
+            "name": "Comment l'IA estime-t-elle mes repas ?",
+            "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Vous décrivez votre repas en une phrase. L'IA détaille les aliments, les quantités, les calories et les protéines. Vous vérifiez, vous ajustez si besoin, puis vous ajoutez le repas à votre journée. L'estimation par IA est incluse dans la limite d'usage quotidien."
+            }
+        },
+        {
+            "@type": "Question",
+            "name": "Les estimations sont-elles exactes ?",
+            "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Ce sont des estimations, pas des mesures : l'IA indique son niveau de confiance et vous gardez la main pour corriger avant d'ajouter. Pour un repas au restaurant, cochez la case dédiée : les portions sont adaptées à celles d'un restaurant."
+            }
+        },
+        {
+            "@type": "Question",
+            "name": "NutriDash remplace-t-il un professionnel de santé ?",
+            "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Non. NutriDash est un outil de suivi personnel : il ne constitue pas un avis médical ou nutritionnel professionnel. Consultez un professionnel de santé pour tout besoin spécifique."
+            }
+        },
+        {
+            "@type": "Question",
+            "name": "Mes données sont-elles protégées ?",
+            "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Oui. Vos données sont hébergées en Europe (Paris), chiffrées en transit (HTTPS) et au repos, et ne sont jamais revendues à des tiers. Le détail figure dans la politique de confidentialité."
+            }
+        },
+        {
+            "@type": "Question",
+            "name": "Puis-je exporter ou supprimer mes données ?",
+            "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Oui, à tout moment depuis votre profil : export de vos données en JSON ou en CSV, et suppression définitive de votre compte et de vos données."
+            }
+        },
+        {
+            "@type": "Question",
+            "name": "Sur quels appareils NutriDash fonctionne-t-il ?",
+            "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "NutriDash est une application web accessible sur nutridash.fr, depuis le navigateur de votre téléphone comme de votre ordinateur."
+            }
+        }
+    ]
+}
+    </script>
 
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" media="print" data-async-css>
     <script src="async-css.js"></script>
     <noscript><link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"></noscript>
     <link rel="stylesheet" href="style.css?v=18">
-<link rel="stylesheet" href="landing.css?v=16">
+<link rel="stylesheet" href="landing.css?v=17">
     <link rel="icon" type="image/png" href="Images/Logos/icon-192.png?v=2">
     <link rel="apple-touch-icon" sizes="180x180" href="Images/Logos/apple-touch-icon.png?v=2">
     <link rel="manifest" href="manifest.json">
@@ -357,6 +430,47 @@
                     <div class="lp-pricing-divider"></div>
                     <button class="lp-btn-primary lp-btn-full" data-click="showAuthPage" data-args='[true]'>Commencer l'essai &rarr;</button>
                     <p class="lp-pricing-note">Aucune carte bancaire requise à l'inscription. Après 7 jours, l'accès est bloqué : abonnez-vous à 5,99&nbsp;€/mois via Stripe pour continuer. Résiliable à tout moment depuis votre profil.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- FAQ -->
+        <section class="lp-faq" id="faq">
+            <div class="lp-section-inner">
+                <h2 class="lp-section-title lp-reveal">Questions fréquentes</h2>
+                <div class="lp-faq-list">
+                    <details class="lp-faq-item lp-reveal">
+                        <summary>Comment fonctionne l'essai gratuit ?</summary>
+                        <p>Vous profitez de toutes les fonctionnalités pendant 7 jours, sans carte bancaire à l'inscription. Après 7 jours, l'accès est bloqué : vous vous abonnez alors à 5,99 € par mois via Stripe pour continuer.</p>
+                    </details>
+                    <details class="lp-faq-item lp-reveal">
+                        <summary>Puis-je résilier quand je veux ?</summary>
+                        <p>Oui. L'abonnement est sans engagement et se résilie à tout moment depuis votre profil.</p>
+                    </details>
+                    <details class="lp-faq-item lp-reveal">
+                        <summary>Comment l'IA estime-t-elle mes repas ?</summary>
+                        <p>Vous décrivez votre repas en une phrase. L'IA détaille les aliments, les quantités, les calories et les protéines. Vous vérifiez, vous ajustez si besoin, puis vous ajoutez le repas à votre journée. L'estimation par IA est incluse dans la limite d'usage quotidien.</p>
+                    </details>
+                    <details class="lp-faq-item lp-reveal">
+                        <summary>Les estimations sont-elles exactes ?</summary>
+                        <p>Ce sont des estimations, pas des mesures : l'IA indique son niveau de confiance et vous gardez la main pour corriger avant d'ajouter. Pour un repas au restaurant, cochez la case dédiée : les portions sont adaptées à celles d'un restaurant.</p>
+                    </details>
+                    <details class="lp-faq-item lp-reveal">
+                        <summary>NutriDash remplace-t-il un professionnel de santé ?</summary>
+                        <p>Non. NutriDash est un outil de suivi personnel : il ne constitue pas un avis médical ou nutritionnel professionnel. Consultez un professionnel de santé pour tout besoin spécifique.</p>
+                    </details>
+                    <details class="lp-faq-item lp-reveal">
+                        <summary>Mes données sont-elles protégées ?</summary>
+                        <p>Oui. Vos données sont hébergées en Europe (Paris), chiffrées en transit (HTTPS) et au repos, et ne sont jamais revendues à des tiers. Le détail figure dans la politique de confidentialité.</p>
+                    </details>
+                    <details class="lp-faq-item lp-reveal">
+                        <summary>Puis-je exporter ou supprimer mes données ?</summary>
+                        <p>Oui, à tout moment depuis votre profil : export de vos données en JSON ou en CSV, et suppression définitive de votre compte et de vos données.</p>
+                    </details>
+                    <details class="lp-faq-item lp-reveal">
+                        <summary>Sur quels appareils NutriDash fonctionne-t-il ?</summary>
+                        <p>NutriDash est une application web accessible sur nutridash.fr, depuis le navigateur de votre téléphone comme de votre ordinateur.</p>
+                    </details>
                 </div>
             </div>
         </section>
