@@ -5865,7 +5865,13 @@ details[open] .advice-accordion-summary::after {
 .ai-recap-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
 .ai-recap-list li { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 10px; align-items: baseline; font-size: 13px; color: var(--color-text-1); }
 .ai-recap-list .ai-recap-qty { color: var(--color-text-2); white-space: nowrap; }
-.ai-recap-list .ai-recap-kcal { min-width: 58px; text-align: right; color: var(--color-text-3); white-space: nowrap; }
+.ai-recap-list .ai-recap-kcal { text-align: right; color: var(--color-text-3); white-space: nowrap; }
+.ai-recap-list { gap: 8px; }
+.ai-recap-list li { align-items: start; grid-template-columns: minmax(0, 1fr) auto; }
+.ai-recap-list .ai-recap-item { display: flex; flex-direction: column; min-width: 0; }
+.ai-recap-list .ai-recap-item .ai-recap-qty { font-size: 12px; white-space: normal; }
+.ai-recap-list .ai-recap-nut { display: flex; flex-direction: column; align-items: flex-end; min-width: 62px; line-height: 1.25; }
+.ai-recap-list .ai-recap-prot { font-size: 12px; color: var(--color-primary); font-weight: 500; white-space: nowrap; }
 .ai-recap-total { margin: 8px 0 0; padding-top: 6px; border-top: 1px solid var(--color-border); font-size: 13px; font-weight: 700; color: var(--color-text-1); }
 
 /* ── Barre du bas : bouton central « + » (repas / activité) ──── */

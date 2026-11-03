@@ -176,9 +176,25 @@
             name.textContent = it.label;
             qty.className = 'ai-recap-qty';
             qty.textContent = (!it.quantity || plain === std) ? it.amount + ' ' + it.unit : it.quantity + ' → ' + it.amount + ' ' + it.unit;
+            if (it.given) { /* calories et/ou protéines saisis par l'utilisateur */
+                var base = it.amount > 0 ? qty.textContent : (it.quantity || '');
+                qty.textContent = base ? base + ' · valeurs saisies' : 'valeurs saisies';
+            }
             kc.className = 'ai-recap-kcal';
             kc.textContent = it.kcal + ' kcal';
-            li.appendChild(name); li.appendChild(qty); li.appendChild(kc);
+            var nut = document.createElement('span');
+            nut.className = 'ai-recap-nut';
+            nut.appendChild(kc);
+            if (typeof it.protein_g === 'number') {
+                var pr = document.createElement('span');
+                pr.className = 'ai-recap-prot';
+                pr.textContent = (Math.round(it.protein_g * 10) / 10) + ' g prot.';
+                nut.appendChild(pr);
+            }
+            var item = document.createElement('span');
+            item.className = 'ai-recap-item';
+            item.appendChild(name); item.appendChild(qty);
+            li.appendChild(item); li.appendChild(nut);
             list.appendChild(li);
         });
         document.getElementById('meal-ai-recap-total').textContent =
