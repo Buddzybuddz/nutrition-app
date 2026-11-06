@@ -104,14 +104,15 @@ function fmtPerKg(ratio) {
     return String(ratio).replace('.', ',');
 }
 
-/* Régularité sur les 7 derniers jours complets (hier et les 6 précédents, aujourd'hui exclu car en cours).
+/* Régularité sur les nDays derniers jours complets (7 par défaut ; 30 et 90 pour le suivi long) : hier et les précédents, aujourd'hui exclu car en cours.
    Un jour compte s'il a des calories saisies. « Dans l'objectif » : kcal entre 90 et 105 % de la cible du jour
    et protéines à 90 % au moins de la cible. proteinTarget est la cible à 2 g/kg : elle est ramenée au ratio
    figé de chaque jour (log.proteinPerKg, 2 g/kg si absent). 7 700 kcal ≈ 1 kg de masse grasse (approximation). */
-function computeWeekBalance(history, todayStr, proteinTarget, fallbackTdee) {
-    const res = { daysLogged: 0, daysOk: 0, surplus: 0, kg: 0, maxGap: null, cheats: 0, cheatsAlcool: 0, days: [] };
+function computeWeekBalance(history, todayStr, proteinTarget, fallbackTdee, nDays = 7) {
+    const res = { daysLogged: 0, daysOk: 0, surplus: 0, kg: 0, maxGap: null, cheats: 0, cheatsAlcool: 0, avgCals: 0, avgProtein: 0, avgTarget: 0, avgProtTarget: 0, days: [] };
+    let sumCals = 0, sumProt = 0, sumTarget = 0, sumProtTarget = 0;
     const [y, m, d] = todayStr.split('-').map(Number);
-    for (let i = 1; i <= 7; i++) {
+    for (let i = 1; i <= nDays; i++) {
         const date = formatISOLocal(new Date(y, m - 1, d - i));
         const log = history && history[date];
         res.days.unshift({ date, state: 'none' }); // du plus ancien au plus récent
@@ -121,21 +122,29 @@ function computeWeekBalance(history, todayStr, proteinTarget, fallbackTdee) {
         const cals = log.consumedCals, gap = cals - target;
         res.daysLogged++;
         res.surplus += gap;
+        sumCals += cals;
+        sumTarget += target;
+        sumProt += log.consumedProtein || 0;
         const kcalOk = cals >= target * 0.9 && cals <= target * 1.05;
         const dayProtTarget = proteinTarget * ((log.proteinPerKg || LEGACY_PROTEIN_PER_KG) / LEGACY_PROTEIN_PER_KG);
         const protOk = !(proteinTarget > 0) || (log.consumedProtein || 0) >= dayProtTarget * 0.9;
+        sumProtTarget += dayProtTarget;
         if (kcalOk && protOk) res.daysOk++;
         res.days[0].state = kcalOk && protOk ? 'ok' : 'off';
         if (gap > 0 && (!res.maxGap || gap > res.maxGap.kcal)) res.maxGap = { date, kcal: Math.round(gap) };
     }
-    // Les cheat meals sont des événements ponctuels : comptés sur 7 jours, aujourd'hui inclus
-    for (let i = 0; i <= 6; i++) {
+    // Les cheat meals sont des événements ponctuels : comptés sur la période, aujourd'hui inclus
+    for (let i = 0; i < nDays; i++) {
         const log = history && history[formatISOLocal(new Date(y, m - 1, d - i))];
         ((log && log.entries) || []).forEach(e => {
             if (e.cheat === 'cheat') res.cheats++;
             else if (e.cheat === 'cheat_alcool') res.cheatsAlcool++;
         });
     }
+    res.avgTarget = res.daysLogged ? Math.round(sumTarget / res.daysLogged) : 0;
+    res.avgProtTarget = res.daysLogged ? Math.round(sumProtTarget / res.daysLogged) : 0;
+    res.avgCals = res.daysLogged ? Math.round(sumCals / res.daysLogged) : 0;
+    res.avgProtein = res.daysLogged ? Math.round(sumProt / res.daysLogged) : 0;
     res.surplus = Math.round(res.surplus);
     res.kg = Math.round((res.surplus / 7700) * 100) / 100;
     return res;

@@ -4,6 +4,7 @@
 (function () {
     var tab = 'objectifs';
     var period = 90;
+    var regPeriod = 7; /* période du suivi de régularité : 7, 30 ou 90 jours */
 
     var GOAL_LABELS = { loss: 'Perte de poids (-10 %)', maintenance: 'Maintien du poids', gain: 'Prise de masse (+10 %)' };
     var MEAL_TYPES = [['breakfast', 'Petit-déjeuner'], ['lunch', 'Déjeuner'], ['snack', 'Collation'], ['dinner', 'Dîner']];
@@ -62,14 +63,25 @@
         var box = $('pg-panel-objectifs'), p = profile();
         if (!p) { box.innerHTML = emptyState('Complétez votre profil pour voir vos objectifs.'); return; }
 
+        var n = regPeriod, today = todayISO();
         var weight = getLatestWeight(), goal = p.goal || 'maintenance';
-        var coef = goal === 'loss' ? 0.9 : (goal === 'gain' ? 1.1 : 1);
         var tdee = p.tdee || (p.bmr ? p.bmr * activityFactor(p.activityLevel) : 0);
-        var log = (state.history || {})[todayISO()] || {};
-        var burned = Math.round(log.bonusTDEE || 0);
-        var perKg = proteinPerKg(goal);
-        var calGoal = Math.round(tdee * coef + burned), pWeight = proteinWeight(weight, p.height), protGoal = Math.round(pWeight * perKg);
-        var calCons = Math.round(log.consumedCals || 0), protCons = Math.round(log.consumedProtein || 0);
+        var pWeight = proteinWeight(weight, p.height);
+        var r = computeWeekBalance(state.history || {}, today, Math.round(pWeight * LEGACY_PROTEIN_PER_KG), tdee, n);
+
+        var chips = '<div class="pg-chips" role="group" aria-label="Période du suivi">' + [7, 30, 90].map(function (d) {
+            return '<button type="button" class="pg-chip' + (d === n ? ' is-active' : '') + '" data-reg-period="' + d + '" aria-pressed="' + (d === n) + '">' + d + ' j</button>';
+        }).join('') + '</div>';
+        var html = '<div class="pg-head-row"><p class="pg-muted">Bilan des ' + n + ' derniers jours complets, aujourd\'hui exclu.</p>' + chips + '</div>';
+
+        /* Moyennes par jour saisi, face à la cible moyenne de la période */
+        if (r.daysLogged) {
+            html += '<div class="pg-cards">' +
+                avgCard('Calories par jour', r.avgCals, r.avgTarget, 'kcal') +
+                avgCard('Protéines par jour', r.avgProtein, r.avgProtTarget, 'g') + '</div>';
+        } else {
+            html += '<div class="pg-card pg-card-wide pg-empty"><p>Aucun repas saisi sur les ' + n + ' derniers jours.</p></div>';
+        }
 
         var target = Number(p.targetWeight) || 0, diff = weight - target, gap = '';
         if (target > 0) {
@@ -79,26 +91,29 @@
             else gap = diff < 0 ? 'Il reste ' + fmtKg(-diff) + ' à prendre' : 'Au-dessus de votre poids cible de ' + fmtKg(diff);
         }
 
-        var html = '<div class="pg-cards">' +
-            dayCard('Calories du jour', calCons, calGoal, 'kcal',
-                'Métabolisme ' + Math.round(tdee) + ' kcal × ' + String(coef).replace('.', ',') +
-                (burned ? ' + ' + burned + ' kcal d\'activités' : '')) +
-            dayCard('Protéines du jour', protCons, protGoal, 'g', fmtPerKg(perKg) + ' g par kg de poids (' + fmtKg(pWeight) + (pWeight < weight ? ' retenus sur ' + fmtKg(weight) : '') + ')') +
-            '</div>';
+        /* Évolution du poids sur la période : première pesée de la période → pesée la plus récente */
+        var from = addDays(today, -n), ws = sortedWeighIns().filter(function (w) { return w.date >= from; }), evo = '';
+        if (ws.length >= 2) {
+            var dw = Math.round((ws[ws.length - 1].weight - ws[0].weight) * 10) / 10;
+            evo = 'Sur ' + n + ' jours : ' + (dw > 0 ? '+' : (dw < 0 ? '−' : '')) + fmtKg(Math.abs(dw)).replace('.', ',');
+        } else evo = 'Moins de deux pesées sur ' + n + ' jours';
 
         html += '<div class="pg-duo">';
         html += '<section class="pg-card pg-card-wide"><h3 class="pg-h">Mon objectif</h3>' +
             '<p class="pg-goal">' + esc(GOAL_LABELS[goal] || goal) + '</p>' +
             '<div class="pg-kv"><div><span>Poids actuel</span><strong>' + esc(fmtKg(weight)) + '</strong></div>' +
             '<div><span>Poids cible</span><strong>' + (target > 0 ? esc(fmtKg(target)) : '—') + '</strong></div></div>' +
-            (gap ? '<p class="pg-gap">' + esc(gap) + '</p>' : '') +
+            (gap ? '<p class="pg-gap">' + esc(gap) + '</p>' : '') + '<p class="pg-gap">' + esc(evo) + '</p>' +
             '<button type="button" class="ai-link" data-click="navigateTo" data-arg="profil">Modifier dans mon profil</button></section>';
 
-        html += renderRegularite(tdee, Math.round(pWeight * LEGACY_PROTEIN_PER_KG)) + '</div>';
+        html += renderRegularite(r, n) + '</div>';
 
-        /* On ne garde que les changements : un objectif répété d'un jour à l'autre n'apporte rien */
-        var prev = null, gh = (state.goalHistory || []).slice().sort(function (a, b) { return a.date.localeCompare(b.date); })
-            .filter(function (g) { var keep = g.goal !== prev; prev = g.goal; return keep; }).reverse();
+        /* Changements d'objectif de la période (le dernier changement avant la période est conservé comme point de départ) */
+        var prev = null, all = (state.goalHistory || []).slice().sort(function (a, b) { return a.date.localeCompare(b.date); })
+            .filter(function (g) { var keep = g.goal !== prev; prev = g.goal; return keep; });
+        var inPeriod = all.filter(function (g) { return g.date >= from; });
+        var before = all.filter(function (g) { return g.date < from; }).pop();
+        var gh = (before ? [before] : []).concat(inPeriod).reverse();
         html += '<section class="pg-card pg-card-wide"><h3 class="pg-h">Historique de mes objectifs</h3>' +
             (gh.length ? '<ul class="pg-list">' + gh.slice(0, 8).map(function (g, i) {
                 return '<li><span>' + (i === 0 ? 'Depuis le ' : '') + esc(fmtDate(g.date)) + '</span><strong>' + esc(GOAL_LABELS[g.goal] || g.goal) + '</strong></li>';
@@ -107,17 +122,26 @@
         box.innerHTML = html;
     }
 
-    /* Régularité : bilan des 7 derniers jours complets (calcul dans utils.js) */
-    function renderRegularite(tdee, protGoal) {
-        var r = computeWeekBalance(state.history || {}, todayISO(), protGoal, tdee);
+    /* Carte « moyenne par jour » : même barre que les cartes du jour, face à la cible moyenne */
+    function avgCard(label, avg, goal, unit) {
+        var diff = goal ? avg - goal : 0, over = goal > 0 && avg > goal * 1.05;
+        return '<div class="pg-card"><span class="pg-label">' + esc(label) + '</span>' +
+            '<span class="pg-value' + (over && unit === 'kcal' ? ' is-over' : '') + '">' + esc(fmtInt(avg) + ' ' + unit) +
+            '<small> en moyenne</small></span>' + (goal ? bar(avg, goal, unit) : '') +
+            '<span class="pg-sub">' + (goal ? esc('Cible moyenne ' + fmtInt(goal) + ' ' + unit + ' (' + (diff > 0 ? '+' : (diff < 0 ? '−' : '')) + fmtInt(Math.abs(diff)) + ' ' + unit + ')') : '') + '</span></div>';
+    }
+
+    /* Régularité : bilan des 7, 30 ou 90 derniers jours complets (calcul dans utils.js) */
+    function renderRegularite(r, n) {
+        var label = n + ' derniers jours';
         var head = '<section class="pg-card pg-card-wide"><h3 class="pg-h">Ma régularité</h3>';
         var nCheat = r.cheats + r.cheatsAlcool, cheatLine = '';
         if (nCheat) {
             cheatLine = '<p class="pg-gap">' + nCheat + ' cheat meal' + (nCheat > 1 ? 's' : '') +
-                (r.cheatsAlcool ? ' dont ' + r.cheatsAlcool + ' avec alcool' : '') + ' sur les 7 derniers jours (aujourd\'hui inclus), comptés au forfait.</p>';
+                (r.cheatsAlcool ? ' dont ' + r.cheatsAlcool + ' avec alcool' : '') + ' sur les ' + label + ' (aujourd\'hui inclus), comptés au forfait.</p>';
         }
         if (!r.daysLogged) {
-            return head + '<p class="pg-muted">Saisissez vos repas quelques jours pour voir votre bilan des 7 derniers jours.</p>' + cheatLine + '</section>';
+            return head + '<p class="pg-muted">Saisissez vos repas quelques jours pour voir votre bilan des ' + label + '.</p>' + cheatLine + '</section>';
         }
         var sign = r.surplus > 0 ? '+' : (r.surplus < 0 ? '−' : '');
         var kcal = sign + Math.abs(r.surplus).toLocaleString('fr-FR') + ' kcal';
@@ -127,11 +151,12 @@
         var gap = r.maxGap ? '+' + r.maxGap.kcal + ' kcal le ' + fmtDate(r.maxGap.date) : 'Aucun excédent';
         var pct = Math.round(r.daysOk / r.daysLogged * 100);
         var STATE_LABEL = { ok: 'dans l\'objectif', off: 'hors objectif', none: 'non saisi' };
-        var dots = '<ol class="pg-days" aria-label="7 derniers jours complets">' + r.days.map(function (d) {
+        var long = n > 7;
+        var dots = '<ol class="pg-days' + (long ? ' is-long' : '') + '" aria-label="' + label + ' complets">' + r.days.map(function (d) {
             var letter = new Date(d.date + 'T12:00:00').toLocaleDateString('fr-FR', { weekday: 'narrow' }).toUpperCase();
             var full = new Date(d.date + 'T12:00:00').toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
             return '<li class="pg-day is-' + d.state + '" title="' + esc(full + ' : ' + STATE_LABEL[d.state]) + '">' +
-                '<span class="pg-day-dot" aria-hidden="true"></span><span class="pg-day-name" aria-hidden="true">' + esc(letter) + '</span>' +
+                '<span class="pg-day-dot" aria-hidden="true"></span>' + (long ? '' : '<span class="pg-day-name" aria-hidden="true">' + esc(letter) + '</span>') +
                 '<span class="pg-sr">' + esc(full + ' : ' + STATE_LABEL[d.state]) + '</span></li>';
         }).join('') + '</ol>';
         return head + '<p class="pg-value">' + pct + ' %</p>' +
@@ -141,8 +166,8 @@
             '<div class="pg-kv"><div><span>Bilan calorique</span><strong>' + esc(kcal) + '</strong></div>' +
             '<div><span>Plus gros écart</span><strong>' + esc(gap) + '</strong></div></div>' +
             '<p class="pg-gap">' + esc(impact) + '</p>' +
-            '<p class="pg-note">7 derniers jours complets, aujourd\'hui exclu. Dans l\'objectif : calories entre 90 et 105 % de la cible du jour et protéines à 90 % au moins. ' +
-            'Sur 1 semaine, un petit écart se voit peu : c\'est le cumul qui compte.</p></details></section>';
+            '<p class="pg-note">' + label + ' complets, aujourd\'hui exclu. Dans l\'objectif : calories entre 90 et 105 % de la cible du jour et protéines à 90 % au moins. ' +
+            (n === 7 ? 'Sur 1 semaine, un petit écart se voit peu : c\'est le cumul qui compte.' : 'Les jours sans saisie ne comptent pas dans les moyennes.') + '</p></details></section>';
     }
 
     /* ── Poids ────────────────────────────────────────────── */
@@ -499,6 +524,10 @@
         });
 
         var poids = $('pg-panel-poids');
+        $('pg-panel-objectifs').addEventListener('click', function (e) {
+            var chip = e.target.closest('[data-reg-period]');
+            if (chip) { regPeriod = parseInt(chip.dataset.regPeriod, 10); renderObjectifs(); }
+        });
         poids.addEventListener('click', function (e) {
             var chip = e.target.closest('.pg-chip');
             if (chip) { period = parseInt(chip.dataset.period, 10); renderPoids(); return; }

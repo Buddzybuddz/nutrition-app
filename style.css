@@ -6506,3 +6506,8 @@ details[open] .advice-accordion-summary::after {
 .pg-diff { flex: none; font-style: normal; font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: 999px; }
 .pg-diff.is-down { background: var(--color-primary-xlight); color: var(--color-primary); }
 .pg-diff.is-up { background: #FCE9E1; color: #B4532A; }
+
+.pg-head-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.pg-days.is-long { flex-wrap: wrap; gap: 4px; }
+.pg-days.is-long .pg-day { flex: 0 0 auto; }
+.pg-days.is-long .pg-day-dot { width: 14px; max-width: none; border-width: 1.5px; }

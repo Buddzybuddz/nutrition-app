@@ -185,6 +185,22 @@ describe('Utils Functions', () => {
         });
     });
 
+    describe('computeWeekBalance : périodes de 30 et 90 jours', () => {
+        const day = (cals, prot) => ({ consumedCals: cals, consumedProtein: prot, baseTDEE: 2000, goalMultiplier: 1, bonusTDEE: 0 });
+        it('couvre nDays jours et calcule les moyennes', () => {
+            const h = { '2026-10-24': day(2000, 130), '2026-10-10': day(1800, 110), '2026-08-01': day(2000, 130) };
+            const r30 = computeWeekBalance(h, '2026-10-25', 130, 2000, 30);
+            expect(r30.days).toHaveLength(30);
+            expect(r30.daysLogged).toBe(2);
+            expect(r30.avgCals).toBe(1900);
+            expect(r30.avgProtein).toBe(120);
+            expect(r30.avgTarget).toBe(2000);
+            const r90 = computeWeekBalance(h, '2026-10-25', 130, 2000, 90);
+            expect(r90.days).toHaveLength(90);
+            expect(r90.daysLogged).toBe(3);
+        });
+    });
+
     describe('CHEAT_MEALS', () => {
         it('définit des forfaits plus élevés avec alcool et les mêmes protéines', () => {
             expect(CHEAT_MEALS.cheat).toMatchObject({ cals: 1000, prot: 30 });
