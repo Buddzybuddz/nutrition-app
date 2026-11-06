@@ -44,4 +44,53 @@
     window.addEventListener('scroll', function() {
         if (!ticking) { ticking = true; requestAnimationFrame(update); }
     }, { passive: true });
+
+    /* ── Menu des sections ──
+       Ordinateur : liens dans le bandeau. Mobile : bouton menu + panneau plein écran.
+       La section en cours est marquée aria-current. Le clic défile en douceur (scroll-margin-top côté CSS). */
+    var links = Array.prototype.slice.call(document.querySelectorAll('.lp-links a, .lp-drawer-nav a'));
+    var burger = document.getElementById('lp-burger'), drawer = document.getElementById('lp-drawer');
+    var targets = null; /* sections plus bas dans la page : ce script se charge avant elles, on les cherche au premier défilement */
+    var current = null, spyTicking = false;
+    var smooth = !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    function setDrawer(open) {
+        if (!drawer || !burger) return;
+        drawer.hidden = !open;
+        burger.setAttribute('aria-expanded', String(open));
+        document.documentElement.classList.toggle('lp-menu-open', open);
+    }
+
+    function spy() {
+        spyTicking = false;
+        if (!targets) {
+            targets = [];
+            links.forEach(function (a) {
+                var t = document.getElementById(a.getAttribute('href').slice(1));
+                if (t && targets.indexOf(t) < 0) targets.push(t);
+            });
+        }
+        var line = window.innerHeight * 0.35, cur = null;
+        targets.forEach(function (t) { if (t.getBoundingClientRect().top <= line) cur = t.id; });
+        if (cur === current) return;
+        current = cur;
+        links.forEach(function (a) {
+            if (a.getAttribute('href') === '#' + cur) a.setAttribute('aria-current', 'true'); else a.removeAttribute('aria-current');
+        });
+    }
+
+    links.forEach(function (a) {
+        a.addEventListener('click', function (e) {
+            var t = document.getElementById(a.getAttribute('href').slice(1));
+            if (!t) return;
+            e.preventDefault();
+            setDrawer(false);
+            t.scrollIntoView({ behavior: smooth ? 'smooth' : 'auto', block: 'start' });
+        });
+    });
+    if (burger) burger.addEventListener('click', function () { setDrawer(drawer.hidden); });
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && drawer && !drawer.hidden) { setDrawer(false); burger.focus(); } });
+    phone.addEventListener('change', function () { if (!phone.matches) setDrawer(false); });
+    window.addEventListener('scroll', function () { if (!spyTicking) { spyTicking = true; requestAnimationFrame(spy); } }, { passive: true });
+    window.addEventListener('load', spy);
 })();

@@ -166,6 +166,7 @@
         <!-- Header sticky -->
         <header class="lp-header" id="lp-header">
             <span class="lp-logo" data-click="scrollTop" style="cursor:pointer">Nutri<span>Dash</span></span>
+            <div class="lp-links" role="navigation" aria-label="Sections de la page"><a href="#lx-comment">Comment ça marche</a><a href="#lx-fonctions">Fonctions</a><a href="#lx-jours">7 jours</a><a href="#lx-histoire">Mon histoire</a><a href="#tarif">Tarif</a><a href="#faq">FAQ</a></div>
             <div class="lp-nav">
                 <a class="lp-nav-social" href="https://www.instagram.com/nutridash.app/" target="_blank" rel="noopener" aria-label="NutriDash sur Instagram">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
@@ -175,11 +176,18 @@
                     </svg>
                 </a>
                 <button class="lp-btn-ghost" data-click="showAuthPage" data-args='[false]'>Connexion</button>
+                <button type="button" class="lp-burger" id="lp-burger" aria-label="Menu" aria-expanded="false" aria-controls="lp-drawer"><i></i><i></i><i></i></button>
             </div>
         </header>
 
+        <!-- Menu mobile (hors du bandeau : celui-ci a un transform qui piégerait un élément fixe) -->
+        <div class="lp-drawer" id="lp-drawer" hidden>
+            <div class="lp-drawer-nav" role="navigation" aria-label="Sections de la page"><a href="#lx-comment">Comment ça marche</a><a href="#lx-fonctions">Fonctions</a><a href="#lx-jours">7 jours</a><a href="#lx-histoire">Mon histoire</a><a href="#tarif">Tarif</a><a href="#faq">FAQ</a></div>
+            <button type="button" class="lx-btn lp-drawer-cta" data-click="showAuthPage" data-args='[true]'>Essayer 7 jours gratuits</button>
+        </div>
+
         <!-- Script scroll header -->
-        <script src="landing-header.js?v=4"></script>
+        <script src="landing-header.js?v=6"></script>
 
         <!-- Hero -->
         <section class="lx-hero">
@@ -243,7 +251,7 @@
             <span>Une phrase</span><span>Vos calories</span><span>Vos protéines</span><span>Votre poids</span><span>Vos favoris</span><span>Votre assistant</span><span>Votre rythme</span>
         </div></div>
 
-        <section class="lx-sec lx-aurora" style="padding-top:24px">
+        <section class="lx-sec lx-aurora" id="lx-fonctions" style="padding-top:24px">
             <div class="lx-wrap">
                 <div class="lp-reveal">
                     <span class="lx-eyebrow">Tout ce qu'il faut, rien de plus</span>
@@ -266,7 +274,7 @@
         </section>
 
         <!-- Les 7 jours -->
-        <section class="lx-days">
+        <section class="lx-days" id="lx-jours">
             <div class="lx-wrap">
                 <div class="lp-reveal">
                     <span class="lx-eyebrow">Votre essai</span>
@@ -395,7 +403,7 @@
         </section>
 
         <!-- Tarif -->
-        <section class="lp-pricing">
+        <section class="lp-pricing" id="tarif">
             <div class="lp-section-inner">
                 <h2 class="lp-section-title lp-reveal">Tarif Simple &amp; Transparent</h2>
                 <div class="lp-pricing-card lp-reveal lp-reveal-d1">
