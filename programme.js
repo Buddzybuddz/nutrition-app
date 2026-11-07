@@ -33,17 +33,18 @@
 
     function fmtInt(n) { return Math.round(n).toLocaleString('fr-FR'); }
 
-    /* Barre de progression consommé / cible ; passe en orange au-delà de 105 % de la cible */
+    /* Barre de progression consommé / cible ; passe en orange au-delà de 105 % de la cible (calories seulement : l'excédent de protéines n'est pas pénalisé) */
     function bar(cons, goal, unit) {
         var pct = goal > 0 ? Math.min(100, Math.round(cons / goal * 100)) : 0;
-        var over = goal > 0 && cons > goal * 1.05;
+        var over = goal > 0 && unit === 'kcal' && cons > goal * 1.05;
         return '<div class="pg-bar' + (over ? ' is-over' : '') + '" role="progressbar" aria-valuemin="0" aria-valuemax="' + goal +
             '" aria-valuenow="' + Math.min(cons, goal) + '" aria-label="' + esc(cons + ' sur ' + goal + ' ' + unit) + '"><span style="width:' + pct + '%"></span></div>';
     }
 
     /* Carte du jour : le chiffre en gros est ce qu'il RESTE (ou le dépassement), la consommation est détaillée dessous */
     function dayCard(label, cons, goal, unit, note) {
-        var left = goal - cons, over = left < 0;
+        var left = goal - cons, over = left < 0 && unit === 'kcal';
+        if (unit !== 'kcal' && left < 0) left = 0; // un excédent de protéines n'est pas un dépassement
         return '<div class="pg-card"><span class="pg-label">' + esc(label) + '</span>' +
             '<span class="pg-value' + (over ? ' is-over' : '') + '">' + esc(fmtInt(Math.abs(left)) + ' ' + unit) +
             '<small>' + (over ? ' en trop' : ' restantes') + '</small></span>' +
