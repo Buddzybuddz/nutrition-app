@@ -8,6 +8,8 @@ import {
     sortDatesFR,
     formatDateFR,
     computeWeekBalance,
+    dayGoal,
+    calorieWindow,
     proteinPerKg,
     proteinWeight,
     ACTIVITY_LEVELS,
@@ -149,11 +151,39 @@ describe('Utils Functions', () => {
             expect(r.surplus).toBe(0);
         });
 
-        it('valide un jour entre 90 et 105 % des kcal avec 90 % des protéines', () => {
-            const h = { '2026-10-24': day(1800, 117), '2026-10-23': day(2100, 130), '2026-10-22': day(1799, 130), '2026-10-21': day(2101, 130), '2026-10-20': day(2000, 116) };
+        it('maintien : valide un jour entre 90 et 110 % des kcal avec 90 % des protéines', () => {
+            const h = { '2026-10-24': day(1800, 117), '2026-10-23': day(2200, 130), '2026-10-22': day(1799, 130), '2026-10-21': day(2201, 130), '2026-10-20': day(2000, 116) };
             const r = computeWeekBalance(h, '2026-10-25', 130, 2000);
             expect(r.daysLogged).toBe(5);
             expect(r.daysOk).toBe(2);
+        });
+
+        it('perte : plafond à 105 % et plancher à 80 %, sans autre borne basse', () => {
+            const loss = c => day(c, 130, { goal: 'loss' });
+            const h = { '2026-10-24': loss(2100), '2026-10-23': loss(2101), '2026-10-22': loss(1600), '2026-10-21': loss(1599), '2026-10-20': loss(1800) };
+            const r = computeWeekBalance(h, '2026-10-25', 130, 2000);
+            expect(r.days.slice(-5).map(d => d.state)).toEqual(['ok', 'off', 'ok', 'off', 'ok']);
+            expect(r.daysOk).toBe(3);
+        });
+
+        it('prise de masse : fenêtre de 95 à 110 %', () => {
+            const gain = c => day(c, 130, { goal: 'gain' });
+            const h = { '2026-10-24': gain(1900), '2026-10-23': gain(1899), '2026-10-22': gain(2200), '2026-10-21': gain(2201) };
+            const r = computeWeekBalance(h, '2026-10-25', 130, 2000);
+            expect(r.daysOk).toBe(2);
+        });
+
+        it('sans objectif figé, l\'objectif se déduit du multiplicateur du jour', () => {
+            expect(dayGoal({ goalMultiplier: 0.9 })).toBe('loss');
+            expect(dayGoal({ goalMultiplier: 1.1 })).toBe('gain');
+            expect(dayGoal({ goalMultiplier: 1 })).toBe('maintenance');
+            expect(dayGoal({ goal: 'loss', goalMultiplier: 1 })).toBe('loss');
+            expect(calorieWindow('inconnu')).toEqual([0.9, 1.1]);
+        });
+
+        it('un excédent de protéines ne pénalise pas un jour', () => {
+            const h = { '2026-10-24': day(2000, 400) };
+            expect(computeWeekBalance(h, '2026-10-25', 130, 2000).daysOk).toBe(1);
         });
 
         it('cumule l\'écart, retient le plus gros excédent et estime l\'impact en kg', () => {

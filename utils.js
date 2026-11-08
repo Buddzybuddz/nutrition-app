@@ -80,6 +80,19 @@ const LEGACY_PROTEIN_PER_KG = 2;
 function proteinPerKg(goal) {
     return PROTEIN_PER_KG[goal] || PROTEIN_PER_KG.maintenance;
 }
+/* Fenêtre de calories d'un jour « dans l'objectif », en part de la cible du jour : [plancher, plafond].
+   Perte : pas de bonne raison d'être « trop bas » sauf déficit excessif (plancher 80 %), plafond strict car au-delà le déficit disparaît.
+   Maintien et prise de masse : fenêtre autour de la cible (la cible de prise inclut déjà +10 %). */
+const CALORIE_WINDOWS = { loss: [0.8, 1.05], maintenance: [0.9, 1.1], gain: [0.95, 1.1] };
+/* Objectif d'un jour : celui figé dans le jour, sinon déduit du multiplicateur figé (0,9 perte, 1,1 prise). */
+function dayGoal(log) {
+    if (log && CALORIE_WINDOWS[log.goal]) return log.goal;
+    const m = (log && log.goalMultiplier) || 1;
+    return m < 1 ? 'loss' : (m > 1 ? 'gain' : 'maintenance');
+}
+function calorieWindow(goal) {
+    return CALORIE_WINDOWS[goal] || CALORIE_WINDOWS.maintenance;
+}
 /* Poids pris en compte pour les protéines : plafonné au poids d'un IMC de 27 pour la taille, car la graisse
    n'augmente pas les besoins. Sans taille connue, le poids réel est gardé. */
 const PROTEIN_MAX_BMI = 27;
@@ -105,8 +118,9 @@ function fmtPerKg(ratio) {
 }
 
 /* Régularité sur les nDays derniers jours complets (7 par défaut ; 30 et 90 pour le suivi long) : hier et les précédents, aujourd'hui exclu car en cours.
-   Un jour compte s'il a des calories saisies. « Dans l'objectif » : kcal entre 90 et 105 % de la cible du jour
-   et protéines à 90 % au moins de la cible. proteinTarget est la cible à 2 g/kg : elle est ramenée au ratio
+   Un jour compte s'il a des calories saisies. « Dans l'objectif » : kcal dans la fenêtre de l'objectif du jour
+   (CALORIE_WINDOWS : perte 80-105 %, maintien 90-110 %, prise 95-110 % de la cible) et protéines à 90 % au moins de la cible.
+   Un excédent de protéines n'est jamais pénalisé. proteinTarget est la cible à 2 g/kg : elle est ramenée au ratio
    figé de chaque jour (log.proteinPerKg, 2 g/kg si absent). 7 700 kcal ≈ 1 kg de masse grasse (approximation). */
 function computeWeekBalance(history, todayStr, proteinTarget, fallbackTdee, nDays = 7) {
     const res = { daysLogged: 0, daysOk: 0, surplus: 0, kg: 0, maxGap: null, cheats: 0, cheatsAlcool: 0, avgCals: 0, avgProtein: 0, avgTarget: 0, avgProtTarget: 0, days: [] };
@@ -125,7 +139,8 @@ function computeWeekBalance(history, todayStr, proteinTarget, fallbackTdee, nDay
         sumCals += cals;
         sumTarget += target;
         sumProt += log.consumedProtein || 0;
-        const kcalOk = cals >= target * 0.9 && cals <= target * 1.05;
+        const [lo, hi] = calorieWindow(dayGoal(log));
+        const kcalOk = cals >= target * lo && cals <= target * hi;
         const dayProtTarget = proteinTarget * ((log.proteinPerKg || LEGACY_PROTEIN_PER_KG) / LEGACY_PROTEIN_PER_KG);
         const protOk = !(proteinTarget > 0) || (log.consumedProtein || 0) >= dayProtTarget * 0.9;
         sumProtTarget += dayProtTarget;
@@ -163,6 +178,9 @@ if (typeof module !== 'undefined' && module.exports) {
         computeWeekBalance,
         proteinPerKg,
         proteinWeight,
+        CALORIE_WINDOWS,
+        dayGoal,
+        calorieWindow,
         PROTEIN_MAX_BMI,
         ACTIVITY_LEVELS,
         activityFactor,

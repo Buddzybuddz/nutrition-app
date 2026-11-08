@@ -167,7 +167,7 @@
             '<div class="pg-kv"><div><span>Bilan calorique</span><strong>' + esc(kcal) + '</strong></div>' +
             '<div><span>Plus gros écart</span><strong>' + esc(gap) + '</strong></div></div>' +
             '<p class="pg-gap">' + esc(impact) + '</p>' +
-            '<p class="pg-note">' + label + ' complets, aujourd\'hui exclu. Dans l\'objectif : calories entre 90 et 105 % de la cible du jour et protéines à 90 % au moins. ' +
+            '<p class="pg-note">' + label + ' complets, aujourd\'hui exclu. Dans l\'objectif : calories dans la fenêtre de l\'objectif du jour (perte : 80 à 105 % de la cible, maintien : 90 à 110 %, prise de masse : 95 à 110 %) et protéines à 90 % au moins. ' +
             (n === 7 ? 'Sur 1 semaine, un petit écart se voit peu : c\'est le cumul qui compte.' : 'Les jours sans saisie ne comptent pas dans les moyennes.') + '</p></details></section>';
     }
 
