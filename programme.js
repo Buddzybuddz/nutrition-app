@@ -132,6 +132,115 @@
             '<span class="pg-sub">' + (goal ? esc('Cible moyenne ' + fmtInt(goal) + ' ' + unit + ' (' + (diff > 0 ? '+' : (diff < 0 ? '−' : '')) + fmtInt(Math.abs(diff)) + ' ' + unit + ')') : '') + '</span></div>';
     }
 
+    /* ── Régularité : affichage ──────────────────────────────
+       7 et 30 jours : calendrier (une colonne par jour de la semaine), détail du jour au toucher.
+       90 jours : une ligne par semaine (sept segments + score). */
+    var regSel = null, regDays = {};
+    var WIN_LABEL = { loss: '80 à 105 %', maintenance: '90 à 110 %', gain: '95 à 110 %' };
+    var GOAL_SHORT = { loss: 'Perte de poids', maintenance: 'Maintien', gain: 'Prise de masse' };
+
+    /* Couleur d'un jour : ok, high (calories trop hautes), low (calories trop basses ou protéines), none */
+    function dayTone(d) {
+        if (d.state === 'none') return 'none';
+        if (d.state === 'ok') return 'ok';
+        return d.kcalSide === 'high' ? 'high' : 'low';
+    }
+    function dayLong(iso) { return new Date(iso + 'T12:00:00').toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' }); }
+    function dayVerdict(d) {
+        if (d.state === 'none') return 'Non saisi';
+        if (d.state === 'ok') return 'Dans l\'objectif';
+        var out = [];
+        if (d.kcalSide === 'high') out.push('calories trop hautes');
+        if (d.kcalSide === 'low') out.push('calories trop basses');
+        if (!d.protOk) out.push('protéines manquantes');
+        var s = out.join(' et ');
+        return s.charAt(0).toUpperCase() + s.slice(1);
+    }
+    function regLegend() {
+        return '<ul class="pg-legend"><li><i class="is-ok"></i>Dans l\'objectif</li><li><i class="is-high"></i>Trop haut</li>' +
+            '<li><i class="is-low"></i>Trop bas ou protéines</li><li><i class="is-none"></i>Non saisi</li></ul>';
+    }
+    function regDetail(iso) {
+        var d = regDays[iso];
+        if (!d) return '<p class="pg-muted">Touchez un jour pour voir le détail.</p>';
+        var tone = dayTone(d);
+        if (tone === 'none') return '<strong>' + esc(dayLong(iso)) + '</strong><p>Aucun repas saisi ce jour-là.</p><span class="pg-verdict is-none">Non saisi</span>';
+        return '<strong>' + esc(dayLong(iso)) + '</strong> · ' + esc(GOAL_SHORT[d.goal] || '') +
+            '<p>' + esc(fmtInt(d.cals) + ' kcal sur ' + fmtInt(d.target) + ' (' + d.pctKcal + ' %, fenêtre ' + WIN_LABEL[d.goal] + ')') + '<br>' +
+            esc(d.prot + ' g de protéines' + (d.pctProt != null ? ' (' + d.pctProt + ' % de la cible)' : '')) +
+            (d.cheat ? '<br>Cheat meal compté au forfait' : '') + '</p>' +
+            '<span class="pg-verdict is-' + tone + '">' + esc(dayVerdict(d)) + '</span>';
+    }
+    function regSelect(iso) {
+        regSel = iso;
+        var box = $('pg-reg-view');
+        if (!box) return;
+        box.querySelectorAll('.pg-cell').forEach(function (c) { c.setAttribute('aria-pressed', c.dataset.date === iso ? 'true' : 'false'); });
+        var det = $('pg-reg-detail');
+        if (det) det.innerHTML = regDetail(iso);
+    }
+    function regCell(d, withNum) {
+        var tone = dayTone(d), num = parseInt(d.date.slice(8), 10);
+        return '<button type="button" class="pg-cell is-' + tone + (d.cheat ? ' has-cheat' : '') + '" data-date="' + d.date + '" aria-pressed="' + (regSel === d.date) + '" aria-label="' +
+            esc(dayLong(d.date) + ' : ' + dayVerdict(d)) + '">' + (withNum ? num : '') + '</button>';
+    }
+    function regCalendar(r, n) {
+        regDays = {};
+        r.days.forEach(function (d) { regDays[d.date] = d; });
+        var letters = ['L', 'M', 'M', 'J', 'V', 'S', 'D'];
+        var html = '<div id="pg-reg-view" class="pg-reg">';
+        if (n <= 7) {
+            /* Une seule ligne, du plus ancien au plus récent : chaque case porte l'initiale du jour et son numéro */
+            html += '<ol class="pg-cal is-week">' + r.days.map(function (d) {
+                var dow = (new Date(d.date + 'T12:00:00').getDay() + 6) % 7;
+                return '<li><span class="pg-dow">' + letters[dow] + '</span>' + regCell(d, true) + '</li>';
+            }).join('') + '</ol>';
+        } else {
+            var first = (new Date(r.days[0].date + 'T12:00:00').getDay() + 6) % 7, cells = '';
+            for (var i = 0; i < first; i++) cells += '<li class="pg-cell-pad" aria-hidden="true"></li>';
+            r.days.forEach(function (d) { cells += '<li>' + regCell(d, true) + '</li>'; });
+            html += '<div class="pg-cal-head" aria-hidden="true">' + letters.map(function (l) { return '<span class="pg-dow">' + l + '</span>'; }).join('') + '</div>' +
+                '<ol class="pg-cal">' + cells + '</ol>';
+        }
+        return html + regLegend() + '<div id="pg-reg-detail" class="pg-reg-detail" aria-live="polite">' + regDetail(regSel) + '</div></div>';
+    }
+    function regWeeks(r) {
+        var weeks = [], cur = null;
+        r.days.forEach(function (d) {
+            var dow = (new Date(d.date + 'T12:00:00').getDay() + 6) % 7;
+            if (!cur || dow === 0) { cur = { start: d.date, dow0: dow, days: [] }; weeks.push(cur); }
+            cur.days.push(d);
+        });
+        weeks.forEach(function (w) {
+            w.n = w.days.filter(function (d) { return d.state !== 'none'; }).length;
+            w.ok = w.days.filter(function (d) { return d.state === 'ok'; }).length;
+        });
+        var full = weeks.filter(function (w) { return w.days.length === 7; });
+        var trend = '';
+        if (full.length >= 4) {
+            var half = Math.floor(full.length / 2), a1 = full.slice(0, half), a2 = full.slice(half);
+            var avg = function (a) { var o = 0, c = 0; a.forEach(function (w) { o += w.ok; c += w.n; }); return c ? Math.round(o / c * 100) : null; };
+            var p1 = avg(a1), p2 = avg(a2);
+            if (p1 != null && p2 != null) {
+                var delta = p2 - p1;
+                trend = '<p class="pg-trend">Tendance : <strong>' + (delta > 0 ? '+' : (delta < 0 ? '−' : '')) + Math.abs(delta) + ' point' + (Math.abs(delta) > 1 ? 's' : '') +
+                    '</strong> sur les ' + a2.length + ' dernières semaines, par rapport aux ' + a1.length + ' précédentes.</p>';
+            }
+        }
+        var rows = weeks.slice().reverse().map(function (w) {
+            var segs = '';
+            for (var i = 0; i < 7; i++) {
+                var d = w.days[i - w.dow0];
+                segs += '<i class="is-' + (d ? dayTone(d) : 'out') + '"></i>';
+            }
+            var lbl = new Date(w.start + 'T12:00:00').toLocaleDateString('fr-FR', { day: 'numeric', month: 'numeric' });
+            return '<li class="pg-week"><span class="pg-week-date">' + esc(lbl) + '</span><span class="pg-week-seg" aria-hidden="true">' + segs + '</span>' +
+                '<strong>' + (w.n ? w.ok + '/' + w.n : '—') + '</strong>' +
+                '<span class="pg-sr">' + esc('Semaine du ' + lbl + ' : ' + w.ok + ' jour' + (w.ok > 1 ? 's' : '') + ' sur ' + w.n + ' dans l\'objectif') + '</span></li>';
+        }).join('');
+        return trend + '<ol class="pg-weeks">' + rows + '</ol>' + regLegend();
+    }
+
     /* Régularité : bilan des 7, 30 ou 90 derniers jours complets (calcul dans utils.js) */
     function renderRegularite(r, n) {
         var label = n + ' derniers jours';
@@ -151,17 +260,9 @@
             'Impact estimé sur le poids : environ ' + sign + String(kgAbs.toFixed(2)).replace('.', ',') + ' kg';
         var gap = r.maxGap ? '+' + r.maxGap.kcal + ' kcal le ' + fmtDate(r.maxGap.date) : 'Aucun excédent';
         var pct = Math.round(r.daysOk / r.daysLogged * 100);
-        var STATE_LABEL = { ok: 'dans l\'objectif', off: 'hors objectif', none: 'non saisi' };
-        var long = n > 7;
-        var dots = '<ol class="pg-days' + (long ? ' is-long' : '') + '" aria-label="' + label + ' complets">' + r.days.map(function (d) {
-            var letter = new Date(d.date + 'T12:00:00').toLocaleDateString('fr-FR', { weekday: 'narrow' }).toUpperCase();
-            var full = new Date(d.date + 'T12:00:00').toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
-            return '<li class="pg-day is-' + d.state + '" title="' + esc(full + ' : ' + STATE_LABEL[d.state]) + '">' +
-                '<span class="pg-day-dot" aria-hidden="true"></span>' + (long ? '' : '<span class="pg-day-name" aria-hidden="true">' + esc(letter) + '</span>') +
-                '<span class="pg-sr">' + esc(full + ' : ' + STATE_LABEL[d.state]) + '</span></li>';
-        }).join('') + '</ol>';
+        var view = n >= 90 ? regWeeks(r) : regCalendar(r, n);
         return head + '<p class="pg-value">' + pct + ' %</p>' +
-            '<p class="pg-sub">' + r.daysOk + ' jour' + (r.daysOk > 1 ? 's' : '') + ' sur ' + r.daysLogged + ' dans l\'objectif</p>' + dots +
+            '<p class="pg-sub">' + r.daysOk + ' jour' + (r.daysOk > 1 ? 's' : '') + ' sur ' + r.daysLogged + ' dans l\'objectif</p>' + view +
             cheatLine +
             '<details class="pg-details"><summary>Voir le détail</summary>' +
             '<div class="pg-kv"><div><span>Bilan calorique</span><strong>' + esc(kcal) + '</strong></div>' +
@@ -527,7 +628,9 @@
         var poids = $('pg-panel-poids');
         $('pg-panel-objectifs').addEventListener('click', function (e) {
             var chip = e.target.closest('[data-reg-period]');
-            if (chip) { regPeriod = parseInt(chip.dataset.regPeriod, 10); renderObjectifs(); }
+            if (chip) { regPeriod = parseInt(chip.dataset.regPeriod, 10); regSel = null; renderObjectifs(); return; }
+            var cell = e.target.closest('.pg-cell[data-date]');
+            if (cell) regSelect(cell.dataset.date);
         });
         poids.addEventListener('click', function (e) {
             var chip = e.target.closest('.pg-chip');

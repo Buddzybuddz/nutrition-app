@@ -146,6 +146,14 @@ function computeWeekBalance(history, todayStr, proteinTarget, fallbackTdee, nDay
         sumProtTarget += dayProtTarget;
         if (kcalOk && protOk) res.daysOk++;
         res.days[0].state = kcalOk && protOk ? 'ok' : 'off';
+        /* Détail du jour, pour l'affichage : pourquoi il est dans l'objectif ou non */
+        Object.assign(res.days[0], {
+            goal: dayGoal(log), cals: Math.round(cals), target: Math.round(target), pctKcal: Math.round(cals / target * 100),
+            prot: Math.round(log.consumedProtein || 0), protTarget: Math.round(dayProtTarget),
+            pctProt: dayProtTarget > 0 ? Math.round((log.consumedProtein || 0) / dayProtTarget * 100) : null,
+            kcalOk, protOk, kcalSide: kcalOk ? null : (cals < target * lo ? 'low' : 'high'),
+            cheat: ((log.entries) || []).some(e => e.cheat === 'cheat' || e.cheat === 'cheat_alcool')
+        });
         if (gap > 0 && (!res.maxGap || gap > res.maxGap.kcal)) res.maxGap = { date, kcal: Math.round(gap) };
     }
     // Les cheat meals sont des événements ponctuels : comptés sur la période, aujourd'hui inclus

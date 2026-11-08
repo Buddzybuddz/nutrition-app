@@ -141,8 +141,8 @@ describe('Utils Functions', () => {
             const r = computeWeekBalance(h, '2026-10-25', 130, 2000);
             expect(r.days).toHaveLength(7);
             expect(r.days[0]).toEqual({ date: '2026-10-18', state: 'none' });
-            expect(r.days[5]).toEqual({ date: '2026-10-23', state: 'off' });
-            expect(r.days[6]).toEqual({ date: '2026-10-24', state: 'ok' });
+            expect(r.days[5]).toMatchObject({ date: '2026-10-23', state: 'off', kcalSide: 'high', kcalOk: false, protOk: true });
+            expect(r.days[6]).toMatchObject({ date: '2026-10-24', state: 'ok', goal: 'maintenance', cals: 2000, target: 2000, pctKcal: 100 });
         });
 
         it('exclut aujourd\'hui et les jours au-delà de 7 jours', () => {
@@ -179,6 +179,21 @@ describe('Utils Functions', () => {
             expect(dayGoal({ goalMultiplier: 1 })).toBe('maintenance');
             expect(dayGoal({ goal: 'loss', goalMultiplier: 1 })).toBe('loss');
             expect(calorieWindow('inconnu')).toEqual([0.9, 1.1]);
+        });
+
+        it('détaille chaque jour : côté de l\'écart calorique, protéines, cheat', () => {
+            const h = {
+                '2026-10-24': day(2500, 130),
+                '2026-10-23': day(1500, 130),
+                '2026-10-22': day(2000, 60),
+                '2026-10-21': day(2000, 130, { entries: [{ cheat: 'cheat' }] })
+            };
+            const r = computeWeekBalance(h, '2026-10-25', 130, 2000);
+            const by = date => r.days.find(d => d.date === date);
+            expect(by('2026-10-24')).toMatchObject({ state: 'off', kcalSide: 'high', protOk: true });
+            expect(by('2026-10-23')).toMatchObject({ state: 'off', kcalSide: 'low', protOk: true });
+            expect(by('2026-10-22')).toMatchObject({ state: 'off', kcalSide: null, protOk: false, pctProt: 46 });
+            expect(by('2026-10-21')).toMatchObject({ state: 'ok', cheat: true });
         });
 
         it('un excédent de protéines ne pénalise pas un jour', () => {
