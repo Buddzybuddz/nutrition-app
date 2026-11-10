@@ -53,7 +53,7 @@
                 user: u.id,
                 mealType: entry.mealType,
                 name: (desc || (TYPE_LABELS[entry.mealType] || 'Repas') + ' · ' + cals + ' kcal').slice(0, 120),
-                description: desc.slice(0, 200),
+                description: desc.slice(0, 600),
                 calories: cals,
                 protein: Math.round(Number(entry.prot) || 0)
             });

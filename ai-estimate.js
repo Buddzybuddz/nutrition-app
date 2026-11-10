@@ -215,7 +215,7 @@
     function applyMeal(r) {
         document.getElementById('meal-cals').value = r.calories;
         document.getElementById('meal-protein').value = r.protein_g;
-        window.__aiMealDesc = String(r.summary || '').slice(0, 200);
+        window.__aiMealDesc = String(r.summary || '').slice(0, 600);
         window.__aiMealResto = !!r.restaurant;
         aiFilled = { cals: String(r.calories), prot: String(r.protein_g) };
         renderRecap(r);
@@ -226,7 +226,7 @@
         var cals = Math.round(Number(fav.calories) || 0), prot = Math.round(Number(fav.protein) || 0);
         document.getElementById('meal-cals').value = cals;
         document.getElementById('meal-protein').value = prot;
-        window.__aiMealDesc = String(fav.description || '').slice(0, 200);
+        window.__aiMealDesc = String(fav.description || '').slice(0, 600);
         window.__aiMealResto = false;
         aiFilled = { cals: String(cals), prot: String(prot) };
         var textEl = document.getElementById('meal-ai-text');

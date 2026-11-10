@@ -720,7 +720,7 @@ window.pb_saveMeal = async (meal) => {
         name: meal.name,
         calories: meal.cals || 0,
         protein: meal.prot || 0,
-        description: String(meal.desc || '').slice(0, 200),
+        description: String(meal.desc || '').slice(0, 600),
         cheat: meal.cheat || '',
         restaurant: !!meal.restaurant
     };

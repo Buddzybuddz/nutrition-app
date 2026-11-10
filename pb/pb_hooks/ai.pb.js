@@ -567,7 +567,7 @@ routerAdd("POST", "/api/ai/estimate", (e) => {
             result = {
                 calories: Math.round(Math.min(kcalTotal, 5000)),
                 protein_g: Math.min(protTotal, 400),
-                summary: parts.join(", ").slice(0, 200),
+                summary: parts.join(", ").slice(0, 600),
                 items: recap,
                 confidence: CONF.indexOf(plan.confidence) >= 0 ? plan.confidence : "low",
             };
