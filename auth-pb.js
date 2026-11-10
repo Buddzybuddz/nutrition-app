@@ -725,10 +725,11 @@ window.pb_saveMeal = async (meal) => {
         restaurant: !!meal.restaurant
     };
     
+    // requestKey: null → aucune annulation automatique par le SDK si une autre requête identique part en même temps
     if (typeof meal.id === 'string' && meal.id.length > 5) {
-        return await pb.collection('meals').update(meal.id, data);
+        return await pb.collection('meals').update(meal.id, data, { requestKey: null });
     } else {
-        const record = await pb.collection('meals').create(data);
+        const record = await pb.collection('meals').create(data, { requestKey: null });
         return record;
     }
 };

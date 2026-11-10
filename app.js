@@ -553,12 +553,19 @@ document.getElementById('meal-form').addEventListener('submit', (e) => {
         
         // Sync individuel immédiat si connecté
         if (typeof pb_saveMeal === 'function' && currentUser) {
-            pb_saveMeal(newEntry).then(pbRecord => {
+            // Une nouvelle tentative après 2 s, puis un message clair : sans cela l'échec était silencieux
+            // et le repas, affiché localement, disparaissait au rechargement depuis le serveur.
+            const sendMeal = (retry) => pb_saveMeal(newEntry).then(pbRecord => {
                 if (pbRecord && pbRecord.id) {
                     newEntry.id = pbRecord.id;
                     saveState(); // Sauvegarde avec le nouvel ID
                 }
+            }).catch(err => {
+                if (retry && !(err && err.status >= 400 && err.status < 500)) { setTimeout(() => sendMeal(false), 2000); return; }
+                window.PB_CONFIG?.isDev && console.error('Échec enregistrement repas :', err);
+                if (typeof showToast === 'function') showToast("Repas non enregistré sur le serveur. Vérifiez votre connexion et ajoutez-le de nouveau.");
             });
+            sendMeal(true);
         }
     }
     
