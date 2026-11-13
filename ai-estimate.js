@@ -209,6 +209,7 @@
     function resetMealDescription() {
         window.__aiMealDesc = '';
         window.__aiMealResto = false;
+        window.__aiMealItems = null;
         aiFilled = null;
     }
 
@@ -217,6 +218,13 @@
         document.getElementById('meal-protein').value = r.protein_g;
         window.__aiMealDesc = String(r.summary || '').slice(0, 600);
         window.__aiMealResto = !!r.restaurant;
+        window.__aiMealItems = (Array.isArray(r.items) ? r.items : []).slice(0, 40).map(function (it) {
+            var o = { label: String(it.label || '').slice(0, 60), amount: Number(it.amount) || 0, unit: String(it.unit || '').slice(0, 4), kcal: Math.round(Number(it.kcal) || 0) };
+            if (it.quantity) o.quantity = String(it.quantity).slice(0, 40);
+            if (typeof it.protein_g === 'number') o.protein_g = Math.round(it.protein_g * 10) / 10;
+            if (it.given) o.given = true;
+            return o;
+        });
         aiFilled = { cals: String(r.calories), prot: String(r.protein_g) };
         renderRecap(r);
         return 'Estimation terminée (confiance ' + (CONF[r.confidence] || 'faible') + '). Vérifiez et ajustez si besoin.';
@@ -228,6 +236,7 @@
         document.getElementById('meal-protein').value = prot;
         window.__aiMealDesc = String(fav.description || '').slice(0, 600);
         window.__aiMealResto = false;
+        window.__aiMealItems = null;
         aiFilled = { cals: String(cals), prot: String(prot) };
         var textEl = document.getElementById('meal-ai-text');
         if (textEl) {
@@ -239,6 +248,16 @@
         clearRecap();
         var st = document.getElementById('meal-ai-status');
         if (st) setStatus(st, 'Favori « ' + fav.name + ' » appliqué. Modifiez si besoin, puis validez.');
+    };
+
+    /* Modification d'un repas déjà enregistré : réaffiche le détail par aliment s'il existe.
+       Masqué dès que les chiffres sont modifiés à la main (il ne correspondrait plus). */
+    var editRecapVals = null;
+    window.showMealRecapFromEntry = function (entry) {
+        editRecapVals = null;
+        if (!entry || !Array.isArray(entry.items) || !entry.items.length) { clearRecap(); return; }
+        renderRecap({ items: entry.items, calories: entry.cals, protein_g: Math.round(Number(entry.prot) || 0) });
+        editRecapVals = { cals: String(entry.cals), prot: String(Math.round(Number(entry.prot) || 0)) };
     };
 
     applyMeal.summary = function (r) { return r.summary ? r.summary + ' : ' + r.calories + ' kcal, ' + r.protein_g + ' g de protéines' : r.calories + ' kcal, ' + r.protein_g + ' g de protéines'; };
@@ -293,7 +312,7 @@
                 updateCount();
                 favLockedText = null; syncMealBtn();
                 if (type === 'meal') {
-                    clearRecap(); resetMealDescription();
+                    clearRecap(); resetMealDescription(); editRecapVals = null;
                     var resto = document.getElementById('meal-ai-restaurant');
                     if (resto) resto.checked = false;
                 }
@@ -312,6 +331,7 @@
         ['meal-cals', 'meal-protein'].forEach(function (id) {
             var el = document.getElementById(id);
             if (el) el.addEventListener('input', function () {
+                if (editRecapVals && (document.getElementById('meal-cals').value !== editRecapVals.cals || document.getElementById('meal-protein').value !== editRecapVals.prot)) { clearRecap(); editRecapVals = null; }
                 if (!aiFilled) return;
                 var c = document.getElementById('meal-cals').value, p = document.getElementById('meal-protein').value;
                 if (c !== aiFilled.cals || p !== aiFilled.prot) resetMealDescription();

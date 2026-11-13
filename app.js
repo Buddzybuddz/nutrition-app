@@ -523,8 +523,8 @@ document.getElementById('meal-form').addEventListener('submit', (e) => {
             const wasCheat = entry.cheat;
             entry.cheat = nature;
             if (cheat) entry.desc = cheatNote;
-            else if (window.__aiMealDesc) entry.desc = window.__aiMealDesc;
-            else if (wasCheat || entry.cals !== cals || entry.prot !== prot) entry.desc = '';
+            else if (window.__aiMealDesc) { entry.desc = window.__aiMealDesc; entry.items = window.__aiMealItems || null; }
+            else if (wasCheat || entry.cals !== cals || entry.prot !== prot) { entry.desc = ''; entry.items = null; }
             // Badge restaurant : posé par une nouvelle estimation, retiré si les chiffres changent à la main
             if (cheat) entry.restaurant = false;
             else if (window.__aiMealDesc) entry.restaurant = !!window.__aiMealResto;
@@ -545,7 +545,7 @@ document.getElementById('meal-form').addEventListener('submit', (e) => {
         e.target.querySelector('button[type="submit"]').textContent = 'Ajouter le repas';
     } else {
         const mealType = document.getElementById('meal-type').value;
-        const newEntry = { id: Date.now() + Math.random(), type: 'Repas', name: type, mealType, cals, prot, desc: cheat ? cheatNote : (window.__aiMealDesc || ''), cheat: nature, restaurant: !cheat && !!window.__aiMealResto };
+        const newEntry = { id: Date.now() + Math.random(), type: 'Repas', name: type, mealType, cals, prot, desc: cheat ? cheatNote : (window.__aiMealDesc || ''), cheat: nature, restaurant: !cheat && !!window.__aiMealResto, items: cheat ? null : (window.__aiMealItems || null) };
         actLog.consumedCals += cals;
         actLog.consumedProtein += prot;
         actLog.entries.push(newEntry);
@@ -677,6 +677,7 @@ window.editEntry = function(id) {
         document.getElementById('meal-form').dataset.editingId = id;
         document.getElementById('meal-form').querySelector('button[type="submit"]').textContent = 'Enregistrer la modification';
         if(window.openMealModal) window.openMealModal(true);
+        if (window.showMealRecapFromEntry) window.showMealRecapFromEntry(entry.cheat ? null : entry);
     } else if (entry.type === 'Activité') {
         document.getElementById('activity-desc').value = entry.name;
         document.getElementById('activity-burn').value = entry.cals;
@@ -1018,6 +1019,7 @@ function updateDashboard() {
                     <div class="history-title">${escapeHtml(entry.name)}${entry.type === 'Repas' && window.isFavoriteMeal && window.isFavoriteMeal(entry) ? ' <span class="fav-badge" title="Repas favori" aria-label="Repas favori">★</span>' : ''}${entry.type === 'Activité' && window.isFavoriteActivity && window.isFavoriteActivity(entry) ? ' <span class="fav-badge" title="Activité favorite" aria-label="Activité favorite">★</span>' : ''}</div>
                     <div class="history-details">${details}</div>
                     ${entry.desc ? `<div class="history-desc">${escapeHtml(entry.desc)}</div>` : ''}
+                    ${entry.type === 'Repas' ? mealItemsHtml(entry) : ''}
                 </div>
                 <div class="history-actions">
                     <button type="button" class="btn-edit" data-click="editEntry" data-arg="${escapeHtml(entry.id)}" title="Modifier">✎</button>
@@ -1027,6 +1029,20 @@ function updateDashboard() {
             list.appendChild(li);
         });
     }
+}
+
+/* Détail par aliment d'un repas estimé par l'IA (replié par défaut) */
+function mealItemsHtml(entry) {
+    if (!Array.isArray(entry.items) || !entry.items.length) return '';
+    const rows = entry.items.map(it => {
+        const std = it.amount + it.unit;
+        const plain = String(it.quantity || '').toLowerCase().replace(/\s+/g, '');
+        let qty = (!it.quantity || plain === std) ? `${it.amount} ${it.unit}` : `${it.quantity} → ${it.amount} ${it.unit}`;
+        if (it.given) qty = (it.amount > 0 ? qty + ' · ' : '') + 'valeurs saisies';
+        const prot = typeof it.protein_g === 'number' ? `<span class="meal-items-prot">${escapeHtml(it.protein_g)} g prot.</span>` : '';
+        return `<li><span class="meal-items-item"><span>${escapeHtml(it.label)}</span><span class="meal-items-qty">${escapeHtml(qty)}</span></span><span class="meal-items-nut"><span>${escapeHtml(it.kcal)} kcal</span>${prot}</span></li>`;
+    }).join('');
+    return `<details class="meal-items"><summary>Détail des aliments (${entry.items.length})</summary><ul>${rows}</ul></details>`;
 }
 
 // Init (called by auth.js after authentication)

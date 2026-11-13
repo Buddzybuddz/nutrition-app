@@ -6543,3 +6543,16 @@ details[open] .advice-accordion-summary::after {
 .pg-week-seg i.is-out { border-color: transparent; background: var(--color-surface-2); }
 
 .pg-head-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+
+/* Détail par aliment d'un repas estimé par l'IA (historique du jour) */
+.meal-items { margin-top: 6px; font-size: 12px; }
+.meal-items > summary { cursor: pointer; color: var(--color-primary); font-weight: 600; list-style: none; }
+.meal-items > summary::-webkit-details-marker { display: none; }
+.meal-items > summary::after { content: ' ▾'; }
+.meal-items[open] > summary::after { content: ' ▴'; }
+.meal-items ul { list-style: none; margin: 6px 0 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.meal-items li { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; align-items: start; }
+.meal-items-item { display: flex; flex-direction: column; min-width: 0; color: var(--color-text); }
+.meal-items-qty { color: var(--color-text-3); }
+.meal-items-nut { display: flex; flex-direction: column; align-items: flex-end; color: var(--color-text-2); white-space: nowrap; }
+.meal-items-prot { color: var(--color-primary); font-weight: 600; }
