@@ -26,6 +26,15 @@
     function showPaywall() {
         var overlay = document.getElementById('paywall-overlay');
         if (overlay) overlay.classList.remove('hidden');
+        var consent = document.getElementById('paywall-consent');
+        if (consent) consent.checked = false;
+        syncSubscribe();
+    }
+
+    /* Le bouton « S'abonner » n'est actif qu'une fois la case cochée */
+    function syncSubscribe() {
+        var consent = document.getElementById('paywall-consent'), btn = document.getElementById('paywall-subscribe-btn');
+        if (btn && consent) btn.disabled = !consent.checked;
     }
 
     function hidePaywall() {
@@ -49,14 +58,17 @@
 
         /* Bouton S'abonner */
         var subBtn = document.getElementById('paywall-subscribe-btn');
+        var consentBox = document.getElementById('paywall-consent');
+        if (consentBox) consentBox.addEventListener('change', syncSubscribe);
         if (subBtn) {
             subBtn.addEventListener('click', async function() {
+                if (consentBox && !consentBox.checked) return;
                 subBtn.disabled    = true;
                 subBtn.textContent = 'Redirection…';
                 if (typeof window.stripeStartCheckout === 'function') {
                     await window.stripeStartCheckout();
                 }
-                subBtn.disabled    = false;
+                syncSubscribe();
                 subBtn.textContent = 'S\'abonner — 5,99 €/mois';
             });
         }

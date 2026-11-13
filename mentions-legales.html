@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mentions légales — NutriDash</title>
+    <meta name="robots" content="noindex">
+    <link rel="icon" type="image/png" href="Images/Logos/icon-192.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="Images/Logos/apple-touch-icon.png">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --green:       #2D6A4F;
+            --green-light: #D8F3DC;
+            --terracotta:  #E07A5F;
+            --bg:          #F8F6F0;
+            --surface:     #FFFFFF;
+            --border:      #E4E0D8;
+            --text-1:      #1A1A1A;
+            --text-2:      #4A4A4A;
+            --text-3:      #888880;
+            --radius:      14px;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text-1);
+            line-height: 1.7;
+            min-height: 100vh;
+        }
+
+        /* Header */
+        .legal-header {
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            padding: 0 24px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .legal-logo {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--text-1);
+            text-decoration: none;
+        }
+
+        .legal-logo span { color: var(--green); }
+
+        .legal-back {
+            font-family: 'Inter', sans-serif;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--green);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .legal-back:hover { opacity: 0.75; }
+
+        /* Container */
+        .legal-container {
+            max-width: 760px;
+            margin: 0 auto;
+            padding: 48px 24px 80px;
+        }
+
+        /* Hero */
+        .legal-hero {
+            margin-bottom: 48px;
+        }
+
+        .legal-badge {
+            display: inline-block;
+            background: var(--green-light);
+            color: var(--green);
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 4px 12px;
+            border-radius: 99px;
+            margin-bottom: 16px;
+        }
+
+        .legal-hero h1 {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--text-1);
+            margin-bottom: 12px;
+            line-height: 1.2;
+        }
+
+        .legal-hero .legal-date {
+            font-size: 13px;
+            color: var(--text-3);
+        }
+
+        /* Card */
+        .legal-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 32px;
+            margin-bottom: 16px;
+        }
+
+        .legal-card h2 {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: var(--green);
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .legal-card h3 {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--text-1);
+            margin: 20px 0 8px;
+        }
+
+        .legal-card p {
+            font-size: 0.9rem;
+            color: var(--text-2);
+            margin-bottom: 12px;
+        }
+
+        .legal-card p:last-child { margin-bottom: 0; }
+
+        .legal-card ul {
+            padding-left: 20px;
+            margin-bottom: 12px;
+        }
+
+        .legal-card ul li {
+            font-size: 0.9rem;
+            color: var(--text-2);
+            margin-bottom: 6px;
+        }
+
+        .legal-card strong { color: var(--text-1); }
+
+        /* Highlight box */
+        .legal-highlight {
+            background: var(--green-light);
+            border-left: 3px solid var(--green);
+            border-radius: 0 8px 8px 0;
+            padding: 14px 16px;
+            margin: 16px 0;
+            font-size: 0.875rem;
+            color: var(--green);
+            font-weight: 500;
+        }
+
+        /* Price tag */
+        .legal-price {
+            display: inline-flex;
+            align-items: baseline;
+            gap: 4px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 8px 16px;
+            margin: 12px 0;
+        }
+
+        .legal-price .amount {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--text-1);
+        }
+
+        .legal-price .period {
+            font-size: 0.875rem;
+            color: var(--text-3);
+        }
+
+        /* Contact card */
+        .legal-contact {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 24px 32px;
+            margin-top: 32px;
+            text-align: center;
+        }
+
+        .legal-contact p {
+            font-size: 0.875rem;
+            color: var(--text-2);
+            margin-bottom: 8px;
+        }
+
+        .legal-contact a {
+            color: var(--green);
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+        .legal-contact a:hover { text-decoration: underline; }
+
+        /* FAQ accordion */
+        .legal-faq {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 28px 32px;
+            margin-bottom: 32px;
+        }
+
+        .legal-faq-title {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: var(--text-1);
+            margin-bottom: 20px;
+        }
+
+        .faq-item {
+            border-bottom: 1px solid var(--border);
+        }
+
+        .faq-item:last-child { border-bottom: none; }
+
+        .faq-q {
+            width: 100%;
+            background: none;
+            border: none;
+            padding: 16px 0;
+            text-align: left;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text-1);
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .faq-q::after {
+            content: '+';
+            font-size: 1.2rem;
+            font-weight: 400;
+            color: var(--green);
+            flex-shrink: 0;
+            transition: transform 0.2s;
+        }
+
+        .faq-q[aria-expanded="true"]::after {
+            transform: rotate(45deg);
+        }
+
+        .faq-a {
+            display: none;
+            padding: 0 0 16px;
+        }
+
+        .faq-a.open { display: block; }
+
+        .faq-a p {
+            font-size: 0.875rem;
+            color: var(--text-2);
+            line-height: 1.65;
+        }
+
+        /* Footer */
+        .legal-footer {
+            text-align: center;
+            padding: 32px 24px;
+            border-top: 1px solid var(--border);
+            font-size: 12px;
+            color: var(--text-3);
+        }
+
+        @media (max-width: 600px) {
+            .legal-hero h1 { font-size: 1.5rem; }
+            .legal-card { padding: 20px; }
+            .legal-container { padding: 32px 16px 64px; }
+        }
+    </style>
+</head>
+<body>
+
+<header class="legal-header">
+    <a href="index.html" class="legal-logo">Nutri<span>Dash</span></a>
+    <a href="javascript:history.back()" class="legal-back">← Retour</a>
+</header>
+
+<div class="legal-container">
+
+    <div class="legal-hero">
+        <span class="legal-badge">Document légal</span>
+        <h1>Mentions légales</h1>
+        <p class="legal-date">Dernière mise à jour : novembre 2026</p>
+    </div>
+
+    <div class="legal-card">
+        <h2>1. Éditeur du site</h2>
+        <p><strong>Jérémy Baudouin</strong>, entrepreneur individuel (micro-entrepreneur)<br>
+        Nom commercial : NutriDash<br>
+        45 Avenue Beethoven, 33160 Saint-Médard-en-Jalles, France<br>
+        SIRET : 908 382 898 00017<br>
+        TVA non applicable, art. 293 B du CGI<br>
+        E-mail : <a href="mailto:contact@nutridash.fr" style="color:var(--green);">contact@nutridash.fr</a></p>
+    </div>
+
+    <div class="legal-card">
+        <h2>2. Directeur de la publication</h2>
+        <p>Jérémy Baudouin, en sa qualité d'éditeur.</p>
+    </div>
+
+    <div class="legal-card">
+        <h2>3. Hébergement</h2>
+        <p><strong>Application et données (serveurs en région Paris) :</strong> Fly.io — <a href="https://fly.io" target="_blank" rel="noopener" style="color:var(--green);">fly.io</a></p>
+        <p><strong>Site (pages web) :</strong> GitHub Pages — GitHub, Inc., 88 Colin P. Kelly Jr. Street, San Francisco, CA 94107, États-Unis — <a href="https://pages.github.com" target="_blank" rel="noopener" style="color:var(--green);">pages.github.com</a></p>
+    </div>
+
+    <div class="legal-card">
+        <h2>4. Propriété intellectuelle</h2>
+        <p>L'ensemble des éléments de NutriDash (logo, design, code, textes, images) est la propriété de l'éditeur et protégé par le droit de la propriété intellectuelle. Toute reproduction ou utilisation sans autorisation écrite préalable est interdite.</p>
+    </div>
+
+    <div class="legal-card">
+        <h2>5. Données personnelles</h2>
+        <p>Le traitement de vos données personnelles est décrit dans la <a href="confidentialite.html" style="color:var(--green);font-weight:600;">Politique de Confidentialité</a>. Vous pouvez exercer vos droits en écrivant à <a href="mailto:contact@nutridash.fr" style="color:var(--green);">contact@nutridash.fr</a>.</p>
+    </div>
+
+    <div class="legal-card">
+        <h2>6. Conditions d'utilisation et de vente</h2>
+        <p>L'utilisation du service est régie par les <a href="cgu.html" style="color:var(--green);font-weight:600;">Conditions Générales d'Utilisation</a> et les <a href="cgv.html" style="color:var(--green);font-weight:600;">Conditions Générales de Vente</a>.</p>
+    </div>
+
+
+    <div class="legal-contact">
+        <p>Pour toute question :</p>
+        <a href="mailto:contact@nutridash.fr">contact@nutridash.fr</a>
+    </div>
+
+</div>
+
+<footer class="legal-footer">
+    &copy; 2026 NutriDash &nbsp;·&nbsp; <a href="cgu.html" style="color:inherit;">CGU</a> &nbsp;·&nbsp; <a href="cgv.html" style="color:inherit;">CGV</a> &nbsp;·&nbsp; <a href="confidentialite.html" style="color:inherit;">Confidentialité</a> &nbsp;·&nbsp; <a href="mentions-legales.html" style="color:inherit;">Mentions légales</a>
+</footer>
+</body>
+</html>

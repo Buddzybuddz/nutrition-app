@@ -6556,3 +6556,9 @@ details[open] .advice-accordion-summary::after {
 .meal-items-qty { color: var(--color-text-3); }
 .meal-items-nut { display: flex; flex-direction: column; align-items: flex-end; color: var(--color-text-2); white-space: nowrap; }
 .meal-items-prot { color: var(--color-primary); font-weight: 600; }
+
+/* Paywall : case d'accord (CGV, accès immédiat, renonciation à la rétractation) */
+.paywall-consent { font-weight: 400; display: flex; align-items: flex-start; gap: 10px; margin: 0 0 14px; text-align: left; font-size: 12.5px; line-height: 1.5; color: #4A4A4A; cursor: pointer; }
+.paywall-consent input { flex: none; width: 18px; height: 18px; margin: 1px 0 0; accent-color: var(--color-primary, #2D6A4F); cursor: pointer; }
+.paywall-consent a { color: var(--color-primary, #2D6A4F); }
+.paywall-btn-primary:disabled { cursor: not-allowed; }
