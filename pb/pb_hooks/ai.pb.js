@@ -203,7 +203,7 @@ routerAdd("POST", "/api/ai/estimate", (e) => {
         if (!words.length) return e.json(400, { error: "Précisez l'activité pratiquée (ex. : 45 min de vélo)." });
     }
 
-    var MEAL_RULES_VERSION = "v9"; /* à incrémenter quand les règles de décomposition changent */
+    var MEAL_RULES_VERSION = "v10"; /* à incrémenter quand les règles de décomposition changent */
     var cacheKey = type === "meal"
         ? "meal:" + MEAL_RULES_VERSION + ":" + (restaurant ? "resto:" : "") + norm(text)
         : "activity:w" + (Math.round(weight / 5) * 5) + ":" + norm(text);
@@ -330,8 +330,16 @@ routerAdd("POST", "/api/ai/estimate", (e) => {
                 "« measurable » si l'utilisateur a donné un poids (g, kg), un volume (ml, cl, dl, l), un nombre de " +
                 "cuillères (à soupe = 15 ml, à café = 5 ml), un nombre d'unités naturelles (œufs, fruits, yaourts…), " +
                 "un nombre de tranches ou de poignées ; « missing » s'il n'y a aucune quantité (ex. « du riz », " +
-                "« des légumes », « un peu de ») ; « container » si la quantité est un contenant ou une mesure non " +
-                "mesurable pour un aliment solide (bol, assiette, portion, part, morceau) ; " +
+                "« des légumes », « un peu de ») ; « container » si la quantité est un contenant non mesurable " +
+                "(bol, assiette, saladier, boîte) SANS précision de taille ou de poids ; " +
+                "PART D'UN PLAT : une part, portion ou morceau d'un plat ou d'une pâtisserie courante (pizza, tarte, quiche, gâteau, " +
+                "lasagnes, pain…) est « measurable » : estime le poids d'une part standard, amount = ce poids en grammes. " +
+                "Si le texte donne le découpage (« coupée en 8 »), poids de la part = poids standard du plat entier / nombre de parts " +
+                "(pizza artisanale ronde entière ≈ 800 g, tarte ou quiche ≈ 600 g, gâteau ≈ 700 g). Le plat reste UN seul aliment " +
+                "(« pizza », pas sa pâte seule) ; un ingrédient ajouté avec sa propre quantité (« avec 10 g de jambon ») est une ligne à part. " +
+                "MÉLANGE : quand UNE seule quantité s'applique à un mélange, une salade ou une liste d'aliments " +
+                "(ex. « 50 g de mélange tomates concombre feta »), répartis ce poids total à parts égales entre les composants : " +
+                "chacun est « measurable », quantity_text = « 50 g (mélange) », amount = poids total / nombre de composants. " +
                 "« volume_missing » pour une boisson servie « au verre » (ou tasse, bol de liquide) dont la contenance " +
                 "en cl ou ml n'est PAS donnée (ex. « 2 verres de ricard », « un verre de vin ») ; " +
                 "« mixer_missing » pour un alcool fort au verre dont le diluant (eau ou soda) n'est PAS mentionné " +
@@ -406,6 +414,31 @@ routerAdd("POST", "/api/ai/estimate", (e) => {
                 };
             };
             var textNorm = norm(text);
+
+            /* Garde « mélange » : une seule quantité pour plusieurs aliments sans quantité => poids réparti à parts égales */
+            if (!restaurant && /\b(melange|mix|salade|macedoine|assortiment)\b/.test(textNorm)) {
+                var withQty = [], noQty = [];
+                plan.items.slice(0, MAX_ITEMS).forEach(function (it) {
+                    var g0 = givenOf(it);
+                    if (g0.k !== null || g0.p !== null) { withQty.push(null); return; } /* valeurs données : pas concerné */
+                    if (it.quantity_status === "measurable" && Number(it.amount) > 0) withQty.push(it);
+                    else if (it.quantity_status === "missing" && !String(it.quantity_text || "").trim()) noQty.push(it);
+                    else withQty.push(null);
+                });
+                var holders = withQty.filter(function (x) { return x; });
+                if (holders.length === 1 && noQty.length >= 1 && withQty.length === 1) {
+                    var each = Number(holders[0].amount) / (noQty.length + 1);
+                    var label0 = String(holders[0].quantity_text || "").trim() || (Math.round(Number(holders[0].amount)) + " g");
+                    holders[0].amount = each;
+                    holders[0].quantity_text = label0 + " (mélange)";
+                    noQty.forEach(function (it) {
+                        it.quantity_status = "measurable";
+                        it.amount = each;
+                        it.unit = holders[0].unit;
+                        it.quantity_text = label0 + " (mélange)";
+                    });
+                }
+            }
             var MIXER_RE = /\b(eau|soda|coca|cola|limonade|tonic|sprite|orangina|schweppes|perrier|badoit|evian|fanta|7up|jus|sirop|ginger|redbull|red bull|energy|gazeuse)\b/;
             plan.items.slice(0, MAX_ITEMS).forEach(function (it) {
                 var nm = String(it.name || "").trim().toLowerCase();
